@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# piago-dls-2026 — launch the `pi` coding agent against the DLS-2026 class
+# inference endpoint (Qwen3.8-27B, OpenAI-compatible, served via LiteLLM -> 8x SGLang).
+#
+# The endpoint is reachable over the PUBLIC internet — no VPN, no Tailscale.
+#   Base URL:  http://209.182.219.81:4010/v1
+#   Model:     qwen3.8-27b   (exposed to pi as dls-2026/qwen3.8-27b)
+#   Auth:      Authorization: Bearer <key>   (default key: DLS-2026)
+#
+# Usage:
+#   piago-dls-2026                              # interactive TUI
+#   piago-dls-2026 "explain a hash table"       # interactive with initial prompt
+#   piago-dls-2026 -p "explain this"            # non-interactive (print & exit)
+#   piago-dls-2026 --model dls-2026/qwen3.8-27b # explicit model (this is the default)
+#
+# Environment overrides:
+#   DLS_2026_API_KEY   bearer key for the endpoint          (default: DLS-2026)
+#   DLS_2026_HOST      endpoint host                        (default: 209.182.219.81)
+#   DLS_2026_PORT      endpoint port                        (default: 4010)
+#   PIAGO_DLS_NO_PROBE=1   skip the pre-flight health check
+#
+# NOTE: this endpoint is plain HTTP secured only by the bearer key. Treat the key
+# as a shared class secret — do not post it publicly.
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Make user-local and nvm-installed pi/node discoverable from any shell.
+# ---------------------------------------------------------------------------
+export PATH="$HOME/.local/bin:$HOME/.local/node_modules/.bin:${PATH}"
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+_node_major() { node -v 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/' || true; }
+
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  nm="$(_node_major)"
+  if ! command -v pi >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 || [ -z "$nm" ] || [ "$nm" -lt 22 ]; then
+    # shellcheck disable=SC1090
+    . "$NVM_DIR/nvm.sh"
+    nvm ls 24 >/dev/null 2>&1 && nvm use 24 >/dev/null 2>&1 || true
+  fi
+fi
+if ! command -v pi >/dev/null 2>&1; then
+  NVM_PI_BIN="$(ls -d "$HOME"/.nvm/versions/node/*/bin 2>/dev/null | sort -V | tail -1 || true)"
+  [ -n "${NVM_PI_BIN}" ] && export PATH="${NVM_PI_BIN}:${PATH}"
+fi
+if ! command -v pi >/dev/null 2>&1; then
+  echo "Error: pi CLI not found. Install it with:" >&2
+  echo "  npm install -g @earendil-works/pi-coding-agent" >&2
+  echo "Then re-run: piago-dls-2026" >&2
+  exit 127
+fi
+
+# ---------------------------------------------------------------------------
+# Endpoint configuration (PUBLIC IP — not Tailscale, not LAN).
+# ---------------------------------------------------------------------------
+DLS_2026_HOST="${DLS_2026_HOST:-209.182.219.81}"
+DLS_2026_PORT="${DLS_2026_PORT:-4010}"
+DLS_2026_API_KEY="${DLS_2026_API_KEY:-DLS-2026}"
+export DLS_2026_API_KEY   # consumed by models.json via ${DLS_2026_API_KEY}
+
+BASE_URL="http://${DLS_2026_HOST}:${DLS_2026_PORT}/v1"
+
+PROVIDER="dls-2026"
+MODEL="dls-2026/qwen3.8-27b"
+
+# ---------------------------------------------------------------------------
+# Ensure the dls-2026 provider is registered in pi's models.json.
+# We merge our provider block into ~/.pi/agent/models.json without clobbering
+# any providers the user already configured.
+# ---------------------------------------------------------------------------
+AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
+MODELS_JSON="${AGENT_DIR}/models.json"
+mkdir -p "$AGENT_DIR"
+
+_provider_block() {
+  cat <<JSON
+{
+  "baseUrl": "${BASE_URL}",
+  "api": "openai-completions",
+  "apiKey": "\${DLS_2026_API_KEY}",
+  "models": [
+    {
+      "id": "qwen3.8-27b",
+      "name": "Qwen3.8-27B (DLS-2026)",
+      "input": ["text"],
+      "contextWindow": 262144,
+      "maxOutputTokens": 32768,
+      "reasoning": true,
+      "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+    }
+  ]
+}
+JSON
+}
+
+if command -v node >/dev/null 2>&1; then
+  PROV_BLOCK="$(_provider_block)" node - "$MODELS_JSON" <<'NODE'
+const fs = require("fs");
+const path = process.argv[2];
+const block = JSON.parse(process.env.PROV_BLOCK);
+let cfg = { providers: {} };
+try {
+  const raw = fs.readFileSync(path, "utf8").trim();
+  if (raw) cfg = JSON.parse(raw);
+} catch (_) { /* start fresh */ }
+if (!cfg || typeof cfg !== "object") cfg = {};
+if (!cfg.providers || typeof cfg.providers !== "object") cfg.providers = {};
+cfg.providers["dls-2026"] = block;
+fs.writeFileSync(path, JSON.stringify(cfg, null, 2) + "\n");
+NODE
+else
+  # Fallback: only write if there is no existing models.json to avoid clobbering.
+  if [ ! -f "$MODELS_JSON" ]; then
+    printf '{\n  "providers": {\n    "dls-2026": %s\n  }\n}\n' "$(_provider_block)" > "$MODELS_JSON"
+  else
+    echo "Warning: node not found; leaving existing ${MODELS_JSON} untouched." >&2
+    echo "         If pi cannot find the dls-2026 provider, install the bundled models.json manually." >&2
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Pre-flight health probe (warn only, don't block).
+# ---------------------------------------------------------------------------
+if [ "${PIAGO_DLS_NO_PROBE:-0}" != "1" ]; then
+  if ! curl -s --connect-timeout 3 -m 6 \
+        -H "Authorization: Bearer ${DLS_2026_API_KEY}" \
+        "${BASE_URL}/models" >/dev/null 2>&1; then
+    echo "Warning: DLS-2026 endpoint not responding at ${BASE_URL}" >&2
+    echo "  - This endpoint is PUBLIC (no VPN/Tailscale needed); check your internet." >&2
+    echo "  - Health check: curl http://${DLS_2026_HOST}:${DLS_2026_PORT}/health/liveliness" >&2
+    echo "  - Contact Rick Stevens if the endpoint is down or the key changed." >&2
+    echo "" >&2
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Let explicit --provider / --model flags win over our defaults.
+# ---------------------------------------------------------------------------
+HAS_PROVIDER=false
+HAS_MODEL=false
+for arg in "$@"; do
+  case "$arg" in
+    --provider) HAS_PROVIDER=true ;;
+    --model|-m) HAS_MODEL=true ;;
+  esac
+done
+
+EXTRA_ARGS=()
+$HAS_PROVIDER || EXTRA_ARGS+=(--provider "$PROVIDER")
+$HAS_MODEL    || EXTRA_ARGS+=(--model "$MODEL")
+
+exec pi "${EXTRA_ARGS[@]}" "$@"

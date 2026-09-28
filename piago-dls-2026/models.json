@@ -1,0 +1,25 @@
+{
+  "providers": {
+    "dls-2026": {
+      "baseUrl": "http://209.182.219.81:4010/v1",
+      "api": "openai-completions",
+      "apiKey": "${DLS_2026_API_KEY}",
+      "models": [
+        {
+          "id": "qwen3.8-27b",
+          "name": "Qwen3.8-27B (DLS-2026)",
+          "input": ["text"],
+          "contextWindow": 262144,
+          "maxOutputTokens": 32768,
+          "reasoning": true,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          }
+        }
+      ]
+    }
+  }
+}
