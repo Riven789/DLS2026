@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: letter; margin: 0.4in; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 7.6px;
+    color: #1a1a2e;
+    line-height: 1.35;
+  }
+  .header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    border-bottom: 2.5px solid #6c3fc5; padding-bottom: 4px; margin-bottom: 8px;
+  }
+  .header h1 { font-size: 18px; color: #6c3fc5; letter-spacing: -0.5px; }
+  .header .sub { font-size: 8px; color: #777; }
+  .cols { column-count: 3; column-gap: 10px; }
+  .card {
+    break-inside: avoid; margin-bottom: 8px; border: 1px solid #e3ddf0;
+    border-radius: 5px; overflow: hidden;
+  }
+  .card h2 {
+    font-size: 8.5px; background: #6c3fc5; color: #fff;
+    padding: 3px 6px; letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .card.alt h2 { background: #2d9c6f; }
+  .card.alt2 h2 { background: #c5643f; }
+  .card.alt3 h2 { background: #3f6fc5; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 1.6px 6px; vertical-align: top; border-top: 1px solid #f0ecf7; }
+  tr:first-child td { border-top: none; }
+  td.k { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; color: #6c3fc5; font-weight: 600; width: 42%; }
+  .alt td.k { color: #2d9c6f; }
+  .alt2 td.k { color: #c5643f; }
+  .alt3 td.k { color: #3f6fc5; }
+  td.d { color: #333; }
+  .footer { margin-top: 6px; text-align: center; font-size: 6.5px; color: #999; border-top: 1px solid #e3ddf0; padding-top: 4px; }
+  code { font-family: "SF Mono", Menlo, monospace; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>pi &mdash; Cheat Sheet</h1>
+    <div class="sub">AI coding assistant &middot; CLI, slash commands &amp; hotkeys</div>
+  </div>
+
+  <div class="cols">
+
+    <!-- CLI BASICS -->
+    <div class="card">
+      <h2>CLI &mdash; Getting Started</h2>
+      <table>
+        <tr><td class="k">pi</td><td class="d">Start interactive session</td></tr>
+        <tr><td class="k">pi "msg"</td><td class="d">Start with a prompt</td></tr>
+        <tr><td class="k">pi @file.js "fix"</td><td class="d">Attach file(s) to prompt</td></tr>
+        <tr><td class="k">pi -p "msg"</td><td class="d">Non-interactive, print &amp; exit</td></tr>
+        <tr><td class="k">pi -c</td><td class="d">Continue previous session</td></tr>
+        <tr><td class="k">pi -r</td><td class="d">Resume: pick a session</td></tr>
+        <tr><td class="k">pi -v</td><td class="d">Show version</td></tr>
+        <tr><td class="k">pi -h</td><td class="d">Show help</td></tr>
+      </table>
+    </div>
+
+    <!-- CLI SESSIONS -->
+    <div class="card">
+      <h2>CLI &mdash; Sessions</h2>
+      <table>
+        <tr><td class="k">--session &lt;id&gt;</td><td class="d">Use specific session file/UUID</td></tr>
+        <tr><td class="k">--fork &lt;id&gt;</td><td class="d">Fork session into new one</td></tr>
+        <tr><td class="k">--no-session</td><td class="d">Ephemeral (don't save)</td></tr>
+        <tr><td class="k">-n &lt;name&gt;</td><td class="d">Set session display name</td></tr>
+        <tr><td class="k">--export &lt;f&gt;</td><td class="d">Export session to HTML</td></tr>
+      </table>
+    </div>
+
+    <!-- CLI MODELS -->
+    <div class="card">
+      <h2>CLI &mdash; Models &amp; Thinking</h2>
+      <table>
+        <tr><td class="k">--provider &lt;n&gt;</td><td class="d">Provider (default google)</td></tr>
+        <tr><td class="k">--model &lt;pat&gt;</td><td class="d">Model pattern or ID</td></tr>
+        <tr><td class="k">--models &lt;p,p&gt;</td><td class="d">Patterns for Ctrl+P cycling</td></tr>
+        <tr><td class="k">--thinking &lt;lvl&gt;</td><td class="d">off/low/medium/high/max</td></tr>
+        <tr><td class="k">--list-models</td><td class="d">List available models</td></tr>
+        <tr><td class="k">--api-key &lt;k&gt;</td><td class="d">API key (else env vars)</td></tr>
+      </table>
+    </div>
+
+    <!-- CLI TOOLS -->
+    <div class="card">
+      <h2>CLI &mdash; Tools &amp; Extensions</h2>
+      <table>
+        <tr><td class="k">-t &lt;tools&gt;</td><td class="d">Allowlist of tools to enable</td></tr>
+        <tr><td class="k">-xt &lt;tools&gt;</td><td class="d">Denylist of tools to disable</td></tr>
+        <tr><td class="k">-nt</td><td class="d">Disable all tools</td></tr>
+        <tr><td class="k">-e &lt;path&gt;</td><td class="d">Load an extension</td></tr>
+        <tr><td class="k">--skill &lt;path&gt;</td><td class="d">Load a skill</td></tr>
+        <tr><td class="k">--theme &lt;path&gt;</td><td class="d">Load a theme</td></tr>
+        <tr><td class="k">-a</td><td class="d">Trust project-local files</td></tr>
+      </table>
+    </div>
+
+    <!-- CLI SUBCOMMANDS -->
+    <div class="card">
+      <h2>CLI &mdash; Subcommands</h2>
+      <table>
+        <tr><td class="k">pi install &lt;src&gt;</td><td class="d">Install extension</td></tr>
+        <tr><td class="k">pi remove &lt;src&gt;</td><td class="d">Remove extension</td></tr>
+        <tr><td class="k">pi update</td><td class="d">Update pi / extensions</td></tr>
+        <tr><td class="k">pi list</td><td class="d">List installed extensions</td></tr>
+        <tr><td class="k">pi config</td><td class="d">Enable/disable resources</td></tr>
+        <tr><td class="k">pi auth &lt;cmd&gt;</td><td class="d">Print credentials</td></tr>
+      </table>
+    </div>
+
+    <!-- SLASH: SESSION -->
+    <div class="card alt">
+      <h2>Slash &mdash; Sessions</h2>
+      <table>
+        <tr><td class="k">/new</td><td class="d">Start a new session</td></tr>
+        <tr><td class="k">/resume</td><td class="d">Pick a previous session</td></tr>
+        <tr><td class="k">/session</td><td class="d">Info: file, ID, tokens, cost</td></tr>
+        <tr><td class="k">/name &lt;n&gt;</td><td class="d">Set display name</td></tr>
+        <tr><td class="k">/tree</td><td class="d">Jump to any point, continue</td></tr>
+        <tr><td class="k">/fork</td><td class="d">New session from a message</td></tr>
+        <tr><td class="k">/clone</td><td class="d">Duplicate active branch</td></tr>
+        <tr><td class="k">/trust</td><td class="d">Save project trust decision</td></tr>
+      </table>
+    </div>
+
+    <!-- SLASH: CONTEXT -->
+    <div class="card alt">
+      <h2>Slash &mdash; Context &amp; Export</h2>
+      <table>
+        <tr><td class="k">/compact [p]</td><td class="d">Compact context, opt. prompt</td></tr>
+        <tr><td class="k">/copy</td><td class="d">Copy last reply to clipboard</td></tr>
+        <tr><td class="k">/export [f]</td><td class="d">Export to HTML or JSONL</td></tr>
+        <tr><td class="k">/import &lt;f&gt;</td><td class="d">Import &amp; resume from JSONL</td></tr>
+        <tr><td class="k">/share</td><td class="d">Upload as private gist link</td></tr>
+        <tr><td class="k">/reload</td><td class="d">Reload config &amp; extensions</td></tr>
+      </table>
+    </div>
+
+    <!-- SLASH: CONFIG -->
+    <div class="card alt">
+      <h2>Slash &mdash; Config</h2>
+      <table>
+        <tr><td class="k">/model</td><td class="d">Switch models</td></tr>
+        <tr><td class="k">/scoped-models</td><td class="d">Models for Ctrl+P cycling</td></tr>
+        <tr><td class="k">/settings</td><td class="d">Thinking, theme, delivery</td></tr>
+        <tr><td class="k">/login /logout</td><td class="d">Manage credentials</td></tr>
+        <tr><td class="k">/hotkeys</td><td class="d">Show all shortcuts</td></tr>
+        <tr><td class="k">/changelog</td><td class="d">Version history</td></tr>
+        <tr><td class="k">/quit</td><td class="d">Quit pi</td></tr>
+        <tr><td class="k">/skill:name</td><td class="d">Invoke a skill</td></tr>
+      </table>
+    </div>
+
+    <!-- HOTKEYS: GENERAL -->
+    <div class="card alt2">
+      <h2>Hotkeys &mdash; Application</h2>
+      <table>
+        <tr><td class="k">Esc</td><td class="d">Cancel / abort</td></tr>
+        <tr><td class="k">Ctrl+C</td><td class="d">Clear editor / copy selection</td></tr>
+        <tr><td class="k">Ctrl+D</td><td class="d">Exit (editor empty)</td></tr>
+        <tr><td class="k">Ctrl+Z</td><td class="d">Suspend to background</td></tr>
+        <tr><td class="k">Ctrl+G</td><td class="d">Open external editor</td></tr>
+        <tr><td class="k">Ctrl+V</td><td class="d">Paste image from clipboard</td></tr>
+        <tr><td class="k">Enter</td><td class="d">Submit input</td></tr>
+        <tr><td class="k">Shift+Enter</td><td class="d">New line</td></tr>
+      </table>
+    </div>
+
+    <!-- HOTKEYS: MODELS/DISPLAY -->
+    <div class="card alt2">
+      <h2>Hotkeys &mdash; Models &amp; View</h2>
+      <table>
+        <tr><td class="k">Ctrl+L</td><td class="d">Open model selector</td></tr>
+        <tr><td class="k">Ctrl+P</td><td class="d">Cycle to next model</td></tr>
+        <tr><td class="k">Shift+Ctrl+P</td><td class="d">Cycle to previous model</td></tr>
+        <tr><td class="k">Shift+Tab</td><td class="d">Cycle thinking level</td></tr>
+        <tr><td class="k">Ctrl+T</td><td class="d">Collapse/expand thinking</td></tr>
+        <tr><td class="k">Ctrl+O</td><td class="d">Collapse/expand tool output</td></tr>
+        <tr><td class="k">Ctrl+X</td><td class="d">Copy last assistant message</td></tr>
+      </table>
+    </div>
+
+    <!-- HOTKEYS: QUEUE/EDIT -->
+    <div class="card alt2">
+      <h2>Hotkeys &mdash; Queue &amp; Editing</h2>
+      <table>
+        <tr><td class="k">Alt+Enter</td><td class="d">Queue follow-up message</td></tr>
+        <tr><td class="k">Alt+Up</td><td class="d">Restore queued to editor</td></tr>
+        <tr><td class="k">Ctrl+W</td><td class="d">Delete word backward</td></tr>
+        <tr><td class="k">Ctrl+U</td><td class="d">Delete to line start</td></tr>
+        <tr><td class="k">Ctrl+K</td><td class="d">Delete to line end</td></tr>
+        <tr><td class="k">Ctrl+Y</td><td class="d">Yank (paste deleted)</td></tr>
+        <tr><td class="k">Ctrl+A / Ctrl+E</td><td class="d">Line start / end</td></tr>
+        <tr><td class="k">Ctrl+&minus;</td><td class="d">Undo last edit</td></tr>
+      </table>
+    </div>
+
+    <!-- BUILT-IN TOOLS -->
+    <div class="card alt3">
+      <h2>Built-in Tools</h2>
+      <table>
+        <tr><td class="k">read</td><td class="d">Read file contents</td></tr>
+        <tr><td class="k">bash</td><td class="d">Execute bash commands</td></tr>
+        <tr><td class="k">edit</td><td class="d">Edit files (find/replace)</td></tr>
+        <tr><td class="k">write</td><td class="d">Write / overwrite files</td></tr>
+        <tr><td class="k">grep</td><td class="d">Search contents (off default)</td></tr>
+        <tr><td class="k">find</td><td class="d">Find files by glob (off def.)</td></tr>
+        <tr><td class="k">ls</td><td class="d">List directory (off default)</td></tr>
+      </table>
+    </div>
+
+    <!-- ENV -->
+    <div class="card alt3">
+      <h2>Key Env Vars</h2>
+      <table>
+        <tr><td class="k">PI_CODING_AGENT_DIR</td><td class="d">Config dir (~/.pi/agent)</td></tr>
+        <tr><td class="k">..._SESSION_DIR</td><td class="d">Session storage dir</td></tr>
+        <tr><td class="k">PI_OFFLINE</td><td class="d">Disable startup network ops</td></tr>
+        <tr><td class="k">PI_TELEMETRY</td><td class="d">Toggle install telemetry</td></tr>
+        <tr><td class="k">EDITOR / VISUAL</td><td class="d">External editor (Ctrl+G)</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Customize keybindings in <code>~/.pi/agent/keybindings.json</code> &middot; run <code>/reload</code> to apply &middot; Type <code>/</code> in editor for commands
+  </div>
+</body>
+</html>

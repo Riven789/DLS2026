@@ -1,0 +1,1030 @@
+#!/usr/bin/env python3
+# bin/pi — a deterministic MOCK of the `pi` agent CLI, for offline runs of the
+# "Vibe Coding with the Pi Agent Loop" examples.
+#
+# This is NOT the real agent and it calls no model. It pattern-matches the
+# tutorial's prompts and writes the files a competent agent run would plausibly
+# produce — including deliberate first-attempt bugs where the tutorial's point
+# is watching the LOOP catch and fix them (Problems 3, 4, 5, 6, 8, 10).
+# That makes every run.sh reproducible and lets EXPECTED_OUTPUT.md mean
+# something. The shell harnesses around it are the PDF's code, unmodified.
+#
+# To run against a REAL pi instead: delete/skip the `export PATH=...bin...`
+# line in a run.sh (see README.md). The snippets themselves are unchanged.
+#
+# State: .pi_mock_state.json in the invoking directory (attempt counters +
+# session ids). ~/.pi/... writes (Problem 8) are redirected to $PI_MOCK_HOME
+# if set, so the mock never touches your real ~/.pi.
+
+import json
+import pathlib
+import re
+import subprocess
+import sys
+
+CWD = pathlib.Path.cwd()
+STATE = CWD / ".pi_mock_state.json"
+
+
+# ----------------------------------------------------------------- utilities
+def _load():
+    if STATE.exists():
+        try:
+            return json.loads(STATE.read_text())
+        except json.JSONDecodeError:
+            pass
+    return {"counters": {}, "sessions": []}
+
+
+def _save(st):
+    STATE.write_text(json.dumps(st, indent=1))
+
+
+def bump(key):
+    st = _load()
+    st["counters"][key] = st["counters"].get(key, 0) + 1
+    _save(st)
+    return st["counters"][key]
+
+
+def new_session():
+    st = _load()
+    sid = "s-%04d" % (len(st["sessions"]) + 1)
+    st["sessions"].append(sid)
+    _save(st)
+    return sid
+
+
+def say(msg):
+    print("[pi] " + msg)
+    sys.stdout.flush()
+
+
+def write(relpath, content, note=None):
+    p = CWD / relpath
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(content)
+    say("wrote %s%s" % (relpath, (" — " + note) if note else ""))
+
+
+def sh(cmd, cwd=None):
+    return subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
+
+
+def pi_home():
+    import os
+    base = os.environ.get("PI_MOCK_HOME") or os.path.expanduser("~")
+    return pathlib.Path(base)
+
+
+# ====================================================================
+# Problem 1 — slurm_gpu_hours.py
+# ====================================================================
+SLURM = r'''#!/usr/bin/env python3
+"""slurm_gpu_hours.py — per-user GPU-hours from a sacct CSV dump.
+
+Columns expected: JobID,User,Elapsed,AllocTRES  (TRES carries gres/gpu=N).
+Elapsed is [DD-]HH:MM:SS. Rows without a gpu allocation count as 0.
+stdlib only.
+"""
+import csv
+import re
+import sys
+from collections import defaultdict
+
+
+def parse_elapsed(s):
+    """[DD-]HH:MM:SS -> hours (float)."""
+    s = (s or "").strip()
+    if not s:
+        return 0.0
+    days = 0
+    if "-" in s:
+        d, s = s.split("-", 1)
+        days = int(d)
+    parts = s.split(":")
+    while len(parts) < 3:
+        parts.insert(0, "0")
+    h, m, sec = (int(p) for p in parts)
+    return days * 24.0 + h + m / 60.0 + sec / 3600.0
+
+
+def gpus_from_tres(tres):
+    """N from gres/gpu=N or gres/gpu:type=N; 0 if absent."""
+    m = re.search(r"gres/gpu[^=,]*=(\d+)", tres or "")
+    return int(m.group(1)) if m else 0
+
+
+def main(argv):
+    if len(argv) != 2:
+        print("usage: python slurm_gpu_hours.py SACCT_CSV")
+        return 1
+    totals = defaultdict(float)
+    with open(argv[1], newline="") as f:
+        for row in csv.DictReader(f):
+            totals[row.get("User", "?")] += (
+                gpus_from_tres(row.get("AllocTRES", ""))
+                * parse_elapsed(row.get("Elapsed", ""))
+            )
+    width = max([len(u) for u in totals] + [4])
+    print(f"{'User':<{width}}  {'GPU-hours':>10}")
+    print(f"{'-' * width}  {'-' * 10}")
+    for user, gh in sorted(totals.items(), key=lambda kv: -kv[1]):
+        print(f"{user:<{width}}  {gh:>10.2f}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
+'''
+
+
+def h_slurm(prompt, m):
+    write("slurm_gpu_hours.py", SLURM,
+          "stdlib csv+re; usage line on no arg; gres/gpu:type=N handled")
+    say("try: python slurm_gpu_hours.py <sacct.csv>")
+
+
+# ====================================================================
+# Problem 2 — roofline.py + its own tests, run before reporting done
+# ====================================================================
+ROOFLINE = '''"""roofline.py — arithmetic intensity and roofline attainable performance."""
+
+
+def arithmetic_intensity(flops, bytes_moved):
+    """FLOPs per byte of memory traffic."""
+    if bytes_moved <= 0:
+        raise ValueError("bytes_moved must be positive")
+    return flops / bytes_moved
+
+
+def attainable_gflops(ai, peak_gflops, mem_bw_gbs):
+    """Roofline: min(peak compute, bandwidth * arithmetic intensity)."""
+    return min(peak_gflops, ai * mem_bw_gbs)
+'''
+
+ROOFLINE_TEST = '''import pytest
+
+from roofline import arithmetic_intensity, attainable_gflops
+
+
+def test_saxpy_ai():
+    # y = a*x + y over n float64: 2n flops, 3*8n bytes (read x, read y, write y)
+    n = 1_000_000
+    assert arithmetic_intensity(2 * n, 3 * 8 * n) == pytest.approx(1 / 12)
+
+
+def test_gemm_ai():
+    # C = A@B, n x n float64: 2n^3 flops, ~3*8n^2 bytes minimum traffic
+    n = 512
+    assert arithmetic_intensity(2 * n**3, 3 * 8 * n**2) == pytest.approx(n / 12)
+
+
+def test_ridge_point():
+    # ridge ai* = peak/bw: memory-bound below it, compute-bound above it
+    peak, bw = 100.0, 10.0
+    ridge = peak / bw
+    assert attainable_gflops(ridge, peak, bw) == pytest.approx(peak)
+    assert attainable_gflops(0.5 * ridge, peak, bw) == pytest.approx(peak / 2)
+    assert attainable_gflops(2.0 * ridge, peak, bw) == pytest.approx(peak)
+
+
+def test_zero_bytes_raises():
+    with pytest.raises(ValueError):
+        arithmetic_intensity(100.0, 0)
+'''
+
+
+def h_roofline(prompt, m):
+    write("roofline.py", ROOFLINE, "AI + attainable GFLOP/s (roofline min)")
+    write("test_roofline.py", ROOFLINE_TEST,
+          "SAXPY AI, GEMM AI, ridge point, div-by-zero")
+    say("running pytest -q myself before reporting done:")
+    r = sh([sys.executable, "-m", "pytest", "-q"])
+    sys.stdout.write(r.stdout)
+    if r.returncode == 0:
+        say("done — pytest is green")
+    else:
+        sys.stdout.write(r.stderr)
+        say("tests are red; fixing before finishing (mock: unexpected)")
+        return 1
+
+
+# ====================================================================
+# Problem 3 — stencil: buggy first attempt, fixed on the second pass
+# ====================================================================
+STENCIL_BUGGY = '''"""5-point stencil — attempt 1."""
+import numpy as np
+
+
+def apply_stencil(grid):
+    g = np.asarray(grid, dtype=float)
+    # average the four von Neumann neighbours everywhere
+    return 0.25 * (
+        np.roll(g, 1, axis=0) + np.roll(g, -1, axis=0)
+        + np.roll(g, 1, axis=1) + np.roll(g, -1, axis=1)
+    )
+'''
+
+STENCIL_FIXED = '''"""5-point stencil — interior update, boundary passed through unchanged."""
+import numpy as np
+
+
+def apply_stencil(grid):
+    g = np.asarray(grid, dtype=float)
+    out = g.copy()
+    out[1:-1, 1:-1] = 0.25 * (
+        g[:-2, 1:-1] + g[2:, 1:-1] + g[1:-1, :-2] + g[1:-1, 2:]
+    )
+    return out
+'''
+
+
+def h_stencil(prompt, m):
+    attempt = bump("stencil")
+    if attempt == 1:
+        write("src/stencil.py", STENCIL_BUGGY,
+              "vectorized neighbour average via np.roll")
+        say("tests failed on missing module — implemented apply_stencil; rerun pytest")
+    else:
+        write("src/stencil.py", STENCIL_FIXED,
+              "smallest fix: np.roll wraps at the edges; boundary must pass through")
+        say("root cause: periodic wraparound at the boundary. Interior-slice update, "
+            "edges copied unchanged. Tests untouched.")
+
+
+# ====================================================================
+# Problem 4 — stabilize fast_softmax against the oracle
+# ====================================================================
+FAST_SOFTMAX_FIXED = '''"""Vectorized softmax — numerically stable version."""
+import numpy as np
+
+
+def fast_softmax(x):
+    x = np.asarray(x, dtype=np.float64)
+    x = x - x.max(axis=-1, keepdims=True)   # shift: exp argument <= 0, no overflow
+    e = np.exp(x)
+    return e / e.sum(axis=-1, keepdims=True)
+'''
+
+
+def h_softmax(prompt, m):
+    write("fast.py", FAST_SOFTMAX_FIXED,
+          "max-shift before exp, float64 accumulation")
+    say("diagnosis: float32 exp() overflows to inf for logits > ~88, giving inf/inf = NaN.")
+    say("fix: subtract the row max (exp args <= 0) and keep float64. reference.py untouched.")
+
+
+# ====================================================================
+# Problem 5 — kernel optimization ladder driven by the benchmark signal
+# ====================================================================
+KERNEL_V2 = '''"""Batched matmul kernel — v2: per-item BLAS dgemm, no giant temporary."""
+import numpy as np
+
+VERSION = 2
+
+
+def run(A, B):
+    A = np.asarray(A, dtype=np.float64)
+    B = np.asarray(B, dtype=np.float64)
+    C = np.empty_like(A)
+    for b in range(A.shape[0]):       # block over the batch dimension
+        C[b] = A[b] @ B[b]
+    return C
+'''
+
+KERNEL_V3 = '''"""Batched matmul kernel — v3: one C-level batched matmul call.
+
+The v2 profile is dominated by 128 Python-dispatch round-trips, not FLOPs.
+np.matmul on the 3D arrays runs the batch loop in C.
+"""
+import numpy as np
+
+VERSION = 3
+
+
+def run(A, B):
+    A = np.asarray(A, dtype=np.float64)
+    B = np.asarray(B, dtype=np.float64)
+    return np.matmul(A, B)            # batch loop lives in C now
+'''
+
+KERNEL_V4 = '''"""Batched matmul kernel — v4: v3 + preallocated output reused across calls."""
+import numpy as np
+
+VERSION = 4
+
+_OUT = {}
+
+
+def run(A, B):
+    A = np.asarray(A, dtype=np.float64)
+    B = np.asarray(B, dtype=np.float64)
+    out = _OUT.get(A.shape)
+    if out is None:
+        out = _OUT.setdefault(A.shape, np.empty(A.shape, dtype=np.float64))
+    return np.matmul(A, B, out=out)
+'''
+
+KERNEL_STEPS = {
+    1: (KERNEL_V2, "ONE change: block over the batch — per-item BLAS dgemm "
+                   "replaces the O(n^3)-sized broadcast temporary"),
+    2: (KERNEL_V3, "ONE change: vectorization/dispatch — one C-level batched "
+                   "matmul instead of 128 Python-dispatched dgemm calls"),
+    3: (KERNEL_V4, "ONE change: layout/allocation — preallocate the output "
+                   "buffer and reuse it across calls"),
+}
+
+
+def h_kernel(prompt, m):
+    src = (CWD / "kernel.py").read_text() if (CWD / "kernel.py").exists() else ""
+    ver = 1
+    mv = re.search(r"VERSION\s*=\s*(\d+)", src)
+    if mv:
+        ver = int(mv.group(1))
+    if ver in KERNEL_STEPS:
+        content, note = KERNEL_STEPS[ver]
+        write("kernel.py", content, note)
+    else:
+        say("profile shows no remaining hot spot at this algorithm; "
+            "no further profitable single change — keeping v%d" % ver)
+    r = sh([sys.executable, "check.py"])
+    say("correctness vs check.py: " + (r.stdout.strip() or r.stderr.strip()))
+    return 0 if r.returncode == 0 else 1
+
+
+# ====================================================================
+# Problem 6 — generator + hostile critic on reduce.py
+# ====================================================================
+REDUCE_V1 = '''"""Parallel sum over a large array — v1."""
+import threading
+
+import numpy as np
+
+TOTAL = 0.0          # shared accumulator
+
+
+def _worker(chunk):
+    global TOTAL
+    s = 0.0
+    for v in chunk:              # element-by-element float adds
+        s += v
+    TOTAL += s                   # unsynchronized read-modify-write
+
+
+def parallel_sum(a, nthreads=4):
+    global TOTAL
+    TOTAL = 0.0
+    a = np.asarray(a, dtype=np.float64)
+    step = len(a) // nthreads
+    threads = [
+        threading.Thread(target=_worker, args=(a[t * step:(t + 1) * step],))
+        for t in range(nthreads)
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return TOTAL
+'''
+
+REDUCE_V2 = '''"""Parallel sum over a large array — v2.
+
+Fixes from CRITIQUE.md:
+- no shared accumulator: each thread writes its own slot in `partials`
+- np.array_split chunking covers every element, tail included
+- partials combined in fixed (thread-index) order with math.fsum ->
+  deterministic, compensated
+- chunk sums use numpy pairwise summation, not a Python element loop
+"""
+import math
+import threading
+
+import numpy as np
+
+
+def parallel_sum(a, nthreads=4):
+    a = np.asarray(a, dtype=np.float64)
+    chunks = np.array_split(a, nthreads)          # covers the tail
+    partials = [0.0] * nthreads                   # one slot per thread
+
+    def worker(idx):
+        partials[idx] = float(np.sum(chunks[idx]))   # pairwise summation
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(nthreads)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return math.fsum(partials)                    # fixed order, compensated
+'''
+
+CRITIQUE_BAD = '''# CRITIQUE of reduce.py
+
+- [ ] Data race: `TOTAL += s` is an unsynchronized read-modify-write on a
+      shared global; two threads can interleave and lose an update.
+- [ ] Off-by-one on the tail: elements past nthreads*step are silently
+      dropped whenever len(a) % nthreads != 0.
+- [ ] Non-deterministic FP ordering: partials fold into TOTAL in whatever
+      order threads finish; the result differs run to run.
+- [ ] Per-element Python-loop accumulation: slow and maximally exposed to
+      rounding; sum chunks with pairwise/compensated summation instead.
+'''
+
+CRITIQUE_OK = '''NO_ISSUES
+- [x] no shared mutable accumulator (per-thread slots)
+- [x] tail covered by np.array_split
+- [x] deterministic combine order (fixed index order + math.fsum)
+- [x] no per-element Python accumulation (numpy pairwise chunk sums)
+'''
+
+
+def h_reduce_critic(prompt, m):
+    src = (CWD / "reduce.py").read_text() if (CWD / "reduce.py").exists() else ""
+    if "array_split" in src and "fsum" in src and "TOTAL" not in src:
+        write("CRITIQUE.md", CRITIQUE_OK, "zero real issues found")
+        say("fresh-context review: no data race, tail covered, deterministic order — NO_ISSUES")
+    else:
+        write("CRITIQUE.md", CRITIQUE_BAD, "4 findings")
+        say("fresh-context review: found a shared-accumulator race, a dropped tail, "
+            "and non-deterministic FP ordering — see CRITIQUE.md")
+
+
+def h_reduce_gen(prompt, m):
+    crit = CWD / "CRITIQUE.md"
+    if crit.exists() and not crit.read_text().startswith("NO_ISSUES"):
+        write("reduce.py", REDUCE_V2,
+              "addressed CRITIQUE.md: per-thread partials, array_split tail, fixed-order fsum")
+    else:
+        write("reduce.py", REDUCE_V1, "threaded parallel sum over chunks")
+
+
+# ====================================================================
+# Problem 7 — plan, per-backend workers, integrator
+# ====================================================================
+PLAN_MD = '''# PLAN — GEMM benchmarking harness
+
+Common interface every adapter implements (file: adapter.py in its own dir):
+
+    gemm(A, B) -> C        # A: (n,k), B: (k,m), float64 in/out
+
+Independent subtasks (any order, no shared state):
+
+| # | subtask                       | deliverable              | acceptance test                                   |
+|---|-------------------------------|--------------------------|---------------------------------------------------|
+| 1 | numpy adapter                 | work/numpy/adapter.py    | matches A@B on a 256x256 GEMM to 1e-8            |
+| 2 | torch adapter                 | work/torch/adapter.py    | matches numpy on a 256x256 GEMM to 1e-8          |
+| 3 | custom hand-kernel adapter    | work/custom/adapter.py   | matches numpy on a 256x256 GEMM to 1e-8          |
+| 4 | runner (after 1-3)            | bench.py                 | runs all unit tests, prints a timing table        |
+
+Notes: each worker touches ONLY its own directory. The runner discovers
+adapters by glob (work/*/adapter.py) so backends stay decoupled.
+'''
+
+ADAPTER_NUMPY = '''"""GEMM adapter — numpy backend."""
+import numpy as np
+
+BACKEND = "numpy"
+
+
+def gemm(A, B):
+    return np.asarray(A, dtype=np.float64) @ np.asarray(B, dtype=np.float64)
+'''
+
+ADAPTER_TORCH = '''"""GEMM adapter — torch backend.
+
+Falls back to numpy when torch is not installed; the fallback is flagged so
+the integrator's table reports it honestly.
+"""
+import numpy as np
+
+BACKEND = "torch"
+
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
+
+def gemm(A, B):
+    if TORCH_AVAILABLE:
+        a = torch.from_numpy(np.ascontiguousarray(A, dtype=np.float64))
+        b = torch.from_numpy(np.ascontiguousarray(B, dtype=np.float64))
+        return (a @ b).numpy()
+    return np.asarray(A, dtype=np.float64) @ np.asarray(B, dtype=np.float64)
+'''
+
+ADAPTER_CUSTOM = '''"""GEMM adapter — hand-written kernel.
+
+Rank-1-update formulation: C = sum_k outer(A[:,k], B[k,:]). The k-loop and
+accumulation are ours; no BLAS matmul call.
+"""
+import numpy as np
+
+BACKEND = "custom"
+
+
+def gemm(A, B):
+    A = np.asarray(A, dtype=np.float64)
+    B = np.asarray(B, dtype=np.float64)
+    n, k = A.shape
+    k2, mdim = B.shape
+    assert k == k2, "inner dimensions must match"
+    C = np.zeros((n, mdim), dtype=np.float64)
+    for kk in range(k):                        # hand-rolled k-loop
+        C += A[:, kk, None] * B[kk, None, :]   # rank-1 update
+    return C
+'''
+
+ADAPTER_TEST = '''import numpy as np
+
+from adapter import gemm
+
+
+def test_matches_numpy_256():
+    rng = np.random.default_rng(0)
+    A = rng.standard_normal((256, 256))
+    B = rng.standard_normal((256, 256))
+    np.testing.assert_allclose(gemm(A, B), A @ B, atol=1e-8)
+'''
+
+ADAPTERS = {"numpy": ADAPTER_NUMPY, "torch": ADAPTER_TORCH, "custom": ADAPTER_CUSTOM}
+
+BENCH_RUNNER = '''"""Runner: unit-checks and times every backend adapter on a 256x256 GEMM."""
+import importlib.util
+import pathlib
+import time
+
+import numpy as np
+
+N = 256
+REPS = 5
+
+
+def load_adapter(path):
+    spec = importlib.util.spec_from_file_location("adapter_" + path.parent.name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def main():
+    rng = np.random.default_rng(1)
+    A = rng.standard_normal((N, N))
+    B = rng.standard_normal((N, N))
+    ref = A @ B
+    rows = []
+    for path in sorted(pathlib.Path("work").glob("*/adapter.py")):
+        mod = load_adapter(path)
+        mod.gemm(A, B)                      # warm-up
+        best = float("inf")
+        C = None
+        for _ in range(REPS):
+            t0 = time.perf_counter()
+            C = mod.gemm(A, B)
+            best = min(best, time.perf_counter() - t0)
+        err = float(np.max(np.abs(C - ref)))
+        note = ""
+        if getattr(mod, "BACKEND", "") == "torch" and not getattr(mod, "TORCH_AVAILABLE", True):
+            note = "(numpy fallback: torch not installed)"
+        rows.append((mod.BACKEND, best * 1e3, 2 * N**3 / best / 1e9, err, note))
+    print(f"{'backend':<8} {'ms':>9} {'GFLOP/s':>9}   {'max|err| vs numpy':<18}")
+    for be, ms, gf, err, note in rows:
+        print(f"{be:<8} {ms:>9.3f} {gf:>9.2f}   {err:<18.2e} {note}")
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+
+def h_plan(prompt, m):
+    write("PLAN.md", PLAN_MD, "4 subtasks, common gemm(A,B) interface, acceptance tests")
+
+
+def h_worker(prompt, m):
+    be = m.group(1)
+    if be not in ADAPTERS:
+        say("unknown backend %r" % be)
+        return 1
+    write("adapter.py", ADAPTERS[be], "%s backend behind the shared gemm(A,B) interface" % be)
+    write("test_adapter.py", ADAPTER_TEST, "acceptance: matches numpy on 256x256")
+    r = sh([sys.executable, "-m", "pytest", "-q"])
+    tail = [ln for ln in r.stdout.strip().splitlines() if ln.strip()]
+    say("unit test (%s): %s" % (be, tail[-1] if tail else "no output"))
+    return 0 if r.returncode == 0 else 1
+
+
+def h_integrate(prompt, m):
+    write("bench.py", BENCH_RUNNER, "discovers work/*/adapter.py, unit-checks, prints timing table")
+    ok = True
+    for d in sorted((CWD / "work").glob("*/")):
+        r = sh([sys.executable, "-m", "pytest", "-q"], cwd=str(d))
+        tail = [ln for ln in r.stdout.strip().splitlines() if ln.strip()]
+        say("unit tests %-6s : %s" % (d.name, tail[-1] if tail else "no output"))
+        ok = ok and r.returncode == 0
+    if not ok:
+        say("integration gap found; fix before benchmarking")
+        return 1
+    say("all adapters green — timing table:")
+    r = sh([sys.executable, "bench.py"])
+    sys.stdout.write(r.stdout)
+    if r.returncode != 0:
+        sys.stdout.write(r.stderr)
+        return 1
+
+
+# ====================================================================
+# Problem 8 — fix the integrator, distill the lesson, promote to a skill
+# ====================================================================
+INTEGRATOR_FIXED = '''"""ODE integrator — RK4, float64.
+
+Lessons applied: 4th-order method, float64 state, t computed as t0 + i*dt
+(never accumulated by repeated addition).
+"""
+
+
+def integrate(f, y0, t0, t1, n):
+    y = float(y0)
+    dt = (t1 - t0) / n
+    for i in range(n):
+        t = t0 + i * dt
+        k1 = f(t, y)
+        k2 = f(t + 0.5 * dt, y + 0.5 * dt * k1)
+        k3 = f(t + 0.5 * dt, y + 0.5 * dt * k2)
+        k4 = f(t + dt, y + dt * k3)
+        y = y + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
+    return y
+'''
+
+SKILL_MD = '''---
+name: numerical-stability
+description: Checklist for convergence/accuracy bugs in numerical kernels —
+  read before debugging any integrator, reduction, or iterative solver.
+---
+
+# Numerical stability
+
+Recurring root causes, distilled from failed convergence runs:
+
+1. Method order first: forward Euler error is O(dt) — it will NOT reach 1e-6
+   at feasible step counts. Reach for RK4 (O(dt^4)) or better.
+2. float32 state over >1e4 steps loses ~4-5 digits (rounding random-walk
+   ~ sqrt(n) * eps). Keep integrator/reduction state in float64.
+3. Never accumulate t by repeated addition; compute t = t0 + i*dt.
+4. For long sums, use compensated (Kahan) or pairwise summation.
+'''
+
+LESSON_EULER = ("LESSON: forward Euler is O(dt) — cannot reach 1e-6 rel. error at sane "
+                "step counts; use RK4 (O(dt^4)), float64 state, and t = t0 + i*dt "
+                "(never accumulate t by repeated addition).")
+LESSON_F32 = ("LESSON: float32 state over ~2e5 steps loses ~4-5 digits to rounding "
+              "(error random-walks ~ sqrt(n)*eps); keep integrator state in float64.")
+
+
+def h_ode(prompt, m):
+    src = (CWD / "integrator.py").read_text() if (CWD / "integrator.py").exists() else ""
+    if "Euler" in src or "euler" in src:
+        lesson = LESSON_EULER
+        say("root cause: first-order method (forward Euler) + float32 accumulation.")
+    elif "float32" in src:
+        lesson = LESSON_F32
+        say("root cause: float32 state — truncation order was fine, rounding was not.")
+    else:
+        lesson = "LESSON: check method order, dtype, and summation order on convergence failures."
+        say("convergence failure — checking order/dtype/summation.")
+    write("integrator.py", INTEGRATOR_FIXED, "RK4, float64, t = t0 + i*dt")
+
+    mem = pi_home() / ".pi" / "agent" / "memory.md"
+    mem.parent.mkdir(parents=True, exist_ok=True)
+    prior = mem.read_text() if mem.exists() else ""
+    recurred = "LESSON:" in prior
+    if not prior:
+        prior = "# pi agent memory\n\n"
+    mem.write_text(prior.rstrip("\n") + "\n" + lesson + "\n")
+    say("appended root-cause lesson to ~/.pi/agent/memory.md")
+    if recurred:
+        skill = pi_home() / ".pi" / "agent" / "skills" / "numerical-stability" / "SKILL.md"
+        skill.parent.mkdir(parents=True, exist_ok=True)
+        skill.write_text(SKILL_MD)
+        say("this class of bug has recurred — promoted the lessons to a skill: "
+            "~/.pi/agent/skills/numerical-stability/SKILL.md")
+
+
+# ====================================================================
+# Problem 9 — eight independent conv1d_fft candidates (varied quality)
+# ====================================================================
+CONV_HEAD = '"""conv1d_fft(signal, kernel) — candidate %d: %s"""\nimport numpy as np\n\n\n'
+
+CONV_VARIANTS = {
+    1: ("direct np.convolve (correct, no FFT)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    return np.convolve(signal, kernel)\n'),
+    2: ("FFT without padding — circular convolution (WRONG)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    n = len(signal)\n'
+        '    return np.fft.irfft(np.fft.rfft(signal) * np.fft.rfft(kernel, n), n)\n'),
+    3: ("rfft with pow2 zero-padding, trimmed to n+k-1",
+        'def conv1d_fft(signal, kernel):\n'
+        '    m = len(signal) + len(kernel) - 1\n'
+        '    size = 1 << (m - 1).bit_length()\n'
+        '    out = np.fft.irfft(np.fft.rfft(signal, size) * np.fft.rfft(kernel, size), size)\n'
+        '    return out[:m]\n'),
+    4: ("float32 rfft for speed (fails the 1e-5 tolerance)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    m = len(signal) + len(kernel) - 1\n'
+        '    size = 1 << (m - 1).bit_length()\n'
+        '    s = np.asarray(signal, dtype=np.float32)\n'
+        '    k = np.asarray(kernel, dtype=np.float32)\n'
+        '    out = np.fft.irfft(np.fft.rfft(s, size) * np.fft.rfft(k, size), size)\n'
+        '    return out[:m]\n'),
+    5: ("overlap-add: blocked rfft, block 8192",
+        'def conv1d_fft(signal, kernel, block=8192):\n'
+        '    n, k = len(signal), len(kernel)\n'
+        '    m = n + k - 1\n'
+        '    size = 1 << (block + k - 2).bit_length()\n'
+        '    kf = np.fft.rfft(kernel, size)\n'
+        '    out = np.zeros(m)\n'
+        '    for start in range(0, n, block):\n'
+        '        seg = signal[start:start + block]\n'
+        '        conv = np.fft.irfft(np.fft.rfft(seg, size) * kf, size)[:len(seg) + k - 1]\n'
+        '        out[start:start + len(conv)] += conv\n'
+        '    return out\n'),
+    6: ("np.correlate with a flipped kernel (correct, no FFT)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    return np.correlate(signal, kernel[::-1], mode="full")\n'),
+    7: ("rfft at exact size n+k-1 (mixed-radix, no pad waste)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    m = len(signal) + len(kernel) - 1\n'
+        '    return np.fft.irfft(np.fft.rfft(signal, m) * np.fft.rfft(kernel, m), m)\n'),
+    8: ("pow2 FFT but off-by-one trim (WRONG length)",
+        'def conv1d_fft(signal, kernel):\n'
+        '    m = len(signal) + len(kernel) - 1\n'
+        '    size = 1 << (m - 1).bit_length()\n'
+        '    out = np.fft.irfft(np.fft.rfft(signal, size) * np.fft.rfft(kernel, size), size)\n'
+        '    return out[:m - 1]\n'),
+}
+
+
+def h_conv(prompt, m):
+    mm = re.search(r"cand_(\d+)", str(CWD))
+    n = int(mm.group(1)) if mm else 1
+    label, body = CONV_VARIANTS.get(n, CONV_VARIANTS[1])
+    write("conv.py", (CONV_HEAD % (n, label)) + body, label)
+
+
+# ====================================================================
+# Problem 10 — capstone: mutations, fresh-eyes critic, strategy reflection
+# ====================================================================
+SPMV_COMMON = 'import numpy as np\n\n\n'
+
+SPMV_IDEAS = {
+    "gather": ("vectorized gather (data * x[indices]) with the row loop kept",
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    prod = data * x[indices]              # one vectorized gather+multiply\n'
+        '    y = np.empty(n)\n'
+        '    for i in range(n):                    # row loop remains\n'
+        '        y[i] = prod[indptr[i]:indptr[i + 1]].sum()\n'
+        '    return y\n'),
+    "reduceat": ("np.add.reduceat over indptr segments — row loop eliminated",
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    prod = data * x[indices]\n'
+        '    return np.add.reduceat(prod, indptr[:-1])\n'),
+    "bincount": ("scatter-add via np.bincount with precomputed row ids",
+        '_ROWS = None\n\n\n'
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    global _ROWS\n'
+        '    if _ROWS is None or len(_ROWS) != len(data):\n'
+        '        _ROWS = np.repeat(np.arange(n), np.diff(indptr))\n'
+        '    return np.bincount(_ROWS, weights=data * x[indices], minlength=n)\n'),
+    "scipy": ("format change: hand the pattern to scipy.sparse CSR (C matvec), matrix cached",
+        'from scipy import sparse\n\n'
+        '_A = None\n\n\n'
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    global _A\n'
+        '    if _A is None:\n'
+        '        _A = sparse.csr_matrix((data, indices, indptr), shape=(n, n))\n'
+        '    return _A @ x\n'),
+    "rowblock": ("row-blocked reduceat (locality blocking, block=1024)",
+        'def spmv(n, indptr, indices, data, x, block=1024):\n'
+        '    prod = data * x[indices]\n'
+        '    y = np.empty(n)\n'
+        '    for i0 in range(0, n, block):\n'
+        '        i1 = min(i0 + block, n)\n'
+        '        lo = indptr[i0]\n'
+        '        y[i0:i1] = np.add.reduceat(prod[lo:indptr[i1]], indptr[i0:i1] - lo)\n'
+        '    return y\n'),
+    "brokenseg": ("uniform-stride segmentation (BROKEN: rows have variable nnz)",
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    prod = data * x[indices]\n'
+        '    step = max(1, len(prod) // n)\n'
+        '    return np.add.reduceat(prod, np.arange(0, len(prod), step)[:n])\n'),
+    "stale": ("cached result reused across calls (BROKEN: stale for new x)",
+        '_Y = None\n\n\n'
+        'def spmv(n, indptr, indices, data, x):\n'
+        '    global _Y\n'
+        '    if _Y is None:\n'
+        '        prod = data * x[indices]\n'
+        '        _Y = np.add.reduceat(prod, indptr[:-1])\n'
+        '    return _Y\n'),
+}
+
+# mutation schedule: MUTATION_TABLE[round-1][k-1] — a mix per round, improving
+# over rounds; broken candidates included so the critic has real work to do
+MUTATION_TABLE = [
+    ["gather",   "stale",    "brokenseg", "gather",   "gather",    "brokenseg"],
+    ["reduceat", "gather",   "stale",     "brokenseg", "reduceat", "gather"],
+    ["bincount", "reduceat", "brokenseg", "rowblock",  "stale",    "reduceat"],
+    ["scipy",    "bincount", "rowblock",  "reduceat",  "brokenseg", "stale"],
+    ["scipy",    "rowblock", "bincount",  "scipy",     "stale",     "brokenseg"],
+    ["bincount", "scipy",    "reduceat",  "rowblock",  "brokenseg", "stale"],
+]
+
+LADDER = ["gather", "rowblock", "reduceat", "bincount", "scipy"]  # rough speed order
+
+
+def h_mutate(prompt, m):
+    mm = re.search(r"gen/(\d+)/(\d+)/spmv\.py", prompt)
+    if not mm:
+        say("could not locate target gen/<round>/<k>/spmv.py in prompt")
+        return 1
+    rnd, k = int(mm.group(1)), int(mm.group(2))
+    key = MUTATION_TABLE[(rnd - 1) % 6][(k - 1) % 6]
+    label, body = SPMV_IDEAS[key]
+    content = "# IDEA: %s\n\"\"\"SpMV mutation — %s\"\"\"\n%s%s" % (key, label, SPMV_COMMON, body)
+    write("gen/%d/%d/spmv.py" % (rnd, k), content, "single mutation: " + label)
+
+
+def _probe_spmv(path):
+    """Fresh-eyes correctness probe: dense reference, TWO different x vectors
+    (catches stale caches the fixed-input benchmark would miss)."""
+    import importlib.util
+    import numpy as np
+    spec = importlib.util.spec_from_file_location("cand_probe", str(path))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    rng = np.random.default_rng(11)
+    n = 64
+    dense = rng.standard_normal((n, n)) * (rng.random((n, n)) < 0.15)
+    np.fill_diagonal(dense, rng.standard_normal(n))
+    indptr, idx, dat = [0], [], []
+    for i in range(n):
+        nz = np.nonzero(dense[i])[0]
+        idx.extend(nz.tolist())
+        dat.extend(dense[i, nz].tolist())
+        indptr.append(len(idx))
+    indptr = np.asarray(indptr)
+    idx = np.asarray(idx)
+    dat = np.asarray(dat)
+    for trial in (1, 2):
+        x = rng.standard_normal(n)
+        y = np.asarray(mod.spmv(n, indptr, idx, dat, x), dtype=float)
+        if y.shape != (n,) or not np.allclose(y, dense @ x, atol=1e-9):
+            return False, "trial %d: output disagrees with the dense reference" % trial
+    return True, "matches the dense reference on two independent x vectors"
+
+
+def h_spmv_critic(prompt, m):
+    path = CWD / m.group(1)
+    verdict_path = pathlib.Path(str(path)[:-3] + ".verdict")
+    try:
+        ok, reason = _probe_spmv(path)
+    except Exception as e:
+        ok, reason = False, "raised %s: %s" % (type(e).__name__, e)
+    verdict_path.write_text(("KEEP\n" if ok else "DROP\n") + reason + "\n")
+    say("%s %s — %s" % ("KEEP" if ok else "DROP", m.group(1), reason))
+
+
+def h_reflect(prompt, m):
+    gen = CWD / "gen"
+    rounds = sorted((int(p.name) for p in gen.glob("[0-9]*") if p.name.isdigit())) if gen.exists() else []
+    rnd = rounds[-1] if rounds else 0
+    kept, dropped = [], []
+    for cand in sorted((gen / str(rnd)).glob("*/spmv.py")) if rnd else []:
+        idea = "?"
+        first = cand.read_text().splitlines()[0]
+        if first.startswith("# IDEA:"):
+            idea = first.split(":", 1)[1].strip()
+        verdict = pathlib.Path(str(cand)[:-3] + ".verdict")
+        v = verdict.read_text().splitlines()[0] if verdict.exists() else "?"
+        (kept if v == "KEEP" else dropped).append(idea)
+    champ_src = (CWD / "champion.py").read_text() if (CWD / "champion.py").exists() else ""
+    champ_idea = "seed (pure-Python CSR loops)"
+    if champ_src.startswith("# IDEA:"):
+        champ_idea = champ_src.splitlines()[0].split(":", 1)[1].strip()
+    try:
+        rank = LADDER.index(champ_idea)
+    except ValueError:
+        rank = -1
+    nxt = LADDER[rank + 1:] or ["micro-variants of %s (block size, dtype, layout)" % champ_idea]
+    strategy = (
+        "# Mutation strategy — after round %d\n\n"
+        "Current champion idea: %s\n\n"
+        "Round %d results:\n"
+        "- kept by critic: %s\n"
+        "- dropped by critic: %s (uniform-stride segmentation and result caching\n"
+        "  keep failing fresh-eyes review — stop proposing them)\n\n"
+        "Most promising directions for the NEXT round, specific to this pattern\n"
+        "(banded + ~5 random nnz/row, ~8 nnz/row, n=6000 — short rows, so per-row\n"
+        "Python overhead dominates; fully vectorized segment reductions win):\n"
+        "- %s\n"
+    ) % (rnd, champ_idea, rnd,
+         ", ".join(sorted(set(kept))) or "none",
+         ", ".join(sorted(set(dropped))) or "none",
+         "\n- ".join(nxt))
+    write("STRATEGY.md", strategy, "rewrote mutation strategy for the next round")
+
+
+# ====================================================================
+# dispatch
+# ====================================================================
+HANDLERS = [
+    (re.compile(r"hostile reviewer"), h_reduce_critic),
+    (re.compile(r"Sanity-review\s+(\S+?spmv\.py)"), h_spmv_critic),
+    (re.compile(r"slurm_gpu_hours\.py"), h_slurm),
+    (re.compile(r"roofline\.py"), h_roofline),
+    (re.compile(r"src/stencil\.py"), h_stencil),
+    (re.compile(r"fast_softmax|fast\.py disagrees"), h_softmax),
+    (re.compile(r"Current kernel does"), h_kernel),
+    (re.compile(r"Write PLAN\.md"), h_plan),
+    (re.compile(r"implement ONLY the (\w+) adapter"), h_worker),
+    (re.compile(r"Wire them into bench\.py"), h_integrate),
+    (re.compile(r"convergence check"), h_ode),
+    (re.compile(r"conv1d_fft"), h_conv),
+    (re.compile(r"Mutate champion\.py"), h_mutate),
+    (re.compile(r"REWRITE STRATEGY\.md"), h_reflect),
+    (re.compile(r"reduce\.py"), h_reduce_gen),
+]
+
+
+def main(argv):
+    args = argv[1:]
+    if args and args[0] == "install":
+        say("installed %s (mock no-op; the real pi fetches and registers the package)"
+            % (args[1] if len(args) > 1 else "?"))
+        return 0
+
+    flags = set()
+    mode = None
+    fork_id = None
+    rest = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ("-p", "--print"):
+            flags.add("print")
+        elif a == "--json":
+            flags.add("json")
+        elif a == "-c":
+            mode = "continue"
+        elif a == "-r":
+            mode = "resume"
+        elif a == "--fork":
+            i += 1
+            fork_id = args[i] if i < len(args) else "?"
+            mode = "fork"
+        elif a == "--fork-fresh":
+            flags.add("fresh")
+        else:
+            rest.append(a)
+        i += 1
+    prompt = " ".join(rest) if rest else None
+
+    st = _load()
+    if mode == "continue":
+        say("continuing session %s (mock: nothing pending; see .pi_mock_state.json)"
+            % st["sessions"][-1] if st["sessions"] else "no previous session here")
+        return 0
+    if mode == "resume":
+        say("sessions in this directory: " + (", ".join(st["sessions"]) or "none yet"))
+        return 0
+    if mode == "fork":
+        sid = new_session()
+        say("forked session %s -> %s (mock: forks share no state — cheap diversity)"
+            % (fork_id, sid))
+        return 0
+    if prompt is None:
+        say("interactive REPL would open here — the mock is headless; use -p \"...\"")
+        return 0
+
+    sid = new_session()
+    for rx, fn in HANDLERS:
+        m = rx.search(prompt)
+        if m:
+            rc = fn(prompt, m) or 0
+            if "json" in flags:
+                print(json.dumps({"session": sid, "ok": rc == 0}))
+            return rc
+    if "json" in flags:
+        print(json.dumps({"session": sid, "ok": True,
+                          "result": "mock pi: no scripted behavior for this prompt"}))
+    else:
+        say("(mock) no scripted behavior matches this prompt — a real pi would act on it")
+        say('prompt was: "%s%s"' % (prompt[:90].replace("\n", " "),
+                                    "..." if len(prompt) > 90 else ""))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

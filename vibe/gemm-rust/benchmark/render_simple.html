@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dialogue</title>
+<style>
+@page { size: letter portrait; margin: 0.7in; @bottom-right { content: counter(page); font-size: 9pt; color: #777; } }
+* { box-sizing: border-box; }
+body { font-family: "Georgia", "Times New Roman", serif; font-size: 11pt; line-height: 1.55; color: #222; background: #fff; margin: 0; padding: 0; }
+h1 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 20pt; color: #111; border-bottom: 2px solid #333; padding-bottom: 8pt; margin-top: 0; letter-spacing: 0.5pt; }
+h2 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 13pt; color: #333; margin-top: 28pt; border-left: 3px solid #333; padding-left: 10pt; }
+h3 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 11pt; color: #444; margin-top: 18pt; text-transform: uppercase; letter-spacing: 0.8pt; }
+.header { background: #1a1a2e; color: #fff; padding: 18pt 14pt; border-radius: 4pt; margin-bottom: 18pt; }
+.header h1 { color: #fff; border-bottom: 1px solid #fff; padding-bottom: 6pt; margin-top: 0; }
+.header .meta { color: #ccc; font-size: 9pt; font-family: Arial, sans-serif; margin-top: 4pt; }
+p { margin: 6pt 0; }
+.user { border-left: 3px solid #2e7d32; padding-left: 12pt; margin: 10pt 0 10pt 4pt; background: #f6f8f6; border-radius: 0 4pt 4pt 0; }
+.system { border-left: 3px solid #1565c0; padding-left: 12pt; margin: 10pt 0 10pt 4pt; background: #f4f7fb; border-radius: 0 4pt 4pt 0; }
+.tool { border-left: 3px solid #b26a00; padding-left: 12pt; margin: 6pt 0 6pt 4pt; background: #fdf8ee; border-radius: 0 4pt 4pt 0; font-size: 9.5pt; }
+.label { font-family: Arial, sans-serif; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.6pt; font-weight: bold; color: #777; margin-bottom: 3pt; }
+pre { background: #f0f0f0; border: 1px solid #ddd; padding: 10pt; border-radius: 3pt; overflow-x: auto; font-family: "Courier New", monospace; font-size: 9pt; line-height: 1.35; margin: 8pt 0; }
+code { font-family: "Courier New", monospace; font-size: 9.5pt; background: #f0f0f0; padding: 1pt 3pt; border-radius: 2pt; }
+table { width: 100%; border-collapse: collapse; margin: 10pt 0; font-size: 10pt; }
+th { background: #333; color: #fff; text-align: left; padding: 6pt 8pt; font-family: Arial, sans-serif; font-weight: bold; }
+td { padding: 5pt 8pt; border-bottom: 1px solid #ccc; vertical-align: top; }
+hr { border: none; border-top: 1px solid #ccc; margin: 16pt 0; }
+blockquote { border-left: 3px solid #999; padding-left: 12pt; color: #555; margin-left: 0; }
+</style>
+</head>
+<body>
+<div class="header">
+<h1>GEMM Benchmark Dialogue</h1>
+<div class="meta">Session 019fcc8e-e1c4-726c-86fa-d361e2b39e03 &nbsp;|&nbsp; Model: inkling-bf16 (minervafix) &nbsp;|&nbsp; Reasoning: medium &nbsp;|&nbsp; PI_CODING_AGENT: true</div>
+</div>
+
+{{content}}
+</body>
+</html>

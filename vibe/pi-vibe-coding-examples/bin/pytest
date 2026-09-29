@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Shim: make bare `pytest` (as the PDF snippets invoke it) run the pytest of
+# the same python3 that runs the examples — avoids pipx/uv tool installs that
+# can't see numpy.
+exec python3 -m pytest "$@"

@@ -1,0 +1,8 @@
+JobID,User,Elapsed,AllocTRES
+1001,alice,02:00:00,"billing=8,cpu=16,gres/gpu=4,mem=64G,node=1"
+1002,bob,1-00:00:00,"cpu=8,gres/gpu=2,mem=32G,node=1"
+1003,alice,00:30:00,"cpu=4,mem=16G,node=1"
+1004,carol,12:15:30,"cpu=32,gres/gpu=8,mem=128G,node=2"
+1005,bob,03:45:00,"gres/gpu:a100=1,cpu=4,mem=16G"
+1006,dave,00:05:00,
+1007,carol,2-06:00:00,"cpu=64,gres/gpu=4,mem=256G,node=4"
