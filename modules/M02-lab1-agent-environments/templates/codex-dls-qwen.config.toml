@@ -1,5 +1,6 @@
-# Save as ~/.codex/dls-qwen.config.toml (a USER-level profile), not as a
-# project-local .codex/config.toml. Export DLS_QWEN_API_KEY in your shell.
+# Save as ~/.codex/config.toml (the USER-level Codex config that Codex
+# auto-loads), not as a project-local .codex/config.toml (Codex ignores
+# provider/auth routing there). Export DLS_QWEN_API_KEY in your shell.
 # Current Codex (>=0.158) requires wire_api="responses"; it no longer supports
 # wire_api="chat" (ref openai/codex#7782). Chicago-6's LiteLLM serves a native
 # /v1/responses bridge, so this works end-to-end (piloted on Linux).

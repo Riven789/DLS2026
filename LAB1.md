@@ -52,11 +52,23 @@ curl -sS --fail-with-body "$DLS_QWEN_BASE_URL/models" \
 curl -sS --fail-with-body "$DLS_QWEN_BASE_URL/chat/completions" \
   -H "Authorization: Bearer $DLS_QWEN_API_KEY" \
   -H 'Content-Type: application/json' \
-  -d "{\"model\":\"$DLS_QWEN_MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly LAB1_OK\"}],\"max_tokens\":768,\"temperature\":0}" \
+  -d "{\"model\":\"$DLS_QWEN_MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply with exactly LAB1_OK\"}],\"max_tokens\":768,\"temperature\":0,\"reasoning_effort\":\"none\"}" \
   > evidence/chat-smoke.json
 ```
 
 A `/v1/models` success does **not** prove the service can generate. The chat-completion request must return final content. If it fails, record the status/error and contact course staff; do not quietly change endpoint or model.
+
+> **Reasoning vs. content (read this if your reply looks empty).** Qwen3.8-27B is a
+> reasoning model. On a plain chat-completions call it may put its thinking in a separate
+> `message.reasoning_content` field and, for very terse instruction-only prompts, can
+> occasionally stop after the reasoning with an **empty `message.content`** (you will see
+> `"content": null` and `finish_reason: "stop"`). This is expected model behavior, **not a
+> broken endpoint** — a `200` with empty content still means the service is up. The smoke
+> command above passes `"reasoning_effort": "none"`, which reliably returns the final
+> answer in `message.content`. If you ever see empty `content`, check `reasoning_content`
+> in the same response, and add `"reasoning_effort": "none"` (or `"low"`) to your request.
+> The Codex path (`/v1/responses`) is unaffected. Only contact course staff if **both**
+> `content` and `reasoning_content` are empty or you get a non-200 status.
 
 ## Part A — Install and configure both agents (20 points)
 
