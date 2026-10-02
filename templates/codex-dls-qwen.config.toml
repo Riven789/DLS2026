@@ -1,7 +1,8 @@
 # Save as ~/.codex/dls-qwen.config.toml (a USER-level profile), not as a
 # project-local .codex/config.toml. Export DLS_QWEN_API_KEY in your shell.
-# Current Chicago-6 speaks the OpenAI Chat Completions protocol. This adapter
-# must be live-tested by course staff against the installed Codex version.
+# Current Codex (>=0.158) requires wire_api="responses"; it no longer supports
+# wire_api="chat" (ref openai/codex#7782). Chicago-6's LiteLLM serves a native
+# /v1/responses bridge, so this works end-to-end (piloted on Linux).
 model = "qwen3.8-27b"
 model_provider = "dls_qwen"
 model_reasoning_effort = "medium"
@@ -11,5 +12,5 @@ sandbox_mode = "workspace-write"
 [model_providers.dls_qwen]
 name = "CMSC 35200 Chicago-6 Qwen3.8-27B"
 base_url = "http://209.182.219.81:4010/v1"
-wire_api = "chat"
+wire_api = "responses"
 env_key = "DLS_QWEN_API_KEY"
