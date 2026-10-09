@@ -1,0 +1,28 @@
+CNN, GNN, AND LSTM TUTORIALS
+
+Three tutorials, 20 slides each, with detailed speaker notes.
+Each topic folder contains a PowerPoint, PDF, and a Python/NumPy lab.
+
+START HERE
+1. Read the PDF or open the PowerPoint. Detailed narration is in the PowerPoint
+   speaker notes and the lab's lecture_notes.md.
+2. Open the lab's README.md for setup, data contracts, and individual commands.
+3. From the lab directory, install requirements and run:
+       python -m pip install -r requirements.txt
+       python run_all.py
+
+The runner tests the implementation, generates synthetic data, trains both
+classification and regression models, evaluates held-out examples, and predicts
+on unlabeled inputs. No GPU or dataset download is required.
+
+Each lab includes reference_runs with already trained models, learning histories,
+and measured test results. Fresh experiments write to runs.
+All 21 automated tests passed during preparation.
+
+TOPICS
+CNN: local filters, convolution, channels, pooling, receptive fields, gradients.
+GNN: graph features, adjacency, message passing, aggregation, masks, graph pooling.
+LSTM: sequence order, gates, cell state, masks, recurrence, backpropagation through time.
+
+All three cover data and labels, classification and regression, preprocessing,
+batching, learning rate, AdamW, validation, testing, and saved-model prediction.

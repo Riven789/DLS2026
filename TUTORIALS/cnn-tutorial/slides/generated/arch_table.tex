@@ -1,0 +1,10 @@
+\newcommand{\archRows}{%
+input image & $1\times28\times28$ & 784 & --\\
+conv $5\times5$, pad 2, ReLU & $8\times28\times28$ & 6{,}272 & 208\\
+max-pool $2\times2$ & $8\times14\times14$ & 1{,}568 & --\\
+conv $5\times5$, pad 0, ReLU & $16\times10\times10$ & 1{,}600 & 3{,}216\\
+max-pool $2\times2$ & $16\times5\times5$ & 400 & --\\
+flatten & $400$ & 400 & --\\
+linear, ReLU & $64$ & 64 & 25{,}664\\
+linear & $10$ & 10 & 650\\
+}

@@ -1,0 +1,43 @@
+task shakespeare | model lstm, hidden 256, layers 1 | adam, lr 0.003, batch 32, clip 1.0, seq_len 64
+step   250 | train 2.2818 | val 1.9942 | max grad norm 0.75 | 15s
+step   500 | train 1.7948 | val 1.8209 | max grad norm 0.52 | 31s
+step   750 | train 1.6400 | val 1.7550 | max grad norm 0.39 | 45s
+step  1000 | train 1.5735 | val 1.6700 | max grad norm 0.55 | 60s
+step  1250 | train 1.5111 | val 1.6336 | max grad norm 0.42 | 74s
+step  1500 | train 1.4861 | val 1.5982 | max grad norm 0.53 | 87s
+
+TEST SET (55,769 characters never used for training or tuning), nats per character
+  LSTM     loss 1.703   perplexity 5.49
+  bigram   loss 2.490   perplexity 12.06
+  unigram  loss 3.362   perplexity 28.85
+  uniform  loss 4.174   perplexity 65.00
+
+--- sample, temperature 0.5 ---
+ROMEO: why charge and your lord,
+Tell thy banish strend hours do but were may
+That in this soul of him stands of write to make thee
+I will not my father well you for my life.
+
+LEONTES:
+I will we will have a man of thy day.
+
+ANGELO:
+Have feither the flesh with the depent on shall
+That thou stand that make 
+
+--- sample, temperature 1.0 ---
+ROMEO: Porforms kind! Therefore ineshand,
+Now gelsent Merciues, his treetle hath good being some perices
+And of yor welpermances in difler nenemity
+Where penty one a man in his galk!
+
+SICINIUS:
+Why! But for the palief and love,--
+In shame intend lives of wintering to
+to die.
+
+Kirst CitLon:
+ELain stay, mad
+
+model parameters: 315,745
+log -> out/shakespeare/log.csv   weights -> out/shakespeare/model.pt

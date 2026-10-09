@@ -1,0 +1,11 @@
+compiler=tectonic Tectonic 0.17.0
+pages=20
+frames=20
+page_size=453.54 x 255.12 pts
+text_bytes=10707
+fatal_errors=0
+overfull_vboxes=0
+overfull_hboxes=0
+required_content_terms=10/10
+placeholders=0
+make_verify=PASS
