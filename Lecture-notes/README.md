@@ -12,9 +12,9 @@ kept alongside `parts/` for reference.
 ## Week 2
 - **LS-2026-Transformer-Lecture3** (155 pp) — parts 1–6
 - **MLP_Neural_Networks_Tutorial** (20 pp) — single part
-- **Brains-and-Models-Corrected** — converting
-- **Decoder_Only_Transformer_Tutorial** — converting
-- **Inperson-Weeek-2-prompts** — converting
+- **Brains-and-Models-Corrected** (11 pp) — single part
+- **Decoder_Only_Transformer_Tutorial** (20 pp) — single part
+- **Inperson-Week-2-prompts** (2 pp) — single part
 
 Generated 2026-10-11 from the decks used in class (weeks of Sep 29 and Oct 6).
 Student roster data is intentionally NOT included in this directory.
