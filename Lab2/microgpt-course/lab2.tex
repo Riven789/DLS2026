@@ -1,0 +1,271 @@
+% =============================================================================
+%  CMSC 35200 -- Lab 2: Experiments on microgpt with an agent
+%  Build: latexmk -pdf lab2.tex
+% =============================================================================
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsthm,bm,mathtools}
+\usepackage{newtxtext,newtxmath}
+\usepackage[scaled=0.9]{inconsolata}
+\usepackage{microtype,parskip}
+\usepackage{xcolor,booktabs,array,tabularx,enumitem,fancyhdr,lastpage}
+\setlist{nosep,leftmargin=1.6em}
+\usepackage[most]{tcolorbox}
+\usepackage[backend=biber,style=authoryear-comp,maxcitenames=2,maxbibnames=8,giveninits=true,
+            uniquename=false,uniquelist=false,sorting=nyt,dashed=false]{biblatex}
+\addbibresource{refs.bib}
+\usepackage[colorlinks=true,linkcolor=accent2,citecolor=accent,urlcolor=accent2]{hyperref}
+
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{accent}{HTML}{B45309}
+\definecolor{accent2}{HTML}{1D4ED8}
+\definecolor{boxbg}{HTML}{FFF7ED}
+\definecolor{boxbg2}{HTML}{EFF6FF}
+\definecolor{codeframe}{HTML}{D6D3CE}
+
+\newtcolorbox{predict}{enhanced,colback=boxbg,colframe=accent,fonttitle=\bfseries,
+  title={Predict first (write this in \texttt{predictions.md} before the agent runs anything)},
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=3pt,bottom=3pt}
+\newtcolorbox{deliver}{enhanced,colback=boxbg2,colframe=accent2,fonttitle=\bfseries,
+  title={Artifacts for this section},boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=3pt,bottom=3pt}
+\newtcolorbox{rubric}{enhanced,colback=white,colframe=codeframe,fonttitle=\bfseries\color{ink},
+  title={Points (10)},boxrule=0.5pt,arc=2pt,left=6pt,right=6pt,top=2pt,bottom=2pt}
+\newcommand{\agent}[1]{\paragraph{Ask the agent to.} #1}
+\newcommand{\you}[1]{\paragraph{Then you.} #1}
+\newcommand{\goal}[1]{\paragraph{Goal.} #1}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{CMSC 35200 \quad Lab 2: microgpt}
+\rhead{Due Tuesday, October 20, 2026, 11:59 pm}
+\cfoot{Page \thepage\ of \pageref{LastPage}}
+
+\title{\vspace{-2em}\textbf{Lab 2: Experiments on microgpt, with an agent}\\[0.3em]
+\large CMSC 35200 \quad $\cdot$ \quad 100 points \quad $\cdot$ \quad Due Tuesday, October 20, 2026 at 11:59 pm (Chicago time)}
+\author{Submit via Classroom50}
+\date{Released October 11, 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\section*{Overview}
+
+This lab uses Andrej Karpathy's \emph{microgpt} \parencite{karpathy2026microgpt,karpathy2026microgptgist}, a 200-line dependency-free Python program that trains and samples a GPT, as an experimental testbed. You will work \textbf{with a coding agent} (Claude Code, Codex, Pi or an equivalent tool that can edit and run files). The agent does the implementation; you do the prediction, the experimental design, and the explanation. The lab is graded on evidence that \emph{you} understood what happened, not on the quality of the agent's code.
+
+The lab has ten sections worth 10 points each. Every section follows the same pattern:
+\begin{enumerate}
+  \item \textbf{Predict.} Before the agent runs anything for that section, you write your prediction in \texttt{predictions.md}. Predictions are graded on whether they are specific and were made before the result, not on whether they were right.
+  \item \textbf{Delegate.} You instruct the agent. The transcript of that interaction is a submitted artifact.
+  \item \textbf{Explain.} You write the analysis in the report in your own words.
+\end{enumerate}
+
+\paragraph{Materials.} The lecture notes, slides and study guide for microgpt; the post and gist linked above. Baseline settings are those of the gist: seed 42, $d=16$, 4 heads, 1 layer, 1{,}000 steps, Adam with linear decay.
+
+\paragraph{Ground rules.}
+\begin{itemize}
+  \item Keep \texttt{random.seed(42)} and the baseline hyperparameters unless a section tells you to change them. State every deviation in the report.
+  \item A pure-Python run takes one to four minutes. For sweeps, you may reduce \texttt{num\_steps}, but every arm of a comparison must use the same number of steps and the same seed.
+  \item Do not let the agent choose experimental parameters that a section assigns to you (tolerances, step sizes, learning-rate grids, protocols). Those choices are the graded content.
+  \item Report every number with the setting that produced it. A table without its settings earns no credit.
+\end{itemize}
+
+\section*{What to submit}
+
+Upload to Classroom50 \textbf{two items}: the report \texttt{report.pdf} by itself (so it can be annotated), and one archive \texttt{lab2\_\textit{cnetid}.zip} with the layout below. Both are required; the zip must also contain the report.
+
+\begin{center}\small
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+Path in the zip & Contents \\
+\midrule
+\texttt{README.md} & Your name, CNetID, the agent and model you used, how to rerun each section (one command per section), and total wall-clock time spent on runs. \\
+\texttt{report.pdf} & The written report: one subsection per lab section, in order, each containing the required tables, figures and explanations. Target 8--14 pages. \\
+\texttt{predictions.md} & Your predictions for all ten sections, each dated and time-stamped \emph{before} the corresponding runs. Commit history or file timestamps may be checked. \\
+\texttt{code/} & Every script the agent produced, one subfolder per section (\texttt{code/s01/} \dots \texttt{code/s10/}), plus the unmodified \texttt{microgpt.py} for reference. Each script must run from the command line. \\
+\texttt{results/} & Raw outputs: CSV files of losses, sweep tables, generated samples, gradient-check output. One subfolder per section. \\
+\texttt{figures/} & Every plot referenced in the report, as PDF or PNG, named \texttt{s\textit{NN}\_\textit{description}}. \\
+\texttt{transcripts/} & The full agent transcripts, one file per section (\texttt{transcripts/s01.md} \dots). Export or copy the entire conversation, including your prompts. Transcripts that have been edited for content will be treated as missing. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Grading of each section.} Within each 10-point section: \textbf{3 points} for a specific, timely prediction; \textbf{4 points} for correct, reproducible artifacts (code runs, numbers match settings, figures labelled); \textbf{3 points} for the explanation. Explanations are graded for mechanism, not length: one correct sentence about \emph{why} outranks a page of description.
+
+\paragraph{Agent use and integrity.} Using an agent is required, and everything the agent wrote must be in \texttt{code/} with its transcript in \texttt{transcripts/}. The report and predictions must be written by you. You may ask the agent to check your arithmetic or your reasoning, but a report that reads as agent output, or that contains explanations not supported by your transcripts, will be graded as such. Collaboration between students on experimental design is fine; shared code, results or text is not.
+
+\clearpage
+% =============================================================================
+\section{Reproduce, then instrument the loss \hfill (10 points)}
+\goal{Know what the printed loss measures and why it fluctuates.}
+\begin{predict}
+The loss of a uniform guess over 27 tokens (show the arithmetic); whether the step-1 loss will be above or below it; whether the per-step loss will decrease smoothly; and whether a held-out loss will diverge from the training loss within 1{,}000 steps.
+\end{predict}
+\agent{Run the unmodified script and save every step's loss, the document, and its length to \texttt{results/s01/loss.csv}. Plot the raw loss, a trailing 50-step mean, and a horizontal line at your predicted uniform baseline. Then add a held-out split of 10\% of the names, evaluated every 100 steps with no \texttt{backward()} call, and add it to the plot.}
+\you{Sort the last 100 training steps by loss and inspect the names at both extremes. Explain why the raw curve is noisy and why the final smoothed value differs from the last printed value. Convert the final smoothed loss to perplexity and to bits per character \emph{by hand}, showing the arithmetic, then have the agent check it. Explain why no train/held-out gap appears.}
+\begin{deliver}
+\texttt{code/s01/}, \texttt{results/s01/loss.csv}, \texttt{results/s01/heldout.csv}, \texttt{figures/s01\_loss.pdf}; in the report: the plot, a table of the five lowest- and five highest-loss steps from the last 100 with their names, your hand calculation, and the two explanations.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (CSV complete, plot labelled, held-out evaluated without gradients) $\cdot$ 3 explanation (noise mechanism, smoothing, no-gap reasoning).\end{rubric}
+
+% =============================================================================
+\section{Bug hunt with a gradient checker you design \hfill (10 points)}
+\goal{Understand \texttt{backward()} well enough to detect when it is wrong.}
+\begin{predict}
+For each of the four candidate bugs below, what symptom you expect in (a) a finite-difference gradient check and (b) the loss curve.
+\end{predict}
+\agent{Produce three copies of the script, each with exactly one silent bug in the autograd engine chosen from: \texttt{child.grad = ...} instead of \texttt{+=}; no \texttt{p.grad = 0} reset; iterating \texttt{topo} forward instead of reversed; a wrong local gradient in \texttt{\_\_pow\_\_}. The agent must not tell you which copy has which bug (instruct it to record the mapping in a sealed file \texttt{results/s02/answer\_key.txt} that you open only after submitting your diagnosis in the report).}
+\you{Write the specification of a finite-difference gradient checker: which parameters to sample and how many, the step size $h$, and the comparison metric (relative error, with the formula). The agent implements it to your spec. Run it on the three copies and the original and diagnose each copy from checker output and loss curves \emph{before} reading the diffs. Then show, with numbers, what happens to the checker when $h$ is 100$\times$ too large and 100$\times$ too small, and explain both failure modes.}
+\begin{deliver}
+\texttt{code/s02/} (checker plus the three buggy copies), \texttt{results/s02/} (checker output for all four scripts, loss CSVs, the sealed answer key), in the report: your checker spec, a diagnosis table (copy $\to$ bug $\to$ evidence), the $h$-sensitivity table, and the explanation.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (spec implemented as written, all four scripts checked, diagnoses recorded before the key) $\cdot$ 3 explanation (correct diagnoses with mechanism; both $h$ failure modes).\end{rubric}
+
+% =============================================================================
+\section{The bigram baseline and what attention adds \hfill (10 points)}
+\goal{Quantify what the Transformer buys over counting.}
+\begin{predict}
+The per-token loss of an add-one-smoothed bigram model on the names relative to microgpt's $\approx 2.3$; the same for a trigram; and whether microgpt with \texttt{block\_size = 2} will land nearer the bigram or the trigram.
+\end{predict}
+\agent{Implement a bigram model (a $27\times 27$ table of next-token counts over \texttt{BOS}-wrapped names, add-one smoothing, row normalisation) and a trigram model, compute each one's average per-token loss over the full dataset, and sample 20 names from each. Then set microgpt's \texttt{block\_size} to 2 and retrain with baseline settings.}
+\you{Fill in a four-row table (bigram, trigram, microgpt with block size 2, microgpt baseline) with loss and parameter or table size. Explain what information each row has that the previous row lacks, and why the block-size-2 result landed where it did. Comment on sample quality with examples.}
+\begin{deliver}
+\texttt{code/s03/}, \texttt{results/s03/} (loss values, 20 samples per model), in the report: the table, samples, and explanation.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (correct smoothing and \texttt{BOS} handling, losses on the full dataset, block-size run) $\cdot$ 3 explanation.\end{rubric}
+
+% =============================================================================
+\section{The ablation ladder \hfill (10 points)}
+\goal{Learn what each architectural piece contributes by removing it.}
+\begin{predict}
+Rank the five ablations from least to most damaging, with one sentence of reasoning each: (a) remove the position embedding \texttt{wpe}; (b) remove both residual additions; (c) remove the first \texttt{rmsnorm} after the embeddings; (d) one head of width 16 instead of four of width 4; (e) remove the MLP block.
+\end{predict}
+\agent{Implement each ablation as a command-line flag in one copy of the script, run all five plus the baseline with the same seed and step count, and report the trailing 100-step mean loss and the parameter count for each.}
+\you{Compare the measured ranking with your predicted ranking. For every misplacement, write one sentence on what you had misunderstood. Address (c) specifically in light of the source comment that it is ``not redundant due to backward pass via the residual connection'', and (d) in light of the fact that it changes no parameter count.}
+\begin{deliver}
+\texttt{code/s04/} (one script, six flags), \texttt{results/s04/ablations.csv}, \texttt{figures/s04\_curves.pdf} (six smoothed curves on one axis), in the report: predicted vs measured ranking table and the explanations.
+\end{deliver}
+\begin{rubric}3 prediction (full ranking with reasons) $\cdot$ 4 artifacts (six runs, equal settings, parameter counts correct) $\cdot$ 3 explanation.\end{rubric}
+
+% =============================================================================
+\section{Look inside attention \hfill (10 points)}
+\goal{Test the post's suggestion that a head might ask ``what vowels appeared recently?''}
+\begin{predict}
+What pattern you expect each of the four heads to show after training (for example previous-token, first-token, diffuse), and one hypothesis about one head that can be tested quantitatively.
+\end{predict}
+\agent{After training, record the attention weights of every head at every position for a given input name, and render one heatmap per head (query positions as rows, cached key positions as columns) for five names you choose, including one long name and one with a repeated letter. Then implement the quantitative test you specify: for example, the mean weight placed on the most recent vowel versus all other positions, averaged over 500 training names.}
+\you{Describe each head's pattern in words \emph{before} reading any interpretation the agent offers. State your hypothesis, the statistic that tests it, the result, and whether the hypothesis survives. If it does not, say what the head appears to do instead.}
+\begin{deliver}
+\texttt{code/s05/}, \texttt{figures/s05\_head\{0..3\}\_\textit{name}.pdf} (20 heatmaps, or a grid), \texttt{results/s05/hypothesis\_test.csv}, in the report: a 4-row table (head $\to$ your description), the hypothesis test with its statistic, and the conclusion.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (correct weights captured post-training, heatmaps labelled, test implemented as specified) $\cdot$ 3 explanation (descriptions precede interpretation; conclusion follows from the statistic).\end{rubric}
+
+% =============================================================================
+\section{Port it to tensors and prove equivalence \hfill (10 points)}
+\goal{Show that the scalar graph and a vectorised implementation are the same algorithm.}
+\begin{predict}
+The tolerance at which logits and gradients from the two implementations should agree, with justification from floating-point precision; and the expected speed-up of one training step, with reasoning from the node counts in the notes.
+\end{predict}
+\agent{Write a PyTorch version that processes a whole document in one forward pass with a causal mask, initialised with the exact weights copied out of the scalar version's \texttt{state\_dict} after seeding. Compare logits at every position for the first training document and the gradient of every parameter after one backward pass. Time one training step in each implementation.}
+\you{Report the maximum absolute and relative discrepancies against your tolerance. Answer: where did the KV cache go in the tensor version, and why does it need a mask when microgpt does not? Explain the measured speed ratio.}
+\begin{deliver}
+\texttt{code/s06/} (the PyTorch port and the comparison script), \texttt{results/s06/equivalence.txt} (discrepancies and timings), in the report: tolerance with justification, discrepancy table, timing table, and the two explanations.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (identical init, logits and \emph{gradients} compared, timings) $\cdot$ 3 explanation (cache/mask correspondence; speed ratio).\end{rubric}
+
+% =============================================================================
+\section{Optimizer bake-off with a fair protocol \hfill (10 points)}
+\goal{Understand what each term of Adam does.}
+\begin{predict}
+Which optimizer will reach the lowest loss at the fixed budget; what the first 20 steps of Adam without bias correction will look like and why; and which parameters will receive the largest Adam steps relative to their raw gradients.
+\end{predict}
+\agent{Implement plain SGD, SGD with momentum, RMSProp, Adam without bias correction, and Adam, each as a flag, and run the sweep exactly as you specify. Afterwards print, for ten parameters you name (include embedding rows for \texttt{q}, \texttt{x} and \texttt{a}), the ratio of the Adam update to the raw gradient at steps 1, 10 and 100.}
+\you{Write the protocol \emph{first}: identical number of documents per arm, a learning-rate grid of at least five values per arm (state it), the metric (trailing 100-step mean), and how you will present best-of-grid results. Plot best loss per optimizer and the best curve from each arm. Explain the early behaviour without bias correction, and why rarely used embedding rows get larger steps.}
+\begin{deliver}
+\texttt{code/s07/}, \texttt{results/s07/sweep.csv} (every run with its settings), \texttt{results/s07/update\_ratios.csv}, \texttt{figures/s07\_sweep.pdf}, \texttt{figures/s07\_best\_curves.pdf}, in the report: your protocol, both figures, the ratio table, and the two explanations.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (protocol followed, equal budgets, all runs logged with settings) $\cdot$ 3 explanation (bias correction; per-parameter scaling).\end{rubric}
+
+% =============================================================================
+\section{Decoding lab: memorisation versus novelty \hfill (10 points)}
+\goal{Make ``hallucination'' and ``creativity'' measurable.}
+\begin{predict}
+Which decoding setting will produce the most names that already exist in the training set, which will produce the most duplicate outputs, and which will produce unpronounceable output.
+\end{predict}
+\agent{Implement greedy decoding, temperature sampling at $T\in\{0.3, 0.5, 0.8, 1.0, 1.5\}$, top-$k$ at $k\in\{3, 10\}$, and nucleus sampling at $p\in\{0.7, 0.9\}$. For each setting generate 500 names from the trained baseline model and report: fraction present in the training set, number of unique outputs, mean length, and the ten most frequent outputs.}
+\you{Write a short analysis of the plausibility--diversity trade-off using the numbers. Explain why greedy decoding from \texttt{BOS} can only ever produce one name. Relate your findings to \textcite{holtzman2020nucleus}.}
+\begin{deliver}
+\texttt{code/s08/}, \texttt{results/s08/decoding.csv} (one row per setting), \texttt{results/s08/samples\_\textit{setting}.txt}, in the report: the table, the analysis, and the greedy explanation.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (all ten settings, 500 samples each, metrics computed correctly against the training split) $\cdot$ 3 explanation.\end{rubric}
+
+% =============================================================================
+\section{A miniature scaling study \hfill (10 points)}
+\goal{See the shape of scaling laws at a scale where every run is affordable.}
+\begin{predict}
+Whether doubling width or doubling depth will help more at this scale; whether the largest model will be the best after 2{,}000 single-document steps; and roughly how long the largest run will take.
+\end{predict}
+\agent{Run a grid over \texttt{n\_embd} $\in\{8,16,32,64\}$ and \texttt{n\_layer} $\in\{1,2,4\}$ for 2{,}000 steps each, recording parameter count, final trailing-100 loss, and wall-clock time. Estimate training FLOPs per run as $6 \times \text{parameters} \times \text{tokens processed}$. Plot loss against parameters and loss against estimated FLOPs, both on log axes.}
+\you{Identify which runs are undertrained (loss still falling steeply at the end) and justify the criterion you used. Write two paragraphs connecting the plots to \textcite{kaplan2020scaling} and to the Chinchilla ratio of roughly 20 tokens per parameter \parencite{hoffmann2022chinchilla}. Compute how many tokens the largest model in your grid would need to reach that ratio, and how many steps that is at one document per step.}
+\begin{deliver}
+\texttt{code/s09/}, \texttt{results/s09/grid.csv} (12 rows), \texttt{figures/s09\_loss\_vs\_params.pdf}, \texttt{figures/s09\_loss\_vs\_flops.pdf}, in the report: the table, both plots, the undertraining criterion, the two paragraphs, and the token calculation.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (12 runs, FLOP estimate shown, log axes) $\cdot$ 3 explanation.\end{rubric}
+
+% =============================================================================
+\section{New data, new tokenizer, and a measurement trap \hfill (10 points)}
+\goal{Experience the FAQ item ``what if I change the dataset?'' and learn why losses are comparable only per character.}
+\begin{predict}
+Whether per-token loss will rise or fall as the number of BPE merges grows, and whether that change means the model got better or worse.
+\end{predict}
+\agent{Train the baseline on a different list of short strings of your choosing (English words, city names, element names; include the file). Then implement a minimal byte-pair encoding over the names with 20, 50 and 100 merges, retrain microgpt with each vocabulary (adjust \texttt{block\_size} if needed and say so), and report the per-token loss for each.}
+\you{Require the agent to also report loss \emph{per character}, computed as the total negative log-likelihood of each document divided by its character count. Present both tables side by side and explain which comparison is honest and why. Inspect the first ten merges and compare them with the bigram counts from Section 3. Comment on how the new dataset changed the loss floor and the samples.}
+\begin{deliver}
+\texttt{code/s10/} (BPE implementation, modified trainer), the alternative dataset file, \texttt{results/s10/tokenizer\_comparison.csv} (per-token and per-character loss for 0, 20, 50, 100 merges), \texttt{results/s10/merges.txt}, \texttt{results/s10/newdata\_samples.txt}, in the report: both tables, the merge list, and the explanations.
+\end{deliver}
+\begin{rubric}3 prediction $\cdot$ 4 artifacts (working BPE, consistent block size handling, per-character loss computed correctly) $\cdot$ 3 explanation (honest comparison; merges vs bigram counts).\end{rubric}
+
+\clearpage
+\section*{Submission checklist}
+
+Before uploading, confirm every line:
+\begin{itemize}[label=$\square$]
+  \item \texttt{report.pdf} uploaded on its own \emph{and} included in the zip; subsections numbered 1--10 in order.
+  \item \texttt{predictions.md} contains ten dated entries, each written before the matching runs.
+  \item \texttt{code/s01} through \texttt{code/s10} each run from the command line as documented in \texttt{README.md}.
+  \item \texttt{results/} contains every CSV and sample file named in the ``Artifacts'' boxes above.
+  \item \texttt{figures/} contains every figure referenced in the report, with axis labels and legends.
+  \item \texttt{transcripts/s01.md} through \texttt{transcripts/s10.md} are complete and unedited.
+  \item Every number in the report is accompanied by the settings (seed, steps, hyperparameters) that produced it.
+  \item \texttt{README.md} names the agent and model used and the total wall-clock time of your runs.
+  \item The zip is named \texttt{lab2\_\textit{cnetid}.zip} and unpacks into a single folder of that name.
+\end{itemize}
+
+\section*{Points summary}
+\begin{center}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Section & Title & Points \\
+\midrule
+1 & Reproduce, then instrument the loss & 10 \\
+2 & Bug hunt with a gradient checker you design & 10 \\
+3 & The bigram baseline and what attention adds & 10 \\
+4 & The ablation ladder & 10 \\
+5 & Look inside attention & 10 \\
+6 & Port it to tensors and prove equivalence & 10 \\
+7 & Optimizer bake-off with a fair protocol & 10 \\
+8 & Decoding lab: memorisation versus novelty & 10 \\
+9 & A miniature scaling study & 10 \\
+10 & New data, new tokenizer, and a measurement trap & 10 \\
+\midrule
+ & Total & 100 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each section: 3 points prediction, 4 points artifacts, 3 points explanation. Late submissions are handled according to the course syllabus.
+
+\printbibliography[title={References}]
+\end{document}

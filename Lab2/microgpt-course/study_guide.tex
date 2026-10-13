@@ -1,0 +1,724 @@
+% =============================================================================
+%  microgpt: Study Guide -- cheat sheets, literature map, self-test, bibliography
+%  Build: latexmk -pdf study_guide.tex
+% =============================================================================
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsthm,bm,mathtools}
+\usepackage{newtxtext,newtxmath}
+\usepackage[scaled=0.9]{inconsolata}
+\usepackage{microtype,parskip,multicol}
+\usepackage{xcolor,tikz,booktabs,array,tabularx,longtable,enumitem}
+\usetikzlibrary{arrows.meta,positioning}
+\setlist{nosep,leftmargin=1.4em}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage[backend=biber,style=authoryear-comp,maxcitenames=2,maxbibnames=8,giveninits=true,
+            uniquename=false,uniquelist=false,sorting=nyt,dashed=false,defernumbers=true]{biblatex}
+\addbibresource{refs.bib}
+\usepackage[colorlinks=true,linkcolor=accent2,citecolor=accent,urlcolor=accent2]{hyperref}
+\usepackage{cleveref}
+
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{accent}{HTML}{B45309}
+\definecolor{accent2}{HTML}{1D4ED8}
+\definecolor{codebg}{HTML}{F7F7F5}
+\definecolor{codeframe}{HTML}{D6D3CE}
+\definecolor{boxbg}{HTML}{FFF7ED}
+\definecolor{boxbg2}{HTML}{EFF6FF}
+\definecolor{kw}{HTML}{7C3AED}
+\definecolor{str}{HTML}{047857}
+\definecolor{cmt}{HTML}{6B7280}
+\lstdefinestyle{py}{language=Python,basicstyle=\ttfamily\scriptsize,keywordstyle=\color{kw}\bfseries,
+  stringstyle=\color{str},commentstyle=\color{cmt}\itshape,showstringspaces=false,columns=fullflexible,
+  keepspaces=true,breaklines=true,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{codeframe},
+  framerule=0.4pt,xleftmargin=4pt,xrightmargin=4pt,aboveskip=4pt,belowskip=4pt}
+\lstset{style=py}
+\newcommand{\code}[1]{\lstinline[basicstyle=\ttfamily\small]|#1|}
+
+% cheat-sheet boxes
+\newtcolorbox{cs}[2][]{enhanced,colback=white,colframe=accent,fonttitle=\bfseries\small,title={#2},
+  boxrule=0.6pt,arc=1.5pt,left=4pt,right=4pt,top=3pt,bottom=3pt,fontupper=\small,#1}
+\newtcolorbox{csb}[2][]{enhanced,colback=boxbg2,colframe=accent2,fonttitle=\bfseries\small,title={#2},
+  boxrule=0.6pt,arc=1.5pt,left=4pt,right=4pt,top=3pt,bottom=3pt,fontupper=\small,#1}
+\newtcolorbox{warn}[1][]{enhanced,colback=boxbg,colframe=accent,boxrule=0.5pt,arc=1.5pt,
+  left=4pt,right=4pt,top=2pt,bottom=2pt,fontupper=\small,#1}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\rmsnorm}{\operatorname{rmsnorm}}
+\newcommand{\relu}{\operatorname{relu}}
+\newcommand{\dd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\BOS}{\texttt{BOS}}
+
+% self-test Q/A
+\newcounter{q}
+\newcommand{\Q}[2]{\stepcounter{q}\par\noindent\textbf{Q\theq.} #1\par\noindent{\color{accent2}\textit{A.}} #2\par\medskip}
+
+\title{\vspace{-1.5em}\textbf{microgpt: Study Guide}\\[0.2em]\large Cheat sheets, a map from concepts to the literature, a self-test, and an annotated bibliography}
+\author{Companion to the \emph{microgpt} lecture notes and slides, based on \textcite{karpathy2026microgpt}}
+\date{Compiled \today}
+
+\begin{document}
+\maketitle
+
+\begin{multicols}{2}
+\noindent\textbf{How to use this guide.}
+Part~\ref{part:cheat} is a set of one-page cheat sheets, one per component of the program, meant to be read next to the code.
+Part~\ref{part:lit} connects every idea in microgpt to the paper or book it comes from, and says what to read next.
+Part~\ref{part:test} is a self-test with answers.
+Part~\ref{part:bib} is the full bibliography, grouped by theme and annotated.
+Equation numbers and section names follow the lecture notes.
+
+\noindent\textbf{The one-sentence summary.}
+A GPT is a function from a token sequence to a probability distribution over the next token, built from embeddings, attention (communication between positions) and MLPs (computation within a position) on a residual stream, trained by minimising cross-entropy with Adam using gradients from reverse-mode autodiff, and used by sampling one token at a time and feeding it back.
+\end{multicols}
+
+\tableofcontents
+
+% =============================================================================
+\clearpage
+\part{Cheat sheets}
+\label{part:cheat}
+% =============================================================================
+
+\section{The whole program on one page}
+
+\begin{multicols}{2}
+\begin{cs}{Pipeline (section numbers as in the notes)}
+\begin{enumerate}
+  \item \textbf{Dataset}: 32{,}033 names, one per line = one document each.
+  \item \textbf{Tokenizer}: 26 letters + \BOS{} $\Rightarrow V=27$.
+  \item \textbf{Autograd}: \code{Value} scalars, 6 primitive ops, \code{backward()}.
+  \item \textbf{Parameters}: 4{,}192 floats $\sim\mathcal N(0,0.08^2)$ in a \code{state_dict}.
+  \item \textbf{Architecture}: GPT-2 minus LayerNorm/biases/GeLU; 1 layer, 4 heads, $d=16$.
+  \item \textbf{Training}: 1{,}000 steps, one document each, cross-entropy, Adam, linear decay.
+  \item \textbf{Inference}: sample from \BOS{} at $T=0.5$ until \BOS{}; 20 names.
+\end{enumerate}
+\end{cs}
+
+\begin{cs}{Hyperparameters}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Name & Value & Meaning \\
+\midrule
+\code{n_embd} ($d$) & 16 & width of the residual stream \\
+\code{n_head} ($H$) & 4 & attention heads \\
+\code{head_dim} ($d_h$) & 4 & $d/H$ \\
+\code{n_layer} ($L$) & 1 & Transformer blocks \\
+\code{block_size} ($T_{\max}$) & 16 & max context (longest name 15) \\
+\code{vocab_size} ($V$) & 27 & tokens incl.\ \BOS \\
+init std & 0.08 & Gaussian weight scale \\
+\code{learning_rate} & 0.01 & peak LR, linear decay to 0 \\
+$\beta_1,\beta_2,\epsilon$ & 0.85, 0.99, $10^{-8}$ & Adam \\
+\code{num_steps} & 1000 & one document per step \\
+\code{temperature} & 0.5 & sampling sharpness \\
+seed & 42 & \code{random.seed} \\
+\bottomrule
+\end{tabular}
+\end{cs}
+
+\begin{cs}{Numbers to remember}
+\begin{itemize}
+  \item $\ln 27 = 3.296$: loss of a uniform guess. First printed loss 3.366.
+  \item Final smoothed loss $\approx 2.3$ (post: $\approx 2.37$); last single-document loss 2.65.
+  \item Perplexity $e^{\mathcal L}$: $27\to\approx 10$. Bits/char: $4.75\to\approx 3.4$.
+  \item Model sees 1{,}000 of 32{,}033 names: 3\% of an epoch; no overfitting.
+  \item Graph size per step: $\approx 8$k \code{Value} nodes per token ($\approx 10^5$ for a 12-letter name).
+  \item Runtime: about 1 min (Karpathy) to 3.5 min (our run) in CPython.
+  \item GPT-2: 1.5B params; GPT-3: 175B; microgpt: 4{,}192.
+\end{itemize}
+\end{cs}
+
+\columnbreak
+
+\begin{csb}{Shapes (column-vector convention, $W\in\R^{n_{\text{out}}\times n_{\text{in}}}$)}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Object & Shape & Lives in \\
+\midrule
+\code{wte} & $V\times d = 27\times 16$ & params \\
+\code{wpe} & $T_{\max}\times d = 16\times 16$ & params \\
+$W_q,W_k,W_v,W_o$ & $d\times d = 16\times 16$ & params (per layer) \\
+$W_1$ (\code{mlp_fc1}) & $4d\times d = 64\times 16$ & params \\
+$W_2$ (\code{mlp_fc2}) & $d\times 4d = 16\times 64$ & params \\
+\code{lm_head} & $V\times d = 27\times 16$ & params \\
+$x$ (residual stream) & $d=16$ & activation \\
+$q,k,v$ & $16$, sliced into $4\times 4$ & activation \\
+cache \code{keys[l]} & list of $i{+}1$ vectors of 16 & activation \\
+attention weights (head $h$) & $i{+}1$ & activation \\
+MLP hidden & $64$ & activation \\
+logits & $27$ & activation \\
+\bottomrule
+\end{tabular}
+\end{csb}
+
+\begin{csb}{Parameter count}
+\[
+N = \underbrace{Vd}_{\text{wte}} + \underbrace{T_{\max}d}_{\text{wpe}} + L\,(\underbrace{4d^2}_{\text{attn}} + \underbrace{8d^2}_{\text{MLP}}) + \underbrace{Vd}_{\text{lm\_head}}
+\]
+$= 432 + 256 + 1\cdot(1024+2048) + 432 = 4{,}192$. Per block $12d^2$.
+\end{csb}
+
+\begin{csb}{Design choices vs.\ GPT-2}
+\begin{tabular}{@{}lll@{}}
+\toprule
+& GPT-2 & microgpt \\
+\midrule
+Normalisation & LayerNorm (gain, bias) & RMSNorm, no gain \\
+Biases & yes & none \\
+Activation & GELU & ReLU \\
+Position & learned table & learned table \\
+Output head & tied to \code{wte} & separate \\
+Norm placement & pre-norm & pre-norm \\
+Dropout & yes & none \\
+\bottomrule
+\end{tabular}
+\end{csb}
+
+\begin{warn}
+\textbf{Three things people get wrong.}
+(1) Token ids are symbols, not magnitudes.
+(2) There is no causal mask because the cache contains only the past.
+(3) The printed loss is per document, so it is noisy; judge progress with a running mean.
+\end{warn}
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section{Autograd cheat sheet}
+
+\begin{multicols}{2}
+\begin{cs}{The six primitives (forward value, stored local gradient)}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Op & Forward & Local grads \\
+\midrule
+\code{a + b} & $a+b$ & $(1,\,1)$ \\
+\code{a * b} & $ab$ & $(b,\,a)$ \\
+\code{a ** n} & $a^n$ & $n a^{n-1}$ \\
+\code{a.log()} & $\ln a$ & $1/a$ \\
+\code{a.exp()} & $e^a$ & $e^a$ \\
+\code{a.relu()} & $\max(0,a)$ & $\mathbf 1[a>0]$ \\
+\bottomrule
+\end{tabular}
+
+Derived: \code{-a = a*-1}, \code{a-b = a+(-b)}, \code{a/b = a*b**-1}; the \code{__r*__} variants let plain floats appear on the left.
+\end{cs}
+
+\begin{cs}{A node}
+\code{Value(data, children, local_grads)}: \code{.data} (forward scalar), \code{.grad} (accumulated $\partial\mathcal L/\partial v$, starts at 0), \code{_children} (inputs), \code{_local_grads} ($\partial v/\partial \text{child}$, computed at construction).
+\end{cs}
+
+\begin{cs}{\code{backward()} in three lines}
+\begin{enumerate}
+  \item DFS from the root; append a node after its children $\Rightarrow$ topological order.
+  \item Seed: \code{self.grad = 1} ($\partial\mathcal L/\partial\mathcal L=1$).
+  \item For $v$ in reverse order, for each child $c$: \code{c.grad += local * v.grad}.
+\end{enumerate}
+\[
+\dd{\mathcal L}{c} \mathrel{+}= \dd{v}{c}\cdot\dd{\mathcal L}{v}
+\]
+\end{cs}
+
+\begin{cs}{Worked example}
+$L = ab + a$, $a=2$, $b=3$: $\partial L/\partial a = b + 1 = 4$ (two paths), $\partial L/\partial b = a = 2$. PyTorch agrees.
+\end{cs}
+
+\columnbreak
+
+\begin{csb}{Why reverse mode}
+One scalar output, many inputs: one backward sweep costs about as much as one forward pass and yields \emph{all} partial derivatives. Forward-mode would need one sweep per input. \parencite{baydin2018autodiff,griewank2008evaluating}
+\end{csb}
+
+\begin{csb}{Gotchas}
+\begin{itemize}
+  \item \textbf{+=, not =.} A value used twice gets gradient from both uses (multivariable chain rule).
+  \item \textbf{Zero the grads} after each update, or they accumulate across steps.
+  \item \textbf{Order matters.} A node's gradient must be complete before it is pushed to its children; topological order guarantees this.
+  \item \textbf{Constants.} \code{max_val} in softmax is a float, not a \code{Value}: the shift is constant in the graph.
+  \item \textbf{Graph per step.} The graph is rebuilt every forward pass (define-by-run), exactly like PyTorch.
+  \item \textbf{Cost.} One node per scalar op: $\approx 8$k nodes per token here.
+\end{itemize}
+\end{csb}
+
+\begin{csb}{Gradient of softmax + cross-entropy}
+With $p=\softmax(z)$ and target $y$ one-hot: $\partial\ell/\partial z_k = p_k - y_k$. microgpt never writes this; the engine derives it from \code{exp}, \code{log}, sum and division nodes.
+\end{csb}
+
+\begin{csb}{Lineage}
+Reverse mode: \textcite{linnainmaa1976taylor}. Backprop for neural nets: \textcite{rumelhart1986learning}. PyTorch autograd: \textcite{paszke2017autodiff}. micrograd: \textcite{karpathy2020micrograd,karpathy2022microgradvideo}.
+\end{csb}
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section{Architecture and attention cheat sheet}
+
+\begin{multicols}{2}
+\begin{cs}{One forward call, $x\in\R^{16}$}
+\begin{align*}
+x &\leftarrow \rmsnorm(\mathrm{wte}[t_i] + \mathrm{wpe}[i]) \\
+\text{for each layer: } & \\
+\quad x &\leftarrow x + W_o\,\mathrm{MHA}(\rmsnorm(x)) \\
+\quad x &\leftarrow x + W_2\,\relu(W_1\,\rmsnorm(x)) \\
+z &= W_{\text{out}}\,x \in\R^{27}
+\end{align*}
+Softmax of $z$ is done by the caller (loss or sampler).
+\end{cs}
+
+\begin{cs}{Helpers}
+\begin{itemize}
+  \item \code{linear(x, w)}: $y_j = \sum_i w_{ji}x_i$ (one dot product per row).
+  \item \code{softmax(z)}: $e^{z_k-m}/\sum_j e^{z_j-m}$, $m=\max z$ for stability.
+  \item \code{rmsnorm(x)}: $x/\sqrt{\frac1d\sum x_i^2 + 10^{-5}}$; no mean subtraction, no gain.
+\end{itemize}
+\end{cs}
+
+\begin{cs}{Attention, head $h$, position $i$}
+\begin{align*}
+q &= W_q x,\; k = W_k x,\; v = W_v x \quad(\text{append }k,v\text{ to cache})\\
+a_{s} &= q[S_h]\cdot k_s[S_h]/\sqrt{d_h}, \qquad s = 0..i \\
+\alpha &= \softmax(a_0..a_i) \\
+\mathrm{head}_h &= \textstyle\sum_s \alpha_s\, v_s[S_h] \in\R^{d_h} \\
+\text{out} &= W_o\,[\mathrm{head}_1\|\dots\|\mathrm{head}_H]
+\end{align*}
+$S_h$ = coordinates $hd_h..(h{+}1)d_h{-}1$. Matrix form: $\softmax(QK^\top/\sqrt{d_h})V$.
+\end{cs}
+
+\begin{cs}{Mnemonics}
+Query = ``what am I looking for?'' Key = ``what do I contain?'' Value = ``what do I offer if selected?'' Attention = \emph{communication} across positions; MLP = \emph{computation} within a position.
+\end{cs}
+
+\columnbreak
+
+\begin{csb}{Why each piece}
+\begin{itemize}
+  \item \textbf{Position embedding}: the only source of order information (attention is a weighted sum). Learned here; RoPE in modern models.
+  \item \textbf{$1/\sqrt{d_h}$}: keeps dot-product variance at 1 so softmax is not saturated at init.
+  \item \textbf{Multiple heads}: same cost as one wide head; buys different lookup patterns.
+  \item \textbf{Residual}: identity path for gradients; depth becomes trainable.
+  \item \textbf{Pre-norm}: normalise the branch input, not the stream; stabler than post-norm.
+  \item \textbf{First rmsnorm}: sets the scale at which the residual stream starts; ``not redundant''.
+  \item \textbf{MLP $4\times$}: GPT-2 convention; most parameters live here ($8d^2$ vs $4d^2$).
+\end{itemize}
+\end{csb}
+
+\begin{csb}{KV cache facts}
+\begin{itemize}
+  \item Per layer: lists \code{keys[l]}, \code{values[l]} of the $k,v$ for positions $0..i$.
+  \item Causality is automatic: nothing from the future is in the cache. No mask.
+  \item During training the entries are live \code{Value}s: gradients flow through the cache.
+  \item Size $2\,L\,T\,d$ per sequence; at scale this drives MQA/GQA and paged caches.
+\end{itemize}
+\end{csb}
+
+\begin{csb}{Cost per token}
+$\approx 12d^2 + Vd + 2(i{+}1)d$ multiply--adds $\approx 3.5$k here; the ``$2N$ forward, $6N$ train'' rule of scaling-law papers.
+\end{csb}
+
+\begin{csb}{Lineage}
+Attention: \textcite{bahdanau2015attention,vaswani2017attention}. GPT-2: \textcite{radford2019gpt2}. RMSNorm: \textcite{zhang2019rmsnorm}. Residuals: \textcite{he2016resnet}. Pre-norm: \textcite{xiong2020prelayernorm}. Residual stream: \textcite{elhage2021mathematical}. Pseudocode for all variants: \textcite{phuong2022formal}.
+\end{csb}
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section{Training cheat sheet}
+
+\begin{multicols}{2}
+\begin{cs}{One step}
+\begin{enumerate}
+  \item \texttt{doc = docs[step \% len(docs)]}; tokens $= [\BOS] + \text{chars} + [\BOS]$; $n=\min(16, |\text{tokens}|-1)$.
+  \item Empty cache. For $i = 0..n-1$: logits $=$ \code{gpt(tokens[i], i, keys, values)}; $\ell_i = -\log\softmax(z)_{t_{i+1}}$.
+  \item $\mathcal L = \frac1n\sum_i \ell_i$; \code{loss.backward()}.
+  \item Adam update with $\eta_t = 0.01(1 - t/1000)$; zero grads.
+\end{enumerate}
+\end{cs}
+
+\begin{cs}{Cross-entropy, three readings}
+$\ell = -\log p(\text{target})$ is (a) the model's \emph{surprise}; (b) a term of the negative log-likelihood of the corpus; (c) the cross-entropy $H(y,p) = H(y) + \mathrm{KL}(y\|p)$ with a one-hot $y$.
+\end{cs}
+
+\begin{cs}{Reference values}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+& loss (nats) & perplexity \\
+\midrule
+uniform over 27 & 3.296 & 27 \\
+step 1 & 3.366 & 29 \\
+smoothed, step 1000 & $\approx 2.3$ & $\approx 10$ \\
+perfect & 0 & 1 \\
+\bottomrule
+\end{tabular}
+
+Bits per character $= \mathcal L/\ln 2$.
+\end{cs}
+
+\begin{cs}{Adam}
+\begin{align*}
+m &\leftarrow \beta_1 m + (1-\beta_1) g, & \hat m &= m/(1-\beta_1^{t}) \\
+v &\leftarrow \beta_2 v + (1-\beta_2) g^2, & \hat v &= v/(1-\beta_2^{t}) \\
+\theta &\leftarrow \theta - \eta_t\, \hat m/(\sqrt{\hat v}+\epsilon)
+\end{align*}
+$m$ = momentum; $v$ = per-parameter scale (RMSProp); hats = bias correction for zero init. $t = \text{step}+1$.
+\end{cs}
+
+\columnbreak
+
+\begin{csb}{Batch size one}
+\begin{itemize}
+  \item Each step is one document $\Rightarrow$ the loss is noisy: short common names score low, long rare ones high.
+  \item Judge progress by a trailing mean (50 steps: $\approx 2.3$ at the end of our run).
+  \item 1{,}000 steps see 1{,}000 distinct names (shuffled): every step is on fresh data, so the training loss is effectively a held-out loss.
+\end{itemize}
+\end{csb}
+
+\begin{csb}{Knobs and their effect}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Knob & Effect \\
+\midrule
+\code{num_steps}$\uparrow$ & lower loss until data repeats \\
+\code{n_embd}, \code{n_layer}$\uparrow$ & more capacity; slower \\
+\code{learning_rate}$\uparrow$ & faster, then unstable \\
+$\beta_1\uparrow$ & smoother, laggier momentum \\
+$\beta_2\uparrow$ & longer memory of gradient scale \\
+batch $B>1$ & less noise per step; $B\times$ cost \\
+\bottomrule
+\end{tabular}
+\end{csb}
+
+\begin{csb}{What production adds}
+Warmup then cosine/linear decay; AdamW weight decay; batches of $10^6$ tokens; gradient accumulation; bf16/fp8; scaling laws to choose $N$ and tokens ($\approx 20$ tokens per parameter, Chinchilla).
+\end{csb}
+
+\begin{csb}{Lineage}
+SGD: \textcite{robbins1951stochastic}. Momentum: \textcite{polyak1964momentum}. RMSProp: \textcite{tieleman2012rmsprop}. Adam: \textcite{kingma2015adam}. AdamW: \textcite{loshchilov2019adamw}. Schedules: \textcite{loshchilov2017sgdr}. Scaling: \textcite{kaplan2020scaling,hoffmann2022chinchilla}. Cross-entropy and information: \textcite{shannon1948mathematical,cover2006elements}.
+\end{csb}
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section{Inference and decoding cheat sheet}
+
+\begin{multicols}{2}
+\begin{cs}{Sampling loop}
+\begin{enumerate}
+  \item Empty cache; \code{token_id = BOS}.
+  \item For $i = 0..T_{\max}-1$: logits $=$ \code{gpt(token_id, i, keys, values)}.
+  \item $p = \softmax(z/T)$; draw \code{token_id} $\sim p$.
+  \item Stop if \BOS; else append \code{uchars[token_id]} and continue.
+\end{enumerate}
+Parameters are frozen; the graph is still built but never backpropagated.
+\end{cs}
+
+\begin{cs}{Temperature}
+$p_k^{(T)} \propto e^{z_k/T}$. $T=1$: model's distribution. $T<1$: sharper (ratio of top two probabilities raised to $1/T$). $T\to0$: greedy. $T>1$: flatter.
+\end{cs}
+
+\begin{cs}{Other decoders (not in microgpt)}
+\begin{itemize}
+  \item \textbf{Greedy}: $\arg\max_k z_k$.
+  \item \textbf{Top-$k$}: zero out all but the $k$ largest probabilities, renormalise \parencite{fan2018hierarchical}.
+  \item \textbf{Nucleus / top-$p$}: keep the smallest set whose mass $\ge p$ \parencite{holtzman2020nucleus}.
+  \item \textbf{Beam search}: keep $B$ best prefixes; common in translation, rare in chat.
+\end{itemize}
+\end{cs}
+
+\columnbreak
+
+\begin{csb}{The default samples (seed 42)}
+kamon, ann, karai, jaire, vialan, karia, yeran, anna, areli, kaina, konna, keylen, liole, alerin, earan, lenne, kana, lara, alela, anton.
+\end{csb}
+
+\begin{csb}{``Hallucination'' in one line}
+The model samples statistically plausible sequences; it has no representation of truth. A made-up name and a made-up fact are the same mechanism.
+\end{csb}
+
+\begin{csb}{Production serving}
+Continuous batching \parencite{yu2022orca}; paged KV cache \parencite{kwon2023vllm}; speculative decoding (draft model proposes, target verifies) \parencite{leviathan2023speculative,chen2023speculative}; int8/int4 weights \parencite{dettmers2022int8,frantar2023gptq}; tensor/pipeline parallelism across GPUs \parencite{pope2022efficiently}.
+\end{csb}
+
+\begin{csb}{Lineage}
+Temperature: \textcite{ackley1985boltzmann,hinton2015distilling}. Degeneration and nucleus sampling: \textcite{holtzman2020nucleus}.
+\end{csb}
+\end{multicols}
+
+% -----------------------------------------------------------------------------
+\clearpage
+\section{microgpt, GPT-2 and a modern LLM side by side}
+
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.25\textwidth}X@{}}
+\toprule
+& \textbf{microgpt (2026)} & \textbf{GPT-2 (2019)} & \textbf{Modern open LLM (LLaMA-style, 2023--)} \\
+\midrule
+Parameters & 4{,}192 & 124M -- 1.5B & $10^9$ -- $10^{12}$ (dense or MoE) \\
+Width / depth / heads & 16 / 1 / 4 & 768--1600 / 12--48 / 12--25 & $4$k--$16$k / 32--128 / 32--128 \\
+Context & 16 tokens & 1{,}024 & $10^5$ -- $10^6$ \\
+Tokenizer & 27 characters & byte-level BPE, 50{,}257 & BPE / SentencePiece, 32k--256k \\
+Position & learned table & learned table & RoPE \\
+Normalisation & RMSNorm, no gain & LayerNorm & RMSNorm with gain \\
+Attention & MHA, explicit cache & MHA, masked matmul & GQA / MQA / MLA, FlashAttention \\
+MLP & $4\times$, ReLU & $4\times$, GELU & SwiGLU ($\approx 2.7\times$), or MoE experts \\
+Biases & none & yes & none \\
+Output head & separate & tied to \code{wte} & tied or separate \\
+Optimizer & Adam, linear decay & Adam & AdamW, warmup + cosine, weight decay \\
+Batch & 1 document & 512 sequences & $10^6$ -- $10^7$ tokens \\
+Precision & float64 (Python) & float32 & bf16 / fp8 \\
+Training data & 32k names ($\approx 200$k chars) & 40 GB WebText & $10^{13}$ tokens, curated \\
+Post-training & none & none & SFT + RLHF / DPO / GRPO \\
+Serving & Python loop & single process & vLLM-style batching, paging, speculation, quantisation \\
+\bottomrule
+\end{tabularx}
+\normalsize
+
+\medskip
+Sources: \textcite{radford2019gpt2,touvron2023llama,deepseek2024v3,su2021rope,ainslie2023gqa,shazeer2020glu,kwon2023vllm}. The exact numbers for modern models vary by release; the \emph{pattern} of substitutions is what matters.
+
+% -----------------------------------------------------------------------------
+\section{Glossary}
+
+\begin{multicols}{2}
+\small
+\begin{description}[style=unboxed,leftmargin=0pt,font=\bfseries]
+  \item[Autograd] Automatic computation of gradients by recording operations in a graph and applying the chain rule in reverse.
+  \item[Autoregressive] Generating a sequence one element at a time, each conditioned on the previous ones.
+  \item[Bias correction] Adam's division by $1-\beta^t$ that compensates for zero-initialised moment buffers.
+  \item[BOS] Beginning-of-sequence token; here also the end-of-sequence marker.
+  \item[BPE] Byte-pair encoding: a subword tokenizer built by merging frequent adjacent symbol pairs.
+  \item[Causal attention] Attention restricted to current and earlier positions.
+  \item[Chain rule] $\partial L/\partial c = \sum_{\text{paths}} \partial L/\partial v\cdot \partial v/\partial c$.
+  \item[Context length] Maximum number of positions the model can attend over; \code{block_size}.
+  \item[Cross-entropy] $-\sum_k y_k \log p_k$; equals $-\log p_{\text{target}}$ for one-hot targets.
+  \item[Document] One training sequence; a name here, a web page in production.
+  \item[Embedding] A learned vector associated with a discrete symbol (token or position).
+  \item[Gradient] Vector of partial derivatives of the loss with respect to the parameters.
+  \item[Hallucination] A sampled output that is plausible under the model but not true or not real.
+  \item[Head] One of $H$ parallel attention computations on a slice of the coordinates.
+  \item[KV cache] Stored keys and values of earlier positions, reused by later positions.
+  \item[Logits] Unnormalised scores before softmax.
+  \item[LayerNorm / RMSNorm] Normalisations that rescale a vector to unit variance / unit RMS.
+  \item[MLP] Two-layer feed-forward network applied independently at each position.
+  \item[Momentum] Exponential moving average of gradients used to smooth updates.
+  \item[Next-token prediction] The training objective: predict $t_{i+1}$ from $t_{\le i}$.
+  \item[Perplexity] $e^{\text{loss}}$; effective number of equally likely choices.
+  \item[Pre-norm] Normalising the input of a residual branch rather than its output.
+  \item[Residual connection] $x \leftarrow x + f(x)$; the identity path through a block.
+  \item[Residual stream] The vector $x$ that blocks read from and write to.
+  \item[SFT] Supervised fine-tuning on curated conversations.
+  \item[RLHF] Reinforcement learning from human feedback; post-training from scored samples.
+  \item[Softmax] Maps real scores to a probability distribution.
+  \item[Temperature] Divisor of the logits before softmax; controls sampling sharpness.
+  \item[Token] A discrete symbol from the vocabulary; a character here.
+  \item[Topological order] An ordering of a DAG in which every node precedes its dependents.
+  \item[Vocabulary] The set of tokens; $V=27$.
+\end{description}
+\end{multicols}
+
+% =============================================================================
+\clearpage
+\part{From the code to the literature}
+\label{part:lit}
+% =============================================================================
+
+Each entry below names an idea that appears in microgpt, the lines of code where it lives, the work that introduced or best explains it, and what to read next. The aim is that every line of the program can be traced to a source.
+
+\section{Dataset and the language-modelling objective}
+
+\paragraph{Text as a predictable sequence.} The idea that language has measurable statistical structure, and that predicting the next symbol is a well-posed task, is Shannon's. \textcite{shannon1948mathematical} defines entropy and $n$-gram approximations of English; \textcite{shannon1951prediction} measures how well humans predict the next letter, which is the character-level task microgpt solves. A modern textbook treatment of $n$-gram and neural language models is \textcite{jurafsky2025slp}.
+
+\paragraph{Neural language models.} \textcite{bengio2003neural} introduced the recipe microgpt still follows: embed each token into a learned vector, combine the vectors with a neural network, output a softmax over the vocabulary, train by maximum likelihood. Recurrent versions \parencite{elman1990finding,mikolov2010rnnlm,hochreiter1997lstm} preceded Transformers; character-level generation with RNNs \parencite{sutskever2011generating,graves2013generating,karpathy2015rnn} is the direct ancestor of the names task, and the makemore project \parencite{karpathy2022makemore} is where \texttt{names.txt} comes from.
+
+\paragraph{A conversation is a document.} The post's remark that ChatGPT sees your chat as ``a funny looking document'' is the premise of GPT-1 and GPT-2 \parencite{radford2018gpt1,radford2019gpt2}: one generic objective, next-token prediction, on diverse text. Scaling that objective produced few-shot learning \parencite{brown2020gpt3}. Data curation at scale: \textcite{raffel2020t5,gao2020pile,lee2022dedup,penedo2024fineweb}.
+
+\section{Tokenizer}
+
+\paragraph{Character tokens, \texttt{uchars}, \BOS.} The simplest possible tokenizer. The one design decision, a single special token used both to start and end a document, is a simplification of the \texttt{<|endoftext|>} delimiter in GPT-2.
+
+\paragraph{Subword tokenization.} BPE originates as a compression scheme \parencite{gage1994bpe}, was adapted for open-vocabulary machine translation by \textcite{sennrich2016bpe}, and became byte-level in GPT-2 \parencite{radford2019gpt2}; tiktoken is the production implementation \parencite{openai2022tiktoken}. SentencePiece \parencite{kudo2018sentencepiece} is the language-independent alternative. \textcite{karpathy2024tokenizervideo} builds a BPE tokenizer step by step.
+
+\section{Autograd}
+
+\paragraph{\code{Value}, \code{_children}, \code{_local_grads}, \code{backward()}.} Reverse-mode automatic differentiation. First published by \textcite{linnainmaa1976taylor}; rediscovered as backpropagation for neural networks by \textcite{rumelhart1986learning}. The definitive mathematical reference is \textcite{griewank2008evaluating}; for a machine-learning reader \textcite{baydin2018autodiff} explains forward vs.\ reverse mode, why reverse mode suits a scalar loss, and the define-by-run style that microgpt and PyTorch share \parencite{paszke2017autodiff,paszke2019pytorch}. The scalar engine itself is micrograd \parencite{karpathy2020micrograd}, taught in \textcite{karpathy2022microgradvideo}.
+
+\paragraph{Topological sort.} The DFS post-order in \code{build_topo} is the standard algorithm for ordering a DAG; any algorithms textbook covers it. Its role here is to guarantee that a node's gradient is complete before being pushed to its children.
+
+\section{Parameters and initialisation}
+
+\paragraph{\code{matrix(nout, nin, std=0.08)}.} Small random initialisation breaks symmetry and keeps early activations in a well-behaved range. The dependence of the right scale on fan-in is analysed by \textcite{glorot2010init}; GPT-2 used $\sigma=0.02$. The absence of biases follows LLaMA and most later models \parencite{touvron2023llama}. The decision not to tie \code{lm_head} to \code{wte} departs from GPT-2 and from \textcite{press2017weighttying}, who showed tying helps small models; here it keeps the code easier to read.
+
+\section{Architecture}
+
+\paragraph{\code{linear}.} The matrix--vector product is the elementary operation of every neural network since \textcite{rumelhart1986learning}; see any textbook \parencite{goodfellow2016deep,bishop2006prml,prince2023understanding}.
+
+\paragraph{\code{softmax} with max subtraction.} Standard numerically stable softmax; the Boltzmann form goes back to statistical physics and entered neural networks through \textcite{ackley1985boltzmann}.
+
+\paragraph{\code{rmsnorm}.} \textcite{zhang2019rmsnorm} proposed RMSNorm as a cheaper LayerNorm \parencite{ba2016layernorm} that drops mean-centering; it is now standard \parencite{touvron2023llama}. microgpt also drops the learned gain.
+
+\paragraph{Embeddings \code{wte}, \code{wpe}.} Learned token embeddings date to \textcite{bengio2003neural}. Learned absolute position embeddings are from GPT-1/2 \parencite{radford2018gpt1,radford2019gpt2}; the original Transformer used sinusoids \parencite{vaswani2017attention}; RoPE \parencite{su2021rope} is the modern replacement and is a good first extension exercise.
+
+\paragraph{Attention: $q,k,v$, scaled dot product, softmax, weighted sum.} Attention as a soft lookup over a sequence is from \textcite{bahdanau2015attention}; the scaled dot-product, multi-head form is from \textcite{vaswani2017attention}, which also explains the $1/\sqrt{d_h}$ scaling. Decoder-only causal use is GPT \parencite{radford2018gpt1}. The post's slogan that attention is a ``token communication mechanism'' matches the residual-stream analysis of \textcite{elhage2021mathematical}. \textcite{alammar2018illustrated} is the best-known visual explanation; \textcite{phuong2022formal} give precise pseudocode.
+
+\paragraph{KV cache.} Implicit in every autoregressive Transformer; made explicit for serving in \textcite{shazeer2019mqa}, which also introduced multi-query attention to shrink it, generalised by grouped-query attention \parencite{ainslie2023gqa}. The memory and bandwidth accounting that makes the cache the bottleneck of inference is in \textcite{pope2022efficiently}; paged management is vLLM \parencite{kwon2023vllm}.
+
+\paragraph{MLP with ReLU.} ReLU: \textcite{nair2010relu,glorot2011relu}. GELU, which GPT-2 used: \textcite{hendrycks2016gelu}. Gated (SwiGLU) MLPs: \textcite{shazeer2020glu}. Squared ReLU: \textcite{so2021primer}. Mixture-of-Experts MLPs: \textcite{shazeer2017moe,fedus2022switch,deepseek2024v3}.
+
+\paragraph{Residual connections and pre-norm.} Residual learning: \textcite{he2016resnet}. Pre-norm placement and why it trains more stably than the original post-norm Transformer: \textcite{xiong2020prelayernorm}.
+
+\section{Training}
+
+\paragraph{Cross-entropy / negative log-likelihood.} Maximum likelihood for neural LMs: \textcite{bengio2003neural}. Information-theoretic reading (surprisal, entropy, KL, perplexity): \textcite{shannon1948mathematical,cover2006elements}; textbook derivations in \textcite{goodfellow2016deep,bishop2006prml}.
+
+\paragraph{Stochastic gradient descent with one document per step.} \textcite{robbins1951stochastic}. The modern large-batch regime and why batch size interacts with learning rate are discussed in \textcite{kaplan2020scaling}.
+
+\paragraph{Adam with bias correction.} \textcite{kingma2015adam}, building on momentum \parencite{polyak1964momentum} and RMSProp \parencite{tieleman2012rmsprop}. Decoupled weight decay (AdamW): \textcite{loshchilov2019adamw}. Learning-rate schedules: \textcite{loshchilov2017sgdr}.
+
+\paragraph{Scaling.} How loss depends on parameters, data and compute: \textcite{kaplan2020scaling}; compute-optimal allocation (Chinchilla): \textcite{hoffmann2022chinchilla}. Mixed precision: \textcite{micikevicius2018mixed}. Fused attention kernels: \textcite{dao2022flashattention,dao2024flashattention2}.
+
+\section{Inference}
+
+\paragraph{Ancestral sampling with temperature.} Temperature: \textcite{ackley1985boltzmann,hinton2015distilling}. Why pure sampling and greedy decoding both fail for long text, and the nucleus fix: \textcite{holtzman2020nucleus}; top-$k$: \textcite{fan2018hierarchical}.
+
+\paragraph{Serving.} Continuous batching \parencite{yu2022orca}, PagedAttention \parencite{kwon2023vllm}, speculative decoding \parencite{leviathan2023speculative,chen2023speculative}, quantisation \parencite{dettmers2022int8,frantar2023gptq}, multi-device inference \parencite{pope2022efficiently}.
+
+\section{Post-training (not in microgpt, discussed in the post)}
+
+SFT and RLHF as used for InstructGPT and ChatGPT: \textcite{ouyang2022instructgpt}, built on \textcite{christiano2017rlhf} and PPO \parencite{schulman2017ppo}. Direct preference optimisation removes the separate reward model \parencite{rafailov2023dpo}; GRPO \parencite{shao2024grpo} is the group-relative policy-gradient variant used in recent reasoning models. nanochat \parencite{karpathy2025nanochat} implements pretraining, SFT, RL and serving in one small codebase.
+
+\section{Suggested reading order}
+
+\begin{enumerate}
+  \item The post \parencite{karpathy2026microgpt} and the gist, with these cheat sheets open.
+  \item \textcite{karpathy2022microgradvideo} if \code{backward()} is not yet obvious; \textcite{baydin2018autodiff} for the theory.
+  \item \textcite{vaswani2017attention} and \textcite{alammar2018illustrated} for attention; then \textcite{phuong2022formal} to see every variant written out.
+  \item \textcite{radford2019gpt2} to see the architecture microgpt simplifies; \textcite{touvron2023llama} to see what replaced it.
+  \item \textcite{kingma2015adam} and \textcite{loshchilov2019adamw} for the optimizer.
+  \item \textcite{kaplan2020scaling} and \textcite{hoffmann2022chinchilla} for how the knobs behave at scale.
+  \item \textcite{ouyang2022instructgpt} for post-training; \textcite{kwon2023vllm} for serving.
+  \item \textcite{karpathy2022nanogpt} and \textcite{karpathy2025nanochat} to run the real thing.
+\end{enumerate}
+
+% =============================================================================
+\clearpage
+\part{Self-test}
+\label{part:test}
+% =============================================================================
+
+Answer first, then reveal. Questions are grouped by section of the notes.
+
+\section{Dataset and tokenizer}
+\Q{How many documents, and what is one document?}{32{,}033; one name.}
+\Q{What is the vocabulary and its size?}{The 26 lowercase letters plus \BOS; $V=27$.}
+\Q{Why does the post say token ids ``might as well be different emoji''?}{The integers are arbitrary labels; nothing in the model uses their numeric value. The embedding table attaches meaning.}
+\Q{What two jobs does \BOS{} do?}{It is the first input of every document (so the model can predict the first letter) and the target after the last letter (so the model learns when to stop).}
+\Q{What is the longest name, and why does it matter?}{15 characters; with two \BOS{} tokens that is 17 tokens and 16 predictions, so \code{block_size = 16} never truncates.}
+
+\section{Autograd}
+\Q{What four fields does a \code{Value} hold?}{\code{data}, \code{grad}, \code{_children}, \code{_local_grads}.}
+\Q{When is the local gradient of \code{a * b} computed, and what is it?}{At construction, during the forward pass: $(b, a)$.}
+\Q{Why \code{+=} in \code{backward()}?}{A node used in several places contributes to the loss along several paths; the multivariable chain rule sums them.}
+\Q{Why reverse topological order?}{A node's gradient must be complete before it is multiplied into its children's gradients.}
+\Q{For $L = ab + a$ with $a=2$, $b=3$, what are the gradients?}{$\partial L/\partial a = 4$, $\partial L/\partial b = 2$.}
+\Q{What is the difference between microgpt's autograd and PyTorch's?}{Nodes are scalars instead of tensors; the algorithm is the same.}
+\Q{Why must gradients be zeroed after each update?}{Because \code{backward()} accumulates with \code{+=}; stale gradients would be added to new ones.}
+
+\section{Parameters}
+\Q{Compute the parameter count from the hyperparameters.}{$27{\cdot}16 + 16{\cdot}16 + 4{\cdot}16^2 + 2{\cdot}64{\cdot}16 + 27{\cdot}16 = 432+256+1024+2048+432 = 4192$.}
+\Q{How many parameters per Transformer block, as a function of $d$?}{$12d^2$: $4d^2$ in attention, $8d^2$ in the MLP.}
+\Q{Name three GPT-2 features microgpt omits.}{Biases, LayerNorm (replaced by RMSNorm), GELU (replaced by ReLU); also weight tying and dropout.}
+
+\section{Architecture}
+\Q{What are the inputs and output of \code{gpt()}?}{A token id, a position id, the per-layer lists of cached keys and values (which it extends), and the parameters via globals; it returns 27 logits.}
+\Q{Why subtract the max in softmax?}{To prevent overflow in \code{exp}; the result is unchanged mathematically.}
+\Q{What does \code{rmsnorm} compute and how does it differ from LayerNorm?}{$x/\sqrt{\text{mean}(x^2)+\varepsilon}$; no mean subtraction and (here) no learned gain.}
+\Q{Where is the causal mask?}{There is none: at position $i$ the cache only contains positions $\le i$.}
+\Q{Why divide attention logits by $\sqrt{d_h}$?}{So dot products of unit-variance vectors have unit variance and the softmax is not saturated.}
+\Q{What is the only place where position $i$ reads information from earlier positions?}{The attention block; the MLP, norms and residual adds are per-position.}
+\Q{Do four heads of width 4 cost more than one head of width 16?}{No; the projections have the same size. Heads buy diversity of lookups.}
+\Q{Why is the KV cache used during training here?}{Because tokens are processed one at a time; the cache holds live \code{Value}s so gradients flow through it. Vectorised code hides the same quantities in a matrix.}
+\Q{Why is the first \code{rmsnorm} (right after the embeddings) not redundant?}{The pre-norm in the block normalises only the branch input; the residual path keeps the raw embedding scale, so an initial norm fixes the scale of the stream.}
+\Q{What is the MLP's hidden width and activation?}{$4d = 64$; ReLU.}
+\Q{Roughly how many multiply--adds per token?}{About $12d^2 + Vd \approx 3.5$k, about $2\times$ the non-embedding parameters.}
+
+\section{Training}
+\Q{Write the per-position loss and the document loss.}{$\ell_i = -\log p(t_{i+1}\mid t_{\le i})$; $\mathcal L = \frac1n\sum_i \ell_i$.}
+\Q{What loss does a uniform predictor get, and why?}{$-\log(1/27) = \ln 27 \approx 3.30$.}
+\Q{The loss ends near 2.3. What perplexity is that?}{$e^{2.3}\approx 10$: as uncertain as a uniform choice among ten letters.}
+\Q{Why is the printed loss so jumpy?}{Each step is one document; short common names are easy, long rare ones hard.}
+\Q{Does the model overfit in 1{,}000 steps?}{No; it sees 1{,}000 distinct names out of 32{,}033, so every step is on new data.}
+\Q{What do $m$ and $v$ track in Adam?}{Exponential moving averages of the gradient and of the squared gradient.}
+\Q{What do the bias corrections fix?}{$m$ and $v$ start at zero and are biased toward zero early on; dividing by $1-\beta^t$ removes the bias.}
+\Q{What is the learning rate at step 500 and at the last step?}{$0.005$ and $10^{-5}$ (linear decay $0.01(1 - t/1000)$).}
+\Q{What are microgpt's Adam betas, and the paper defaults?}{$0.85, 0.99$ versus $0.9, 0.999$.}
+
+\section{Inference}
+\Q{Describe one sampling step.}{Run \code{gpt} on the current token and position, divide logits by $T$, softmax, draw a token, append it, feed it back; stop at \BOS{} or after 16 tokens.}
+\Q{What happens as $T\to 0$ and $T\to\infty$?}{Greedy arg-max; uniform over the vocabulary.}
+\Q{Is ``karia'' a hallucination?}{Yes, in exactly the sense the post means: a plausible sample that is not a real training example, produced by a model with no concept of truth.}
+\Q{Why is the graph still built during inference, and is that necessary?}{Because every op creates \code{Value}s; it is not necessary (no backward is run) and production code detaches.}
+
+\section{Scaling up}
+\Q{Name the component-by-component changes from microgpt to a production LLM.}{Data (trillions of tokens, curated); tokenizer (BPE); autograd (tensors, GPUs, fused kernels); architecture (bigger, RoPE, GQA, gated MLP, MoE); training (large batches, mixed precision); optimisation (tuned AdamW, schedules, scaling laws); post-training (SFT, RL); inference (batching, paging, speculation, quantisation).}
+\Q{What does SFT change algorithmically?}{Nothing; the documents become conversations.}
+\Q{In RL post-training, where do the ``documents'' come from?}{From the model's own samples, scored and fed back.}
+\Q{What rule of thumb does Chinchilla give?}{Roughly 20 training tokens per parameter for compute-optimal training.}
+\Q{Which three knobs improve the names, according to the FAQ?}{More steps, a bigger model, more data.}
+
+% =============================================================================
+\clearpage
+\part{Annotated bibliography}
+\label{part:bib}
+% =============================================================================
+
+\nocite{*}
+Entries are grouped by theme. A one-line note after each group says why it is here. Full details, including arXiv identifiers, are in the entries.
+
+\section*{Karpathy: microgpt and its lineage}
+\emph{The primary source and the projects it distils. Read the post first, then micrograd, makemore, nanoGPT, nanochat.}
+\printbibliography[heading=none,keyword=karpathy]
+
+\section*{Language modelling: foundations}
+\emph{Where next-symbol prediction, entropy and neural language models come from.}
+\printbibliography[heading=none,keyword=foundations]
+
+\section*{Tokenization}
+\emph{From characters to byte-pair encoding.}
+\printbibliography[heading=none,keyword=tokenization]
+
+\section*{Automatic differentiation and backpropagation}
+\emph{The mathematics and history behind \code{Value.backward()}.}
+\printbibliography[heading=none,keyword=autodiff]
+
+\section*{Transformer architecture}
+\emph{Attention, normalisation, residuals, activations, position encodings, and the modern substitutions (RoPE, GQA, MoE).}
+\printbibliography[heading=none,keyword=architecture]
+
+\section*{Optimisation and scaling}
+\emph{SGD, momentum, RMSProp, Adam, schedules, initialisation, precision, scaling laws.}
+\printbibliography[heading=none,keyword=optimisation]
+
+\section*{Loss, information theory and textbooks}
+\emph{Cross-entropy, entropy, perplexity and general references.}
+\printbibliography[heading=none,keyword=textbooks]
+
+\section*{Sampling and decoding}
+\emph{Temperature and its companions.}
+\printbibliography[heading=none,keyword=sampling]
+
+\section*{Post-training}
+\emph{SFT, RLHF, DPO, GRPO: from document completer to assistant.}
+\printbibliography[heading=none,keyword=posttraining]
+
+\section*{Inference systems}
+\emph{Making the sampling loop fast.}
+\printbibliography[heading=none,keyword=inference]
+
+\section*{Data}
+\emph{Corpora and curation.}
+\printbibliography[heading=none,keyword=data]
+
+\end{document}

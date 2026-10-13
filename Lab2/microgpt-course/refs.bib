@@ -1,0 +1,801 @@
+% ---------------------------------------------------------------------------
+% refs.bib -- shared bibliography for the microgpt lecture notes, slides and
+% study guide.  Grouped by theme; keys are author+year+keyword.
+% ---------------------------------------------------------------------------
+
+% ===================== Karpathy: microgpt and its lineage ==================
+@online{karpathy2026microgpt,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {microgpt},
+  year    = {2026},
+  month   = feb,
+  day     = {12},
+  url     = {https://karpathy.github.io/2026/02/12/microgpt/},
+  urldate = {2026-10-11},
+  note    = {Blog post; the primary source for this course}
+}
+@online{karpathy2026microgptgist,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {microgpt.py: the most atomic way to train and run inference for a {GPT} in pure, dependency-free {Python}},
+  year    = {2026},
+  url     = {https://gist.github.com/karpathy/8627fe009c40f57531cb18360106ce95},
+  urldate = {2026-10-11},
+  note    = {GitHub gist, 200 lines}
+}
+@online{karpathy2026buildmicrogpt,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {build\_microgpt.py: builds up microgpt.py piece by piece},
+  year    = {2026},
+  url     = {https://gist.github.com/karpathy/561ac2de12a47cc06a23691e1be9543a},
+  urldate = {2026-10-11},
+  note    = {GitHub gist; the Revisions tab holds train0.py through train5.py}
+}
+@online{karpathy2026microgptcolab,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {microgpt {Google Colab} notebook},
+  year    = {2026},
+  url     = {https://colab.research.google.com/drive/1vyN5zo6rqUp_dYNbT4Yrco66zuWCZKoN},
+  urldate = {2026-10-11}
+}
+@online{karpathy2020micrograd,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {micrograd: a tiny scalar-valued autograd engine and a neural net library on top of it},
+  year    = {2020},
+  url     = {https://github.com/karpathy/micrograd},
+  urldate = {2026-10-11}
+}
+@online{karpathy2022microgradvideo,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {The spelled-out intro to neural networks and backpropagation: building micrograd},
+  year    = {2022},
+  url     = {https://www.youtube.com/watch?v=VMj-3S1tku0},
+  urldate = {2026-10-11},
+  note    = {Video lecture, approx.\ 2.5 hours}
+}
+@online{karpathy2022zerotohero,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {Neural Networks: Zero to Hero},
+  year    = {2022},
+  url     = {https://karpathy.ai/zero-to-hero.html},
+  urldate = {2026-10-11},
+  note    = {Video lecture series: micrograd, makemore, GPT, tokenizer}
+}
+@online{karpathy2022makemore,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {makemore: an autoregressive character-level language model for making more things},
+  year    = {2022},
+  url     = {https://github.com/karpathy/makemore},
+  urldate = {2026-10-11},
+  note    = {Source of the \texttt{names.txt} dataset used by microgpt}
+}
+@online{karpathy2022nanogpt,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {nanoGPT: the simplest, fastest repository for training/finetuning medium-sized {GPTs}},
+  year    = {2022},
+  url     = {https://github.com/karpathy/nanoGPT},
+  urldate = {2026-10-11}
+}
+@online{karpathy2023gptvideo,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {Let's build {GPT}: from scratch, in code, spelled out},
+  year    = {2023},
+  url     = {https://www.youtube.com/watch?v=kCc8FmEb1nY},
+  urldate = {2026-10-11}
+}
+@online{karpathy2024tokenizervideo,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {Let's build the {GPT} Tokenizer},
+  year    = {2024},
+  url     = {https://www.youtube.com/watch?v=zduSFxRajkE},
+  urldate = {2026-10-11}
+}
+@online{karpathy2024llmc,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {llm.c: {LLM} training in simple, raw {C/CUDA}},
+  year    = {2024},
+  url     = {https://github.com/karpathy/llm.c},
+  urldate = {2026-10-11}
+}
+@online{karpathy2025nanochat,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {nanochat: the best {ChatGPT} that \$100 can buy},
+  year    = {2025},
+  url     = {https://github.com/karpathy/nanochat},
+  urldate = {2026-10-11},
+  note    = {Full pretraining, SFT, RL and serving pipeline in one small repo}
+}
+@online{karpathy2015rnn,
+  keywords = {karpathy},
+  author  = {Andrej Karpathy},
+  title   = {The Unreasonable Effectiveness of Recurrent Neural Networks},
+  year    = {2015},
+  url     = {https://karpathy.github.io/2015/05/21/rnn-effectiveness/},
+  urldate = {2026-10-11}
+}
+@online{openai2022tiktoken,
+  keywords = {karpathy},
+  author  = {{OpenAI}},
+  title   = {tiktoken: a fast {BPE} tokeniser for use with {OpenAI}'s models},
+  year    = {2022},
+  url     = {https://github.com/openai/tiktoken},
+  urldate = {2026-10-11}
+}
+
+% ===================== Language modelling: foundations ======================
+@article{shannon1948mathematical,
+  keywords = {foundations},
+  author  = {Claude E. Shannon},
+  title   = {A Mathematical Theory of Communication},
+  journal = {Bell System Technical Journal},
+  volume  = {27},
+  number  = {3},
+  pages   = {379--423},
+  year    = {1948}
+}
+@article{shannon1951prediction,
+  keywords = {foundations},
+  author  = {Claude E. Shannon},
+  title   = {Prediction and Entropy of Printed {English}},
+  journal = {Bell System Technical Journal},
+  volume  = {30},
+  number  = {1},
+  pages   = {50--64},
+  year    = {1951}
+}
+@article{bengio2003neural,
+  keywords = {foundations},
+  author  = {Yoshua Bengio and R{\'e}jean Ducharme and Pascal Vincent and Christian Jauvin},
+  title   = {A Neural Probabilistic Language Model},
+  journal = {Journal of Machine Learning Research},
+  volume  = {3},
+  pages   = {1137--1155},
+  year    = {2003}
+}
+@article{elman1990finding,
+  keywords = {foundations},
+  author  = {Jeffrey L. Elman},
+  title   = {Finding Structure in Time},
+  journal = {Cognitive Science},
+  volume  = {14},
+  number  = {2},
+  pages   = {179--211},
+  year    = {1990}
+}
+@article{hochreiter1997lstm,
+  keywords = {foundations},
+  author  = {Sepp Hochreiter and J{\"u}rgen Schmidhuber},
+  title   = {Long Short-Term Memory},
+  journal = {Neural Computation},
+  volume  = {9},
+  number  = {8},
+  pages   = {1735--1780},
+  year    = {1997}
+}
+@inproceedings{mikolov2010rnnlm,
+  keywords = {foundations},
+  author    = {Tom{\'a}{\v s} Mikolov and Martin Karafi{\'a}t and Luk{\'a}{\v s} Burget and Jan {\v C}ernock{\'y} and Sanjeev Khudanpur},
+  title     = {Recurrent Neural Network Based Language Model},
+  booktitle = {Proceedings of Interspeech},
+  pages     = {1045--1048},
+  year      = {2010}
+}
+@inproceedings{sutskever2011generating,
+  keywords = {foundations},
+  author    = {Ilya Sutskever and James Martens and Geoffrey Hinton},
+  title     = {Generating Text with Recurrent Neural Networks},
+  booktitle = {Proceedings of the 28th International Conference on Machine Learning (ICML)},
+  year      = {2011}
+}
+@article{graves2013generating,
+  keywords = {foundations},
+  author  = {Alex Graves},
+  title   = {Generating Sequences With Recurrent Neural Networks},
+  journal = {arXiv preprint arXiv:1308.0850},
+  year    = {2013}
+}
+@inproceedings{bahdanau2015attention,
+  keywords = {foundations},
+  author    = {Dzmitry Bahdanau and Kyunghyun Cho and Yoshua Bengio},
+  title     = {Neural Machine Translation by Jointly Learning to Align and Translate},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2015},
+  note      = {arXiv:1409.0473}
+}
+
+% ===================== Tokenization ========================================
+@article{gage1994bpe,
+  keywords = {tokenization},
+  author  = {Philip Gage},
+  title   = {A New Algorithm for Data Compression},
+  journal = {C Users Journal},
+  volume  = {12},
+  number  = {2},
+  pages   = {23--38},
+  year    = {1994}
+}
+@inproceedings{sennrich2016bpe,
+  keywords = {tokenization},
+  author    = {Rico Sennrich and Barry Haddow and Alexandra Birch},
+  title     = {Neural Machine Translation of Rare Words with Subword Units},
+  booktitle = {Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (ACL)},
+  pages     = {1715--1725},
+  year      = {2016},
+  note      = {arXiv:1508.07909}
+}
+@inproceedings{kudo2018sentencepiece,
+  keywords = {tokenization},
+  author    = {Taku Kudo and John Richardson},
+  title     = {{SentencePiece}: A Simple and Language Independent Subword Tokenizer and Detokenizer for Neural Text Processing},
+  booktitle = {Proceedings of EMNLP: System Demonstrations},
+  year      = {2018},
+  note      = {arXiv:1808.06226}
+}
+
+% ===================== Automatic differentiation / backprop ================
+@article{linnainmaa1976taylor,
+  keywords = {autodiff},
+  author  = {Seppo Linnainmaa},
+  title   = {Taylor Expansion of the Accumulated Rounding Error},
+  journal = {BIT Numerical Mathematics},
+  volume  = {16},
+  number  = {2},
+  pages   = {146--160},
+  year    = {1976},
+  note    = {The earliest published form of reverse-mode automatic differentiation}
+}
+@article{rumelhart1986learning,
+  keywords = {autodiff},
+  author  = {David E. Rumelhart and Geoffrey E. Hinton and Ronald J. Williams},
+  title   = {Learning Representations by Back-Propagating Errors},
+  journal = {Nature},
+  volume  = {323},
+  pages   = {533--536},
+  year    = {1986}
+}
+@book{griewank2008evaluating,
+  keywords = {autodiff},
+  author    = {Andreas Griewank and Andrea Walther},
+  title     = {Evaluating Derivatives: Principles and Techniques of Algorithmic Differentiation},
+  edition   = {2},
+  publisher = {SIAM},
+  year      = {2008}
+}
+@article{baydin2018autodiff,
+  keywords = {autodiff},
+  author  = {At{\i}l{\i}m G{\"u}ne{\c s} Baydin and Barak A. Pearlmutter and Alexey Andreyevich Radul and Jeffrey Mark Siskind},
+  title   = {Automatic Differentiation in Machine Learning: a Survey},
+  journal = {Journal of Machine Learning Research},
+  volume  = {18},
+  number  = {153},
+  pages   = {1--43},
+  year    = {2018}
+}
+@inproceedings{paszke2017autodiff,
+  keywords = {autodiff},
+  author    = {Adam Paszke and Sam Gross and Soumith Chintala and Gregory Chanan and Edward Yang and Zachary DeVito and Zeming Lin and Alban Desmaison and Luca Antiga and Adam Lerer},
+  title     = {Automatic Differentiation in {PyTorch}},
+  booktitle = {NIPS 2017 Autodiff Workshop},
+  year      = {2017}
+}
+@inproceedings{paszke2019pytorch,
+  keywords = {autodiff},
+  author    = {Adam Paszke and Sam Gross and Francisco Massa and Adam Lerer and James Bradbury and Gregory Chanan and Trevor Killeen and Zeming Lin and Natalia Gimelshein and Luca Antiga and Alban Desmaison and Andreas K{\"o}pf and Edward Yang and Zach DeVito and Martin Raison and Alykhan Tejani and Sasank Chilamkurthy and Benoit Steiner and Lu Fang and Junjie Bai and Soumith Chintala},
+  title     = {{PyTorch}: An Imperative Style, High-Performance Deep Learning Library},
+  booktitle = {Advances in Neural Information Processing Systems 32 (NeurIPS)},
+  year      = {2019}
+}
+
+% ===================== Transformer architecture ============================
+@inproceedings{vaswani2017attention,
+  keywords = {architecture},
+  author    = {Ashish Vaswani and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and {\L}ukasz Kaiser and Illia Polosukhin},
+  title     = {Attention Is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems 30 (NIPS)},
+  year      = {2017},
+  note      = {arXiv:1706.03762}
+}
+@techreport{radford2018gpt1,
+  keywords = {architecture},
+  author      = {Alec Radford and Karthik Narasimhan and Tim Salimans and Ilya Sutskever},
+  title       = {Improving Language Understanding by Generative Pre-Training},
+  institution = {OpenAI},
+  year        = {2018}
+}
+@techreport{radford2019gpt2,
+  keywords = {architecture},
+  author      = {Alec Radford and Jeffrey Wu and Rewon Child and David Luan and Dario Amodei and Ilya Sutskever},
+  title       = {Language Models are Unsupervised Multitask Learners},
+  institution = {OpenAI},
+  year        = {2019},
+  note        = {The GPT-2 report; microgpt follows this architecture}
+}
+@inproceedings{brown2020gpt3,
+  keywords = {architecture},
+  author    = {Tom B. Brown and Benjamin Mann and Nick Ryder and Melanie Subbiah and Jared Kaplan and Prafulla Dhariwal and Arvind Neelakantan and Pranav Shyam and Girish Sastry and Amanda Askell and others},
+  title     = {Language Models are Few-Shot Learners},
+  booktitle = {Advances in Neural Information Processing Systems 33 (NeurIPS)},
+  year      = {2020},
+  note      = {arXiv:2005.14165}
+}
+@article{ba2016layernorm,
+  keywords = {architecture},
+  author  = {Jimmy Lei Ba and Jamie Ryan Kiros and Geoffrey E. Hinton},
+  title   = {Layer Normalization},
+  journal = {arXiv preprint arXiv:1607.06450},
+  year    = {2016}
+}
+@inproceedings{zhang2019rmsnorm,
+  keywords = {architecture},
+  author    = {Biao Zhang and Rico Sennrich},
+  title     = {Root Mean Square Layer Normalization},
+  booktitle = {Advances in Neural Information Processing Systems 32 (NeurIPS)},
+  year      = {2019},
+  note      = {arXiv:1910.07467}
+}
+@inproceedings{he2016resnet,
+  keywords = {architecture},
+  author    = {Kaiming He and Xiangyu Zhang and Shaoqing Ren and Jian Sun},
+  title     = {Deep Residual Learning for Image Recognition},
+  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {770--778},
+  year      = {2016},
+  note      = {arXiv:1512.03385}
+}
+@inproceedings{xiong2020prelayernorm,
+  keywords = {architecture},
+  author    = {Ruibin Xiong and Yunchang Yang and Di He and Kai Zheng and Shuxin Zheng and Chen Xing and Huishuai Zhang and Yanyan Lan and Liwei Wang and Tie-Yan Liu},
+  title     = {On Layer Normalization in the Transformer Architecture},
+  booktitle = {Proceedings of the 37th International Conference on Machine Learning (ICML)},
+  year      = {2020},
+  note      = {arXiv:2002.04745; the Pre-LN arrangement used by GPT-2 and microgpt}
+}
+@inproceedings{nair2010relu,
+  keywords = {architecture},
+  author    = {Vinod Nair and Geoffrey E. Hinton},
+  title     = {Rectified Linear Units Improve Restricted {Boltzmann} Machines},
+  booktitle = {Proceedings of the 27th International Conference on Machine Learning (ICML)},
+  year      = {2010}
+}
+@inproceedings{glorot2011relu,
+  keywords = {architecture},
+  author    = {Xavier Glorot and Antoine Bordes and Yoshua Bengio},
+  title     = {Deep Sparse Rectifier Neural Networks},
+  booktitle = {Proceedings of the 14th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  year      = {2011}
+}
+@article{hendrycks2016gelu,
+  keywords = {architecture},
+  author  = {Dan Hendrycks and Kevin Gimpel},
+  title   = {Gaussian Error Linear Units ({GELUs})},
+  journal = {arXiv preprint arXiv:1606.08415},
+  year    = {2016}
+}
+@article{shazeer2020glu,
+  keywords = {architecture},
+  author  = {Noam Shazeer},
+  title   = {{GLU} Variants Improve Transformer},
+  journal = {arXiv preprint arXiv:2002.05202},
+  year    = {2020}
+}
+@article{so2021primer,
+  keywords = {architecture},
+  author  = {David R. So and Wojciech Ma{\'n}ke and Hanxiao Liu and Zihang Dai and Noam Shazeer and Quoc V. Le},
+  title   = {Primer: Searching for Efficient Transformers for Language Modeling},
+  journal = {arXiv preprint arXiv:2109.08668},
+  year    = {2021},
+  note    = {Introduces squared ReLU in the Transformer MLP}
+}
+@article{su2021rope,
+  keywords = {architecture},
+  author  = {Jianlin Su and Yu Lu and Shengfeng Pan and Ahmed Murtadha and Bo Wen and Yunfeng Liu},
+  title   = {{RoFormer}: Enhanced Transformer with Rotary Position Embedding},
+  journal = {arXiv preprint arXiv:2104.09864},
+  year    = {2021}
+}
+@article{shazeer2019mqa,
+  keywords = {architecture},
+  author  = {Noam Shazeer},
+  title   = {Fast Transformer Decoding: One Write-Head is All You Need},
+  journal = {arXiv preprint arXiv:1911.02150},
+  year    = {2019},
+  note    = {Multi-Query Attention}
+}
+@inproceedings{ainslie2023gqa,
+  keywords = {architecture},
+  author    = {Joshua Ainslie and James Lee-Thorp and Michiel de Jong and Yury Zemlyanskiy and Federico Lebr{\'o}n and Sumit Sanghai},
+  title     = {{GQA}: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints},
+  booktitle = {Proceedings of EMNLP},
+  year      = {2023},
+  note      = {arXiv:2305.13245}
+}
+@inproceedings{shazeer2017moe,
+  keywords = {architecture},
+  author    = {Noam Shazeer and Azalia Mirhoseini and Krzysztof Maziarz and Andy Davis and Quoc Le and Geoffrey Hinton and Jeff Dean},
+  title     = {Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2017},
+  note      = {arXiv:1701.06538}
+}
+@article{fedus2022switch,
+  keywords = {architecture},
+  author  = {William Fedus and Barret Zoph and Noam Shazeer},
+  title   = {Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity},
+  journal = {Journal of Machine Learning Research},
+  volume  = {23},
+  number  = {120},
+  pages   = {1--39},
+  year    = {2022}
+}
+@article{touvron2023llama,
+  keywords = {architecture},
+  author  = {Hugo Touvron and Thibaut Lavril and Gautier Izacard and Xavier Martinet and Marie-Anne Lachaux and Timoth{\'e}e Lacroix and Baptiste Rozi{\`e}re and Naman Goyal and Eric Hambro and Faisal Azhar and Aurelien Rodriguez and Armand Joulin and Edouard Grave and Guillaume Lample},
+  title   = {{LLaMA}: Open and Efficient Foundation Language Models},
+  journal = {arXiv preprint arXiv:2302.13971},
+  year    = {2023},
+  note    = {Popularised the RMSNorm + SwiGLU + RoPE recipe}
+}
+@article{deepseek2024v3,
+  keywords = {architecture},
+  author  = {{DeepSeek-AI}},
+  title   = {{DeepSeek-V3} Technical Report},
+  journal = {arXiv preprint arXiv:2412.19437},
+  year    = {2024},
+  note    = {Large-scale MoE, multi-head latent attention, FP8 training}
+}
+@inproceedings{press2017weighttying,
+  keywords = {architecture},
+  author    = {Ofir Press and Lior Wolf},
+  title     = {Using the Output Embedding to Improve Language Models},
+  booktitle = {Proceedings of EACL},
+  year      = {2017},
+  note      = {arXiv:1608.05859; microgpt deliberately does \emph{not} tie wte and lm\_head}
+}
+@article{phuong2022formal,
+  keywords = {architecture},
+  author  = {Mary Phuong and Marcus Hutter},
+  title   = {Formal Algorithms for Transformers},
+  journal = {arXiv preprint arXiv:2207.09238},
+  year    = {2022},
+  note    = {Pseudocode for every Transformer variant; an excellent companion to the code}
+}
+@online{elhage2021mathematical,
+  keywords = {architecture},
+  author  = {Nelson Elhage and Neel Nanda and Catherine Olsson and Tom Henighan and Nicholas Joseph and Ben Mann and Amanda Askell and Yuntao Bai and Anna Chen and Tom Conerly and others},
+  title   = {A Mathematical Framework for Transformer Circuits},
+  year    = {2021},
+  url     = {https://transformer-circuits.pub/2021/framework/index.html},
+  urldate = {2026-10-11},
+  note    = {The ``residual stream'' view of the Transformer}
+}
+@online{alammar2018illustrated,
+  keywords = {architecture},
+  author  = {Jay Alammar},
+  title   = {The Illustrated Transformer},
+  year    = {2018},
+  url     = {https://jalammar.github.io/illustrated-transformer/},
+  urldate = {2026-10-11}
+}
+@article{pope2022efficiently,
+  keywords = {architecture},
+  author  = {Reiner Pope and Sholto Douglas and Aakanksha Chowdhery and Jacob Devlin and James Bradbury and Anselm Levskaya and Jonathan Heek and Kefan Xiao and Shivani Agrawal and Jeff Dean},
+  title   = {Efficiently Scaling Transformer Inference},
+  journal = {arXiv preprint arXiv:2211.05102},
+  year    = {2022},
+  note    = {Careful accounting of KV-cache memory and bandwidth}
+}
+
+% ===================== Optimisation ========================================
+@article{robbins1951stochastic,
+  keywords = {optimisation},
+  author  = {Herbert Robbins and Sutton Monro},
+  title   = {A Stochastic Approximation Method},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {22},
+  number  = {3},
+  pages   = {400--407},
+  year    = {1951}
+}
+@article{polyak1964momentum,
+  keywords = {optimisation},
+  author  = {Boris T. Polyak},
+  title   = {Some Methods of Speeding Up the Convergence of Iteration Methods},
+  journal = {USSR Computational Mathematics and Mathematical Physics},
+  volume  = {4},
+  number  = {5},
+  pages   = {1--17},
+  year    = {1964}
+}
+@misc{tieleman2012rmsprop,
+  keywords = {optimisation},
+  author = {Tijmen Tieleman and Geoffrey Hinton},
+  title  = {Lecture 6.5 -- {RMSProp}: Divide the Gradient by a Running Average of its Recent Magnitude},
+  year   = {2012},
+  note   = {COURSERA: Neural Networks for Machine Learning}
+}
+@inproceedings{kingma2015adam,
+  keywords = {optimisation},
+  author    = {Diederik P. Kingma and Jimmy Ba},
+  title     = {Adam: A Method for Stochastic Optimization},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2015},
+  note      = {arXiv:1412.6980}
+}
+@inproceedings{loshchilov2019adamw,
+  keywords = {optimisation},
+  author    = {Ilya Loshchilov and Frank Hutter},
+  title     = {Decoupled Weight Decay Regularization},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2019},
+  note      = {arXiv:1711.05101; AdamW}
+}
+@inproceedings{loshchilov2017sgdr,
+  keywords = {optimisation},
+  author    = {Ilya Loshchilov and Frank Hutter},
+  title     = {{SGDR}: Stochastic Gradient Descent with Warm Restarts},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2017},
+  note      = {arXiv:1608.03983; cosine learning-rate schedules}
+}
+@inproceedings{glorot2010init,
+  keywords = {optimisation},
+  author    = {Xavier Glorot and Yoshua Bengio},
+  title     = {Understanding the Difficulty of Training Deep Feedforward Neural Networks},
+  booktitle = {Proceedings of the 13th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  year      = {2010}
+}
+@inproceedings{micikevicius2018mixed,
+  keywords = {optimisation},
+  author    = {Paulius Micikevicius and Sharan Narang and Jonah Alben and Gregory Diamos and Erich Elsen and David Garcia and Boris Ginsburg and Michael Houston and Oleksii Kuchaiev and Ganesh Venkatesh and Hao Wu},
+  title     = {Mixed Precision Training},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2018},
+  note      = {arXiv:1710.03740}
+}
+@article{kaplan2020scaling,
+  keywords = {optimisation},
+  author  = {Jared Kaplan and Sam McCandlish and Tom Henighan and Tom B. Brown and Benjamin Chess and Rewon Child and Scott Gray and Alec Radford and Jeffrey Wu and Dario Amodei},
+  title   = {Scaling Laws for Neural Language Models},
+  journal = {arXiv preprint arXiv:2001.08361},
+  year    = {2020}
+}
+@inproceedings{hoffmann2022chinchilla,
+  keywords = {optimisation},
+  author    = {Jordan Hoffmann and Sebastian Borgeaud and Arthur Mensch and Elena Buchatskaya and Trevor Cai and Eliza Rutherford and Diego de Las Casas and Lisa Anne Hendricks and Johannes Welbl and Aidan Clark and others},
+  title     = {Training Compute-Optimal Large Language Models},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2203.15556; the ``Chinchilla'' scaling laws}
+}
+
+% ===================== Loss, information theory, textbooks =================
+@book{cover2006elements,
+  keywords = {textbooks},
+  author    = {Thomas M. Cover and Joy A. Thomas},
+  title     = {Elements of Information Theory},
+  edition   = {2},
+  publisher = {Wiley},
+  year      = {2006}
+}
+@book{goodfellow2016deep,
+  keywords = {textbooks},
+  author    = {Ian Goodfellow and Yoshua Bengio and Aaron Courville},
+  title     = {Deep Learning},
+  publisher = {MIT Press},
+  year      = {2016},
+  note      = {Free online at \url{https://www.deeplearningbook.org}}
+}
+@book{bishop2006prml,
+  keywords = {textbooks},
+  author    = {Christopher M. Bishop},
+  title     = {Pattern Recognition and Machine Learning},
+  publisher = {Springer},
+  year      = {2006}
+}
+@book{prince2023understanding,
+  keywords = {textbooks},
+  author    = {Simon J. D. Prince},
+  title     = {Understanding Deep Learning},
+  publisher = {MIT Press},
+  year      = {2023},
+  note      = {Free online at \url{https://udlbook.github.io/udlbook/}}
+}
+@book{jurafsky2025slp,
+  keywords = {textbooks},
+  author    = {Daniel Jurafsky and James H. Martin},
+  title     = {Speech and Language Processing},
+  edition   = {3rd ed.\ draft},
+  publisher = {Online},
+  year      = {2025},
+  note      = {\url{https://web.stanford.edu/~jurafsky/slp3/}; chapters on n-grams, neural LMs, Transformers}
+}
+
+% ===================== Sampling / decoding =================================
+@article{ackley1985boltzmann,
+  keywords = {sampling},
+  author  = {David H. Ackley and Geoffrey E. Hinton and Terrence J. Sejnowski},
+  title   = {A Learning Algorithm for {Boltzmann} Machines},
+  journal = {Cognitive Science},
+  volume  = {9},
+  number  = {1},
+  pages   = {147--169},
+  year    = {1985},
+  note    = {Origin of the ``temperature'' softmax in neural networks}
+}
+@article{hinton2015distilling,
+  keywords = {sampling},
+  author  = {Geoffrey Hinton and Oriol Vinyals and Jeff Dean},
+  title   = {Distilling the Knowledge in a Neural Network},
+  journal = {arXiv preprint arXiv:1503.02531},
+  year    = {2015},
+  note    = {Clear discussion of softmax temperature}
+}
+@inproceedings{fan2018hierarchical,
+  keywords = {sampling},
+  author    = {Angela Fan and Mike Lewis and Yann Dauphin},
+  title     = {Hierarchical Neural Story Generation},
+  booktitle = {Proceedings of ACL},
+  year      = {2018},
+  note      = {arXiv:1805.04833; top-$k$ sampling}
+}
+@inproceedings{holtzman2020nucleus,
+  keywords = {sampling},
+  author    = {Ari Holtzman and Jan Buys and Li Du and Maxwell Forbes and Yejin Choi},
+  title     = {The Curious Case of Neural Text Degeneration},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2020},
+  note      = {arXiv:1904.09751; nucleus (top-$p$) sampling}
+}
+
+% ===================== Post-training =======================================
+@inproceedings{christiano2017rlhf,
+  keywords = {posttraining},
+  author    = {Paul F. Christiano and Jan Leike and Tom B. Brown and Miljan Martic and Shane Legg and Dario Amodei},
+  title     = {Deep Reinforcement Learning from Human Preferences},
+  booktitle = {Advances in Neural Information Processing Systems 30 (NIPS)},
+  year      = {2017},
+  note      = {arXiv:1706.03741}
+}
+@article{schulman2017ppo,
+  keywords = {posttraining},
+  author  = {John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov},
+  title   = {Proximal Policy Optimization Algorithms},
+  journal = {arXiv preprint arXiv:1707.06347},
+  year    = {2017}
+}
+@inproceedings{ouyang2022instructgpt,
+  keywords = {posttraining},
+  author    = {Long Ouyang and Jeff Wu and Xu Jiang and Diogo Almeida and Carroll L. Wainwright and Pamela Mishkin and Chong Zhang and Sandhini Agarwal and Katarina Slama and Alex Ray and others},
+  title     = {Training Language Models to Follow Instructions with Human Feedback},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2203.02155; InstructGPT: SFT + RLHF}
+}
+@inproceedings{rafailov2023dpo,
+  keywords = {posttraining},
+  author    = {Rafael Rafailov and Archit Sharma and Eric Mitchell and Stefano Ermon and Christopher D. Manning and Chelsea Finn},
+  title     = {Direct Preference Optimization: Your Language Model is Secretly a Reward Model},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS)},
+  year      = {2023},
+  note      = {arXiv:2305.18290}
+}
+@article{shao2024grpo,
+  keywords = {posttraining},
+  author  = {Zhihong Shao and Peiyi Wang and Qihao Zhu and Runxin Xu and Junxiao Song and Mingchuan Zhang and Y. K. Li and Y. Wu and Daya Guo},
+  title   = {{DeepSeekMath}: Pushing the Limits of Mathematical Reasoning in Open Language Models},
+  journal = {arXiv preprint arXiv:2402.03300},
+  year    = {2024},
+  note    = {Introduces GRPO}
+}
+
+% ===================== Inference systems ===================================
+@inproceedings{dao2022flashattention,
+  keywords = {inference},
+  author    = {Tri Dao and Daniel Y. Fu and Stefano Ermon and Atri Rudra and Christopher R{\'e}},
+  title     = {{FlashAttention}: Fast and Memory-Efficient Exact Attention with {IO}-Awareness},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2205.14135}
+}
+@inproceedings{dao2024flashattention2,
+  keywords = {inference},
+  author    = {Tri Dao},
+  title     = {{FlashAttention-2}: Faster Attention with Better Parallelism and Work Partitioning},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  note      = {arXiv:2307.08691}
+}
+@inproceedings{yu2022orca,
+  keywords = {inference},
+  author    = {Gyeong-In Yu and Joo Seong Jeong and Geon-Woo Kim and Soojeong Kim and Byung-Gon Chun},
+  title     = {Orca: A Distributed Serving System for Transformer-Based Generative Models},
+  booktitle = {16th USENIX Symposium on Operating Systems Design and Implementation (OSDI)},
+  year      = {2022},
+  note      = {Continuous (iteration-level) batching}
+}
+@inproceedings{kwon2023vllm,
+  keywords = {inference},
+  author    = {Woosuk Kwon and Zhuohan Li and Siyuan Zhuang and Ying Sheng and Lianmin Zheng and Cody Hao Yu and Joseph E. Gonzalez and Hao Zhang and Ion Stoica},
+  title     = {Efficient Memory Management for Large Language Model Serving with {PagedAttention}},
+  booktitle = {Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)},
+  year      = {2023},
+  note      = {arXiv:2309.06180; vLLM}
+}
+@inproceedings{leviathan2023speculative,
+  keywords = {inference},
+  author    = {Yaniv Leviathan and Matan Kalman and Yossi Matias},
+  title     = {Fast Inference from Transformers via Speculative Decoding},
+  booktitle = {Proceedings of the 40th International Conference on Machine Learning (ICML)},
+  year      = {2023},
+  note      = {arXiv:2211.17192}
+}
+@article{chen2023speculative,
+  keywords = {inference},
+  author  = {Charlie Chen and Sebastian Borgeaud and Geoffrey Irving and Jean-Baptiste Lespiau and Laurent Sifre and John Jumper},
+  title   = {Accelerating Large Language Model Decoding with Speculative Sampling},
+  journal = {arXiv preprint arXiv:2302.01318},
+  year    = {2023}
+}
+@inproceedings{dettmers2022int8,
+  keywords = {inference},
+  author    = {Tim Dettmers and Mike Lewis and Younes Belkada and Luke Zettlemoyer},
+  title     = {{LLM.int8()}: 8-bit Matrix Multiplication for Transformers at Scale},
+  booktitle = {Advances in Neural Information Processing Systems 35 (NeurIPS)},
+  year      = {2022},
+  note      = {arXiv:2208.07339}
+}
+@inproceedings{frantar2023gptq,
+  keywords = {inference},
+  author    = {Elias Frantar and Saleh Ashkboos and Torsten Hoefler and Dan Alistarh},
+  title     = {{GPTQ}: Accurate Post-Training Quantization for Generative Pre-trained Transformers},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023},
+  note      = {arXiv:2210.17323}
+}
+
+% ===================== Data ================================================
+@article{raffel2020t5,
+  keywords = {data},
+  author  = {Colin Raffel and Noam Shazeer and Adam Roberts and Katherine Lee and Sharan Narang and Michael Matena and Yanqi Zhou and Wei Li and Peter J. Liu},
+  title   = {Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer},
+  journal = {Journal of Machine Learning Research},
+  volume  = {21},
+  number  = {140},
+  pages   = {1--67},
+  year    = {2020},
+  note    = {Introduces the C4 web corpus}
+}
+@article{gao2020pile,
+  keywords = {data},
+  author  = {Leo Gao and Stella Biderman and Sid Black and Laurence Golding and Travis Hoppe and Charles Foster and Jason Phang and Horace He and Anish Thite and Noa Nabeshima and Shawn Presser and Connor Leahy},
+  title   = {The {Pile}: An 800{GB} Dataset of Diverse Text for Language Modeling},
+  journal = {arXiv preprint arXiv:2101.00027},
+  year    = {2020}
+}
+@inproceedings{lee2022dedup,
+  keywords = {data},
+  author    = {Katherine Lee and Daphne Ippolito and Andrew Nystrom and Chiyuan Zhang and Douglas Eck and Chris Callison-Burch and Nicholas Carlini},
+  title     = {Deduplicating Training Data Makes Language Models Better},
+  booktitle = {Proceedings of ACL},
+  year      = {2022},
+  note      = {arXiv:2107.06499}
+}
+@article{penedo2024fineweb,
+  keywords = {data},
+  author  = {Guilherme Penedo and Hynek Kydl{\'\i}{\v c}ek and Loubna Ben Allal and Anton Lozhkov and Margaret Mitchell and Colin Raffel and Leandro von Werra and Thomas Wolf},
+  title   = {The {FineWeb} Datasets: Decanting the Web for the Finest Text Data at Scale},
+  journal = {arXiv preprint arXiv:2406.17557},
+  year    = {2024}
+}
