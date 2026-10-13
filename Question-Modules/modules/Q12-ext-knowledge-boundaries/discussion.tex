@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q12 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item If parametric accuracy is frequency-dependent, what does that imply about whose knowledge an LLM encodes --- and is ``the long tail'' a technical limitation or a mirror of the corpus? Defend a position.
+\item The cutoff asymmetry (skills persist, facts don't) suggests facts and skills are stored differently. What evidence from Q13 (probing, editing) supports or complicates that separation?
+\item Adaptive retrieval --- retrieve only for rare entities --- matches always-retrieving at a fraction of the cost. What failure modes could an \emph{estimate} of entity rarity itself introduce?
+\item Kadavath et al.\ find better-than-expected calibration on multiple-choice probes, yet models still answer unanswerable open-ended questions. What gets lost between ``representing uncertainty'' and ``acting on it''?
+\item Fine-tuning on new knowledge increases hallucination. Given that, how would you design a course assistant for a field with post-cutoff developments? Which of the boundary map's mechanisms would you rely on?
+\end{enumerate}
+\end{document}

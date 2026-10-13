@@ -1,0 +1,10 @@
+\documentclass[aspectratio=169,10pt]{beamer}\usetheme{metropolis}\title{Q24: Evaluating Agents}\subtitle{Outcomes, trajectories, costs, and constraints}\author{DLS 2026}\date{October 2026}
+\begin{document}\maketitle
+\begin{frame}{The question}\begin{block}{Q24}How do we judge whether an agent is good: benchmarks and metrics?\end{block}\end{frame}
+\begin{frame}{Agent evaluation is trajectory evaluation}\begin{itemize}\item Observe → act/tool-call → observe → outcome\item Final answer alone misses permissions, retries, and recovery.\item Match the unit of evaluation to the deployment responsibility.\end{itemize}\end{frame}
+\begin{frame}{Start with a task contract}\begin{itemize}\item Success condition and end-state checker\item Allowed tools and forbidden actions\item Budget: time, cost, attempts\item Human escalation and safety constraints\end{itemize}\end{frame}
+\begin{frame}{A scorecard, not one score}\begin{itemize}\item Completion / conditional success\item Cost and wall-clock time\item Human intervention rate\item Constraint-violation rate\item Failure severity and task slices\end{itemize}\end{frame}
+\begin{frame}{Why success rate can mislead}\begin{itemize}\item Two agents can both solve 70\%.\item One may be 10x costlier or violate permissions.\item Report distributions and inspect trajectories.\end{itemize}\end{frame}
+\begin{frame}{Validity threats}\begin{itemize}\item Benchmark contamination or leaked answers\item Brittle checks and proxy gaming\item Environment/tool version drift\item Repeated tuning on the test set\end{itemize}\end{frame}
+\begin{frame}{Human and automatic judges}\begin{itemize}\item Human rubrics need instructions and adjudication.\item Automatic judges need validation and injection defenses.\item Preference, correctness, and safety are separate dimensions.\end{itemize}\end{frame}
+\begin{frame}{Takeaway}\begin{block}{Evaluation principle}Declare the task contract; measure end state, trajectory, cost, reliability, and constraints; preserve a holdout.\end{block}\end{frame}\end{document}

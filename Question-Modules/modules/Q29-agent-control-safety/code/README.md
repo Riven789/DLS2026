@@ -1,0 +1,1 @@
+Run `python3 approval_bound.py` (standard library only). This illustrative policy check demonstrates approval binding. It is not authentication, cryptography, or a complete production authorization system.

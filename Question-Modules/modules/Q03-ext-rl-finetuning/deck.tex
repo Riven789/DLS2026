@@ -1,0 +1,58 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q03: Why RL After Pre-Training?}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+\frame{\titlepage}
+\begin{frame}{The problem likelihood cannot solve}
+\begin{itemize}
+\item Pre-training: next-token likelihood on a corpus of \emph{how people write}
+\item Assistant quality: \emph{comparisons} between whole responses
+\item ``Better'' is not a likelihood --- reward is an arbitrary scalar over full outputs \cite{ouyang2022training}
+\end{itemize}
+\end{frame}
+\begin{frame}{The RLHF recipe (InstructGPT)}
+\begin{enumerate}
+\item Collect pairwise preference rankings
+\item Fit reward model $r_\phi$ (Bradley--Terry)
+\item Optimize policy: reward $-$ $\beta\,$KL to reference \cite{ouyang2022training}
+\end{enumerate}
+\pause PPO \cite{schulman2017ppo}: LLM = policy, tokens = actions, value net for advantages
+\end{frame}
+\begin{frame}{Why the KL anchor matters}
+\begin{itemize}
+\item Reward model is valid only near its training distribution
+\item Unanchored: reward hacking + degenerate collapse
+\item KL = \textbf{trust region} for the reward model, not a safety feature
+\end{itemize}
+\end{frame}
+\begin{frame}{DPO: the closed-form shortcut}
+\begin{itemize}
+\item RLHF optimum: $\pi^*(y|x) \propto \pi_\text{ref}\,\exp(r/\beta)$
+\item Solve for $r$, substitute into Bradley--Terry: $Z(x)$ cancels
+\item Pure classification loss on log-ratios --- no reward model, no sampling \cite{rafailov2023direct}
+\item Trade-off: no reusable reward; distribution-shift sensitivity
+\end{itemize}
+\end{frame}
+\begin{frame}{GRPO: drop the value network}
+\begin{itemize}
+\item Sample $G$ responses per prompt; score all
+\item Advantage $=$ $(r_i - \text{mean})/\text{std}$ over the group \cite{shao2025deepseekmath}
+\item Shines with verifiable rewards (tests, exact answers)
+\item Backbone of modern reasoning-model RL
+\end{itemize}
+\end{frame}
+\begin{frame}{Shared failure modes}
+\begin{itemize}
+\item Reward hacking (learned $r_\phi$ has exploits)
+\item Length bias (longer looks better)
+\item Evaluator gaming (judge blind spots)
+\item Preferences $\neq$ truth (raters, not reality)
+\end{itemize}
+\end{frame}
+\begin{frame}{Summary}
+\emph{RL enters because ``better'' is a comparison, not a likelihood. RLHF: learned reward + KL trust region. DPO: closed form, no machinery. GRPO: group baselines, no value net. All three: optimize for raters --- with the risks that implies.}
+\end{frame}
+\end{document}

@@ -1,0 +1,164 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q12 --- Comprehension check}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Student question}
+
+\emph{``Why do models give confident answers even when they are wrong?''}
+
+This comprehension check asks you to connect the surface phenomenon of
+``confident wrongness'' to concrete facts about how language models are
+trained, calibrated, and decoded.
+
+\paragraph{Question.}
+A large language model answers a factual question fluently and
+authoritatively, yet the stated fact is false (a ``hallucination'').
+Explain \emph{why} such models tend to express high confidence even when
+wrong. In your answer, address \textbf{all four} of the following
+mechanisms, and state briefly how each contributes to the mismatch
+between expressed confidence and actual correctness:
+\begin{enumerate}[label=(\alph*)]
+  \item the training objective (next-token likelihood) and what it does
+        \emph{not} reward;
+  \item \emph{miscalibration} introduced or reshaped by post-training
+        (RLHF / instruction tuning);
+  \item the effect of \emph{decoding} and token-level probabilities on
+        the fluency of a wrong answer;
+  \item why the model has no reliable internal signal that cleanly
+        separates ``I know'' from ``I am guessing.''
+\end{enumerate}
+
+\paragraph{Answer.}
+Confident wrongness is not a single bug but the joint product of the
+objective, the alignment procedure, and the decoding regime.
+
+\textbf{(a) The objective rewards plausibility, not truth.}
+Autoregressive models are trained to maximize the likelihood of the next
+token given the context \citep{radford2019language,brown2020language}.
+This objective rewards producing the \emph{statistically most plausible
+continuation} of the preceding text, including the fluent, assertive
+style of confident prose that dominates the training corpus. Nothing in
+the loss distinguishes a true statement from a false-but-plausible one;
+a well-formed wrong answer and a well-formed right answer can incur
+nearly identical per-token loss. Hallucination is therefore partly
+intrinsic: \citet{kalai2024calibrated} and related analyses argue that
+models optimized this way will inevitably generate some fabricated but
+statistically typical content, and that standard training and evaluation
+\emph{reward guessing over abstaining} \citep{kalai2025hallucinate}.
+
+\textbf{(b) Post-training reshapes (and often degrades) calibration.}
+A pretrained base model can be surprisingly well-calibrated on
+multiple-choice tasks: its probabilities roughly track the likelihood of
+being correct \citep{kadavath2022know}. However, RLHF and instruction
+tuning optimize for human-preferred responses, and human raters tend to
+prefer answers that are decisive, helpful-sounding, and confident.
+OpenAI's GPT-4 report explicitly notes that the base model was
+well-calibrated but that calibration \emph{decreased} after RLHF
+post-training \citep{openai2023gpt4}. The model thus learns a stylistic
+association between confidence and reward, decoupling expressed certainty
+from epistemic warrant. Preference optimization can also induce
+\emph{sycophancy}---agreeing with or flattering the user---which further
+rewards assured-sounding but unjustified claims
+\citep{perez2023discovering}.
+
+\textbf{(c) Decoding produces fluent surface form regardless of truth.}
+At generation time the model samples or greedily selects high-probability
+tokens. Because fluency and factuality are governed by different things,
+a false claim can still be composed of individually high-probability
+tokens, yielding text that \emph{reads} as confident. The sequence-level
+probability is a measure of linguistic typicality, not veracity, so a
+hallucinated answer can be assigned high likelihood. Methods such as
+semantic-entropy estimation show that meaningful uncertainty signal
+exists but requires sampling multiple generations and measuring
+\emph{meaning}-level disagreement rather than reading off a single
+decoded string \citep{kuhn2023semantic,farquhar2024detecting}.
+
+\textbf{(d) No clean internal ``I know / I'm guessing'' signal is
+surfaced by default.}
+Probing work indicates models do carry \emph{some} information about
+their own reliability---they can be trained to predict whether they know
+an answer \citep{kadavath2022know}---but this signal is noisy, is not
+faithfully exposed in the free-text output, and is weakened by the
+confidence-rewarding post-training above. Verbalized confidence
+estimates are often poorly calibrated and must be elicited and corrected
+explicitly \citep{lin2022teaching}. Consequently, in default use the
+model has no mechanism that converts internal uncertainty into an honest
+hedge; it emits the same assertive register whether the retrieved
+association is strong or spurious.
+
+\textbf{Synthesis.} The model expresses confidence because confidence is
+cheap, stylistically rewarded, and statistically typical, while truth is
+never directly optimized and uncertainty is never reliably surfaced.
+Mitigations target exactly these points: calibration-aware training and
+evaluation that reward abstention \citep{kalai2025hallucinate},
+retrieval grounding, sampling-based uncertainty measures
+\citep{farquhar2024detecting}, and explicit confidence elicitation
+\citep{lin2022teaching}.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem[Brown et al.(2020)]{brown2020language}
+T.~B. Brown, B.~Mann, N.~Ryder, et~al.
+\newblock Language models are few-shot learners.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem[Farquhar et al.(2024)]{farquhar2024detecting}
+S.~Farquhar, J.~Kossen, L.~Kuhn, and Y.~Gal.
+\newblock Detecting hallucinations in large language models using semantic entropy.
+\newblock \emph{Nature}, 630:625--630, 2024.
+
+\bibitem[Kadavath et al.(2022)]{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, et~al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Kalai and Vempala(2024)]{kalai2024calibrated}
+A.~T. Kalai and S.~S. Vempala.
+\newblock Calibrated language models must hallucinate.
+\newblock In \emph{Proceedings of the 56th Annual ACM Symposium on Theory of Computing (STOC)}, 2024.
+
+\bibitem[Kalai et al.(2025)]{kalai2025hallucinate}
+A.~T. Kalai, O.~Nachum, S.~S. Vempala, and E.~Zhang.
+\newblock Why language models hallucinate.
+\newblock \emph{arXiv preprint arXiv:2509.04664}, 2025.
+
+\bibitem[Kuhn et al.(2023)]{kuhn2023semantic}
+L.~Kuhn, Y.~Gal, and S.~Farquhar.
+\newblock Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem[Lin et al.(2022)]{lin2022teaching}
+S.~Lin, J.~Hilton, and O.~Evans.
+\newblock Teaching models to express their uncertainty in words.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
+
+\bibitem[OpenAI(2023)]{openai2023gpt4}
+OpenAI.
+\newblock {GPT-4} technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}, 2023.
+
+\bibitem[Perez et al.(2023)]{perez2023discovering}
+E.~Perez, S.~Ringer, K.~Luko\v{s}i\=ut\.e, et~al.
+\newblock Discovering language model behaviors with model-written evaluations.
+\newblock In \emph{Findings of the Association for Computational Linguistics (ACL)}, 2023.
+
+\bibitem[Radford et al.(2019)]{radford2019language}
+A.~Radford, J.~Wu, R.~Child, D.~Luan, D.~Amodei, and I.~Sutskever.
+\newblock Language models are unsupervised multitask learners.
+\newblock Technical report, OpenAI, 2019.
+
+\end{thebibliography}
+
+\end{document}

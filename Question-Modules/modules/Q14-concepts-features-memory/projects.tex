@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q14: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Linear probes (medium, 3--5 days).} Train linear probes to decode attributes (sentiment, part-of-speech, factual properties) from hidden states across layers; show where each becomes linearly decodable.
+\item \textbf{Toy superposition (medium, 1 week).} Reproduce a toy model of superposition: train a small autoencoder on sparse features in a low-dim bottleneck and visualize the near-orthogonal feature directions emerging.
+\item \textbf{Fact localization (larger, 1--2 weeks).} Use causal tracing on a small open model to localize a factual association, then attempt a targeted edit and measure specificity (does it change the target fact without breaking neighbors?).
+\end{enumerate}
+\end{document}

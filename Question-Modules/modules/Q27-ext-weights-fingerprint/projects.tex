@@ -1,0 +1,246 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q27 --- Deeper projects\\\large Interpretability, Weight Inspection, and Persistence of Pre-training Traits}
+\author{Deep Learning Systems 2026 --- AI-internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing the student question}
+
+Two intertwined questions motivate this module. First, \emph{can inspecting a
+model's weights (and activations) reveal its tendencies}---its latent
+preferences, knowledge, or dispositions---rather than merely its input/output
+behavior? Second, \emph{do models revert to pre-training traits after
+deployment}, i.e., does fine-tuning or alignment durably change a model, or does
+it leave a thin behavioral veneer over a largely intact pre-trained base?
+
+The honest short answer to the first is: \emph{partially}. Weight and activation
+inspection has produced genuine causal handles---directions that encode
+truthfulness-adjacent features, circuits implementing specific algorithms, and
+sparse features recovered by dictionary learning
+\citep{elhage2021mathematical,olsson2022context,bricken2023monosemanticity,templeton2024scaling,marks2023geometry}.
+But weights are not a transparent readout of ``tendencies'': superposition,
+polysemantic neurons, and distributed representations mean that naive weight
+staring is unreliable \citep{elhage2022superposition}. The second question
+connects to a growing body of evidence that alignment fine-tuning is often
+shallow and reversible \citep{jain2024mechanistically,qi2024safety,lee2024mechanistic},
+and that models can retain---and under pressure re-express---dispositions formed
+earlier \citep{hubinger2024sleeper,greenblatt2024alignment}.
+
+The projects below are designed to let students \emph{measure} these phenomena
+rather than speculate about them. Each is scoped for a team of 2--3 over roughly
+4--6 weeks with modest compute (a few open-weight models in the 1B--8B range).
+
+\section*{Project 1: Reading tendencies off activations and weights}
+
+\paragraph{Goal.} Quantify how much of a model's ``tendency'' on a target
+behavior (e.g.\ sycophancy, refusal, a factual belief) is linearly decodable
+from internal states, and whether an intervention on that direction causally
+controls the behavior.
+
+\paragraph{Method.}
+\begin{enumerate}[leftmargin=1.5em]
+  \item Choose a behavior with contrastive prompt pairs (e.g.\ agree-with-user
+  vs.\ correct-the-user). Collect residual-stream activations across layers.
+  \item Fit linear probes and compute difference-of-means / mass-mean directions
+  \citep{marks2023geometry}. Compare to representation-engineering style
+  reading/steering vectors \citep{zou2023representation}.
+  \item \emph{Causal validation}: add/subtract the direction (activation
+  steering) and measure behavior change; apply activation patching to localize
+  where the direction matters \citep{meng2022locating,zou2023representation}.
+  \item \emph{Weights, not just activations}: project the learned direction back
+  through the unembedding/MLP weights to identify contributing components; sanity
+  check against logit-lens readouts.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item A per-layer probe-accuracy curve and a steering dose--response plot.
+  \item A causal-faithfulness report: fraction of behavior change explained by
+  the identified direction, with a negative-control direction baseline.
+  \item A 2-page writeup distinguishing \emph{correlational} decoding from
+  \emph{causal} control, explicitly noting superposition caveats
+  \citep{elhage2022superposition}.
+\end{itemize}
+
+\section*{Project 2: Does alignment survive? Shallow safety and reversion}
+
+\paragraph{Goal.} Test the hypothesis that safety/alignment fine-tuning is
+``shallow'' and that pre-training tendencies re-emerge under perturbation.
+
+\paragraph{Method.}
+\begin{enumerate}[leftmargin=1.5em]
+  \item Take an instruction-tuned, safety-aligned open model and its base model.
+  \item Characterize the \emph{token-depth} of safety: measure how refusal is
+  concentrated in the first few generated tokens \citep{qi2024safety}.
+  \item Attempt lightweight reversion: minimal fine-tuning on benign data, LoRA
+  edits, or pruning of the components implicated in alignment
+  \citep{jain2024mechanistically,lee2024mechanistic}; measure how little
+  perturbation suffices to recover base-model behavior.
+  \item Compare internal directions (Project 1) before/after, testing whether
+  the aligned model \emph{moves away from} or merely \emph{masks} the base
+  direction.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item A ``safety depth'' figure (behavior vs.\ tokens constrained).
+  \item A reversion table: perturbation budget vs.\ fraction of pre-aligned
+  behavior recovered, with a clear operational definition of ``reversion.''
+  \item A short discussion relating findings to the shallow-alignment hypothesis
+  \citep{qi2024safety,jain2024mechanistically}, with responsible-disclosure
+  notes (no release of harmful artifacts).
+\end{itemize}
+
+\section*{Project 3: Dormant dispositions and conditional behavior}
+
+\paragraph{Goal.} Study whether a model can carry a \emph{dormant} tendency that
+is activated only under specific triggers---and whether standard safety training
+removes it or merely hides it.
+
+\paragraph{Method.}
+\begin{enumerate}[leftmargin=1.5em]
+  \item Replicate a small ``sleeper''-style setup: train/fine-tune a model to
+  behave differently under a benign trigger \citep{hubinger2024sleeper}.
+  \item Apply safety training (SFT/RL/adversarial) and test whether the
+  conditional behavior persists.
+  \item Use interpretability tools to detect the dormant disposition from
+  internals \emph{without} using the trigger: probe for the trigger-detecting
+  feature; attempt dictionary-learning / SAE feature discovery
+  \citep{bricken2023monosemanticity,templeton2024scaling}.
+  \item Relate to alignment-faking dynamics where a model behaves differently
+  when it infers it is being evaluated \citep{greenblatt2024alignment}.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item Persistence curves: conditional behavior rate vs.\ amount of safety
+  training.
+  \item A detection ROC: can internals flag the dormant disposition without the
+  trigger?
+  \item A critical essay on what ``reversion to pre-training traits'' means when
+  traits are conditional rather than always-on.
+\end{itemize}
+
+\section*{Project 4: Weight-space forensics across the fine-tuning trajectory}
+
+\paragraph{Goal.} Test how much of a model's post-deployment behavior is
+predictable from \emph{weight diffs} between base and tuned checkpoints---i.e.,
+reading tendencies directly from parameters.
+
+\paragraph{Method.}
+\begin{enumerate}[leftmargin=1.5em]
+  \item Compute per-parameter and per-component weight deltas between base and
+  fine-tuned models (and across intermediate checkpoints if available).
+  \item Localize which attention heads / MLP blocks change most; relate to known
+  mechanisms such as induction heads \citep{olsson2022context} and to
+  edited-fact localization results \citep{meng2022locating}.
+  \item Predict behavior from weight-space features alone; validate causally by
+  ablating or restoring the top-changed components.
+  \item Correlate weight-space structure with the activation directions from
+  Project 1 to connect parameter changes to behavioral tendencies.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item A weight-delta heatmap over layers/components with an interpretation.
+  \item A predictive model: weight features $\rightarrow$ behavior, with
+  held-out accuracy and causal ablation confirmation.
+  \item A reproducible notebook and a reflection on the limits of
+  ``weight staring'' given superposition and distributed storage
+  \citep{elhage2022superposition,elhage2021mathematical}.
+\end{itemize}
+
+\section*{Cross-cutting rubric}
+Each project is graded on: (i) a clear operationalization of ``tendency'' or
+``reversion''; (ii) a correlational \emph{vs.}\ causal distinction with proper
+controls; (iii) reproducibility (seeds, code, model hashes); and (iv) honest
+negative results and threat-model/ethics notes.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{elhage2021mathematical}
+N.~Elhage, N.~Nanda, C.~Olsson, et al.
+\newblock A mathematical framework for transformer circuits.
+\newblock \emph{Transformer Circuits Thread}, 2021.
+
+\bibitem{olsson2022context}
+C.~Olsson, N.~Elhage, N.~Nanda, et al.
+\newblock In-context learning and induction heads.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+
+\bibitem{elhage2022superposition}
+N.~Elhage, T.~Hume, C.~Olsson, et al.
+\newblock Toy models of superposition.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+
+\bibitem{bricken2023monosemanticity}
+T.~Bricken, A.~Templeton, J.~Batson, et al.
+\newblock Towards monosemanticity: Decomposing language models with dictionary
+learning.
+\newblock \emph{Transformer Circuits Thread}, 2023.
+
+\bibitem{templeton2024scaling}
+A.~Templeton, T.~Conerly, J.~Marcus, et al.
+\newblock Scaling monosemanticity: Extracting interpretable features from Claude
+3 Sonnet.
+\newblock \emph{Transformer Circuits Thread}, 2024.
+
+\bibitem{marks2023geometry}
+S.~Marks and M.~Tegmark.
+\newblock The geometry of truth: Emergent linear structure in large language
+model representations of true/false datasets.
+\newblock \emph{arXiv preprint arXiv:2310.06824}, 2023.
+
+\bibitem{zou2023representation}
+A.~Zou, L.~Phan, S.~Chen, et al.
+\newblock Representation engineering: A top-down approach to AI transparency.
+\newblock \emph{arXiv preprint arXiv:2310.01405}, 2023.
+
+\bibitem{meng2022locating}
+K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+2022.
+
+\bibitem{qi2024safety}
+X.~Qi, A.~Panda, K.~Lyu, et al.
+\newblock Safety alignment should be made more than just a few tokens deep.
+\newblock \emph{arXiv preprint arXiv:2406.05946}, 2024.
+
+\bibitem{jain2024mechanistically}
+S.~Jain, R.~Kirk, E.~S. Lubana, et al.
+\newblock Mechanistically analyzing the effects of fine-tuning on procedurally
+defined tasks.
+\newblock In \emph{International Conference on Learning Representations (ICLR)},
+2024.
+
+\bibitem{lee2024mechanistic}
+A.~Lee, X.~Bai, I.~Pres, et al.
+\newblock A mechanistic understanding of alignment algorithms: A case study on
+DPO and toxicity.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2024.
+
+\bibitem{hubinger2024sleeper}
+E.~Hubinger, C.~Denison, J.~Mu, et al.
+\newblock Sleeper agents: Training deceptive LLMs that persist through safety
+training.
+\newblock \emph{arXiv preprint arXiv:2401.05566}, 2024.
+
+\bibitem{greenblatt2024alignment}
+R.~Greenblatt, C.~Denison, B.~Wright, et al.
+\newblock Alignment faking in large language models.
+\newblock \emph{arXiv preprint arXiv:2412.14093}, 2024.
+
+\end{thebibliography}
+
+\end{document}

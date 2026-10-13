@@ -1,0 +1,222 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q11 --- Deeper projects:\\ Why do models hallucinate, and can they know when they are unsure?}
+\author{DLS 2026 --- Graduate AI-Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing the question}
+
+A language model trained by maximum-likelihood on next-token prediction is
+optimized to produce \emph{fluent and plausible} continuations, not
+\emph{truthful} ones. Hallucination---confident generation of content that is
+unsupported or false---is therefore not an incidental bug but a predictable
+consequence of the training objective, the data distribution, and the decoding
+procedure. Recent analyses argue that hallucinations arise partly because
+pretraining rewards guessing over abstention, and that standard benchmarks and
+reward schemes penalize ``I don't know'' responses, incentivizing confident
+fabrication \citep{kalai2025hallucinate,maynez2020faithfulness}. A closely
+related question is \emph{calibration}: can a model's own probabilities, hidden
+states, or verbalized confidence reliably signal when it is likely to be wrong?
+Evidence is mixed---base models can be well calibrated on some tasks
+\citep{kadavath2022know}, but RLHF can degrade calibration
+\citep{openai2023gpt4}, and factual knowledge appears to be linearly encoded in
+intermediate activations in ways that sometimes diverge from the model's own
+outputs \citep{azaria2023internal,burns2023discovering}.
+
+The projects below ask you to measure these phenomena carefully, probe their
+mechanistic origins, and build interventions. Each project lists concrete
+deliverables. Use open-weight models (e.g.\ Llama, Mistral, Pythia) so that
+internal states are accessible; proprietary APIs may be used for comparison.
+
+\section{Project A --- Measuring and decomposing hallucination}
+
+\textbf{Goal.} Build a reproducible pipeline that elicits, detects, and
+categorizes hallucinations, and that separates \emph{knowledge gaps} (the model
+never learned the fact) from \emph{retrieval/decoding failures} (the model
+``knows'' but outputs something false).
+
+\textbf{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Assemble an evaluation set combining a closed-book factual QA
+    benchmark, a summarization faithfulness benchmark, and an adversarial
+    truthfulness benchmark \citep{lin2022truthfulqa}. Annotate each item with a
+    ground-truth answer and supporting evidence.
+  \item Implement at least two automatic detectors: (i) an entailment/NLI-based
+    faithfulness check against source documents
+    \citep{maynez2020faithfulness}, and (ii) a sampling-based consistency score
+    such as SelfCheckGPT, which flags claims that vary across stochastic
+    resamples \citep{manakul2023selfcheckgpt}.
+  \item Distinguish knowledge gaps from recall failures: for each item, probe
+    whether the correct answer appears among top-$k$ sampled completions or
+    under constrained decoding even when greedy decoding is wrong.
+\end{enumerate}
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item A documented code repository and a dataset card with annotation
+    guidelines and inter-annotator agreement on a 100-item subset.
+  \item A report quantifying hallucination rate per task and per model size,
+    with a confusion-style breakdown into knowledge-gap vs.\ recall-failure
+    categories.
+  \item An error taxonomy with at least 20 qualitative examples per category.
+\end{itemize}
+
+\section{Project B --- Confidence, calibration, and abstention}
+
+\textbf{Goal.} Determine how well a model ``knows when it is unsure,'' comparing
+sequence likelihoods, verbalized confidence, and a trained ``P(True)'' head.
+
+\textbf{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Compute reliability diagrams and expected calibration error (ECE) for
+    (i) token/sequence probabilities, (ii) verbalized numeric confidence
+    elicited by prompting, and (iii) a self-evaluation probe asking the model
+    whether its own answer is correct \citep{kadavath2022know}.
+  \item Compare a base/instruct checkpoint against an RLHF-tuned variant to test
+    whether alignment tuning degrades calibration \citep{openai2023gpt4}.
+  \item Build an abstention policy: choose a confidence threshold that optimizes
+    a scoring rule which rewards correct answers, mildly rewards abstention, and
+    heavily penalizes confident errors, as advocated for discouraging guessing
+    \citep{kalai2025hallucinate}. Plot accuracy-vs-coverage (selective
+    prediction) curves.
+\end{enumerate}
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Reliability diagrams and ECE/AUROC tables for all confidence signals
+    across $\geq 2$ models.
+  \item A selective-prediction (risk--coverage) analysis with the derived
+    abstention thresholds.
+  \item A short discussion of which confidence signal is most trustworthy and
+    under what distribution shifts it fails.
+\end{itemize}
+
+\section{Project C --- Probing internal ``truthfulness'' representations}
+
+\textbf{Goal.} Investigate whether a model's hidden states encode the truth of a
+statement more reliably than its output, and whether such representations can be
+read out without labels.
+
+\textbf{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Train supervised linear probes on frozen activations to classify
+    statements as true/false, sweeping over layers and token positions
+    \citep{azaria2023internal}.
+  \item Reproduce an unsupervised method that finds a truth direction via
+    logical-consistency constraints (Contrast-Consistent Search) and compare it
+    to the supervised probe \citep{burns2023discovering}.
+  \item Measure the gap between what the probe ``believes'' and what the model
+    \emph{says}: identify cases where the internal probe is correct while the
+    generated answer is a hallucination, and quantify how often this occurs.
+\end{enumerate}
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Layerwise probe-accuracy curves plus a comparison of supervised vs.\
+    unsupervised probes.
+  \item A quantitative ``internal-knows-but-outputs-wrong'' statistic with
+    examples.
+  \item A critical appendix on probing pitfalls (spurious features, probe
+    capacity, generalization across datasets).
+\end{itemize}
+
+\section{Project D --- Interventions: grounding and decoding}
+
+\textbf{Goal.} Reduce hallucination via retrieval grounding and inference-time
+decoding changes, and measure the trade-off against fluency and task accuracy.
+
+\textbf{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Implement a retrieval-augmented pipeline and measure how grounding
+    affects faithfulness and knowledge-gap errors \citep{lewis2020rag}.
+  \item Implement a contrastive decoding intervention that amplifies factual
+    signals by contrasting layers or model scales, e.g.\ DoLa
+    \citep{chuang2024dola}, and compare against greedy and nucleus sampling.
+  \item Combine the best intervention with the abstention policy from Project B
+    and report the net effect on confident-error rate.
+\end{enumerate}
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item An ablation table (grounding $\times$ decoding $\times$ abstention)
+    reporting accuracy, faithfulness, and confident-error rate.
+  \item A qualitative analysis of failure modes introduced by each intervention
+    (e.g.\ over-copying from retrieved text, fluency degradation).
+  \item A one-page recommendation on which combination best balances truthful
+    abstention with usefulness.
+\end{itemize}
+
+\section*{Submission and assessment}
+
+Each project should be submitted as a reproducible repository (fixed seeds,
+environment file, and a \texttt{README} with exact commands), a 6--8 page report
+with figures, and a 10-minute recorded demo. Grading weights clarity of the
+experimental design, correctness of the calibration/statistical analysis, and
+depth of the mechanistic interpretation. Negative results are acceptable when
+accompanied by sound methodology.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem{azaria2023internal}
+A.~Azaria and T.~Mitchell.
+\newblock The internal state of an LLM knows when it's lying.
+\newblock In \emph{Findings of EMNLP}, 2023.
+
+\bibitem{burns2023discovering}
+C.~Burns, H.~Ye, D.~Klein, and J.~Steinhardt.
+\newblock Discovering latent knowledge in language models without supervision.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{chuang2024dola}
+Y.-S. Chuang, Y.~Xie, H.~Luo, Y.~Kim, J.~Glass, and P.~He.
+\newblock DoLa: Decoding by contrasting layers improves factuality in large language models.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2024.
+
+\bibitem{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, et~al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem{kalai2025hallucinate}
+A.~T. Kalai, O.~Nachum, S.~S. Vempala, and E.~Zhang.
+\newblock Why language models hallucinate.
+\newblock \emph{arXiv preprint arXiv:2509.04664}, 2025.
+
+\bibitem{lewis2020rag}
+P.~Lewis, E.~Perez, A.~Piktus, et~al.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem{lin2022truthfulqa}
+S.~Lin, J.~Hilton, and O.~Evans.
+\newblock TruthfulQA: Measuring how models mimic human falsehoods.
+\newblock In \emph{Proceedings of the Association for Computational Linguistics (ACL)}, 2022.
+
+\bibitem{manakul2023selfcheckgpt}
+P.~Manakul, A.~Liusie, and M.~J.~F. Gales.
+\newblock SelfCheckGPT: Zero-resource black-box hallucination detection for generative large language models.
+\newblock In \emph{Proceedings of EMNLP}, 2023.
+
+\bibitem{maynez2020faithfulness}
+J.~Maynez, S.~Narayan, B.~Bohnet, and R.~McDonald.
+\newblock On faithfulness and factuality in abstractive summarization.
+\newblock In \emph{Proceedings of the Association for Computational Linguistics (ACL)}, 2020.
+
+\bibitem{openai2023gpt4}
+OpenAI.
+\newblock GPT-4 technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}, 2023.
+
+\end{thebibliography}
+
+\end{document}

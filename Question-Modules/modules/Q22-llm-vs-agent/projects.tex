@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q22 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Harness ablation study:} take one fixed LLM (via API or local weights) and build three harnesses around it --- single call, tool-augmented single pass, full ReAct-style loop --- on the same small task suite (e.g., 20 file-editing tasks). Report success rate, cost, and trajectory length for each. Quantify how much of the ``agent capability'' is the loop.
+\item \textbf{Interface design experiment:} in the spirit of SWE-agent, give your loop two different tool surfaces for the same environment (raw shell vs.\ a curated edit/search API with guardrails) and measure the gap. Vary feedback verbosity and error-message quality; identify which harness detail moves the success rate most per engineering hour.
+\item \textbf{Context rot instrumentation:} instrument an agent loop to log context length, position of the critical instruction, and per-step accuracy over a 50-step task. Reproduce a position-dependent degradation curve in your own loop and test two mitigations (compaction vs.\ instruction re-injection at the context head) against it.
+\item \textbf{Stopping-criterion zoo:} implement one agentic harness with swappable stopping rules (step cap, token budget, model-declared finish, external verifier). Run each on tasks with known ground truth and plot success rate vs.\ mean steps and cost. Characterize when a model-declared ``finish'' is trustworthy and when an external verifier is mandatory --- a concrete entry point into Q24's evaluation contracts.
+\end{enumerate}
+\end{document}

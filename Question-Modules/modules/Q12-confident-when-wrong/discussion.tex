@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q12 --- Discussion: Why Do Models Give Confident Answers Even When Wrong?}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing}
+
+The student intuition---that a model ``should know when it does not know''---collides with how modern language models are actually built and trained. Confidence, as expressed through token probabilities or assertive natural-language phrasing, is not a direct readout of epistemic certainty. It is a learned behavior shaped by the training objective, the data distribution, and the alignment pipeline. Several threads help structure the discussion.
+
+First, the standard autoregressive objective rewards producing the empirically most likely continuation, not flagging uncertainty; a fluent, assertive hallucination can have high likelihood without being true \citep{ji2023survey}. Second, calibration---the alignment between a model's stated confidence and its empirical accuracy---is a property that is neither guaranteed by scale nor preserved by fine-tuning. \citet{guo2017calibration} showed that even modestly sized neural classifiers are badly miscalibrated and tend toward overconfidence. \citet{kadavath2022know} found that large models can, under the right elicitation, represent something like ``whether they know,'' yet \citet{openai2023gpt4} and \citet{ouyang2022instructgpt} report that reinforcement learning from human feedback (RLHF) can \emph{degrade} calibration, because human raters reward confident, helpful-sounding prose. Third, there is a structural tension: \citet{kalai2024calibrated} argue that certain hallucination rates are mathematically tied to the calibration of the generative distribution, so a perfectly calibrated model will still assert false but plausible facts at a predictable rate. Finally, the surface form of ``confidence''---hedging words, assertive tone---is itself a stylistic feature that decouples from the model's internal probability estimates \citep{zhou2024relying,lin2022teaching}. With these threads in view, the following open questions are intended to drive the seminar discussion.
+
+\section*{Open Questions}
+
+\begin{enumerate}[label=\textbf{Q\arabic*.},leftmargin=*,itemsep=1em]
+
+\item \textbf{Objective mismatch.} The next-token objective rewards the likeliest continuation under the training distribution, never the act of abstaining. To what extent is overconfident error a \emph{necessary} consequence of maximum-likelihood training on text that rarely contains explicit expressions of ignorance, and could an auxiliary abstention or selective-prediction objective \citep{geifman2017selective} meaningfully reduce confident errors without collapsing coverage?
+
+\item \textbf{Calibration versus alignment.} \citet{openai2023gpt4} documents that the pretrained base model was well calibrated on multiple-choice confidence, but RLHF-tuned variants were not. If alignment procedures systematically trade calibration for perceived helpfulness, how should we redesign reward models or preference data so that honest uncertainty is rewarded rather than penalized, and what evaluation would detect this trade-off during training rather than after deployment?
+
+\item \textbf{Internal knowledge of ignorance.} \citet{kadavath2022know} suggest models carry latent signals correlated with correctness, and verbalized-confidence methods \citep{lin2022teaching} try to surface them. Is the internal uncertainty signal rich enough to support reliable abstention, or does it merely track familiarity/frequency? Design an experiment distinguishing ``the model represents that it does not know'' from ``the model represents that the prompt is out-of-distribution.''
+
+\item \textbf{Inevitability of plausible falsehoods.} \citet{kalai2024calibrated} tie a floor on hallucination to the calibration of the generative model itself: suppressing low-probability true statements and high-probability false ones cannot both be achieved freely. If some confident error is thus statistically unavoidable for a calibrated generator, where should the engineering effort go---toward retrieval grounding \citep{ji2023survey}, toward post-hoc verification, or toward communicating residual risk to users?
+
+\item \textbf{The sociolinguistics of confidence.} Assertive phrasing is a stylistic artifact learned from human text and reinforced by raters \citep{ouyang2022instructgpt,zhou2024relying}. If users systematically over-trust fluent, confident language, is the right intervention at the model level (calibrated hedging), the interface level (surfacing token-level or verbalized uncertainty), or the user-education level---and how would we measure which intervention actually reduces downstream harm from misplaced trust?
+
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem[Geifman and El-Yaniv(2017)]{geifman2017selective}
+Y.~Geifman and R.~El-Yaniv.
+\newblock Selective classification for deep neural networks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2017.
+
+\bibitem[Guo et~al.(2017)]{guo2017calibration}
+C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2017.
+
+\bibitem[Ji et~al.(2023)]{ji2023survey}
+Z.~Ji, N.~Lee, R.~Frieske, T.~Yu, D.~Su, Y.~Xu, E.~Ishii, Y.~J. Bang, A.~Madotto, and P.~Fung.
+\newblock Survey of hallucination in natural language generation.
+\newblock \emph{ACM Computing Surveys}, 55(12):1--38, 2023.
+
+\bibitem[Kadavath et~al.(2022)]{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, et~al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Kalai and Vempala(2024)]{kalai2024calibrated}
+A.~T. Kalai and S.~S. Vempala.
+\newblock Calibrated language models must hallucinate.
+\newblock In \emph{Proceedings of the 56th Annual ACM Symposium on Theory of Computing (STOC)}, 2024.
+
+\bibitem[Lin et~al.(2022)]{lin2022teaching}
+S.~Lin, J.~Hilton, and O.~Evans.
+\newblock Teaching models to express their uncertainty in words.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
+
+\bibitem[OpenAI(2023)]{openai2023gpt4}
+OpenAI.
+\newblock GPT-4 technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}, 2023.
+
+\bibitem[Ouyang et~al.(2022)]{ouyang2022instructgpt}
+L.~Ouyang, J.~Wu, X.~Jiang, et~al.
+\newblock Training language models to follow instructions with human feedback.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem[Zhou et~al.(2024)]{zhou2024relying}
+K.~Zhou, J.~Hwang, X.~Ren, and M.~Sap.
+\newblock Relying on the unreliable: The impact of language models' reluctance to express uncertainty.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL)}, 2024.
+
+\end{thebibliography}
+
+\end{document}

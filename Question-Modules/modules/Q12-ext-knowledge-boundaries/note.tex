@@ -1,0 +1,51 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q12: What Are the Actual Boundaries of an LLM's Knowledge?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module you should be able to (i) state what it means for a fact to live \emph{in the weights} versus \emph{in the context}, (ii) explain why closed-book accuracy tracks the frequency of a fact in pre-training data, (iii) describe the knowledge cutoff as a fact-vs-skill asymmetry rather than a cliff, and (iv) reason about when retrieval beats parametric memory and vice versa.
+
+\section{Two places knowledge can live}
+An LLM consults two memories. \textbf{Parametric memory} is stored in the weights: associations learned during pre-training, surfaced by a forward pass with no external input. \textbf{In-context (non-parametric) memory} is whatever text you put in the prompt, including retrieved documents \cite{lewis2020rag,guu2020realm}. The same question can be answered from either store, and they fail differently: parametric memory is cheap but lossy and frozen at training time; context is exact but costs tokens and depends on the retriever. Closed-book QA studies --- asking a model trivia questions with no passage --- established that a surprising amount of factual knowledge does get packed into the parameters \cite{roberts2020closedbook}, but with sharply limited reliability on anything rare.
+
+\section{Frequency is the master variable}
+The single most predictive variable for whether a model answers a closed-book factual question correctly is how often the fact (or its entities) appeared in pre-training data. Kandpal et al.\ showed that performance on knowledge-intensive tasks degrades along the long tail: facts stated hundreds of times are recalled reliably; facts stated a handful of times are mostly not retained \cite{kandpal2023longtail}. Mallen et al.\ traced the same effect via entity popularity and drew the practical consequence: \emph{popular entities should be answered parametrically, unpopular ones should be retrieved} --- and an adaptive policy that retrieves only when the entity is rare matches or beats always-retrieving \cite{mallen2023popqa}. The frequency--accuracy curve is also the natural frame for hallucination: a model asked about a tail fact has a fluent distribution over answers but no reliable memory, which is exactly the regime of fluent falsehood (Q11 covers the generation side; here we characterize the boundary itself).
+
+\section{The cutoff: facts go stale, skills persist}
+Training data ends at a date. Facts after that date are simply absent from parametric memory --- post-cutoff factual questions are answered (if at all) from generalization or luck. What is easy to miss is the asymmetry: \emph{skills survive the cutoff; facts do not}. A model trained through 2023 can still write post-cutoff code, reason about post-cutoff events, and read post-cutoff papers, because the \emph{procedures} generalize; it cannot know post-cutoff \emph{states of the world}, because those are atomic facts \cite{lazaridou2021mindgap}. Temporal-generalization studies formalize this: performance on tasks requiring new facts collapses after the cutoff, while performance on tasks requiring only stable regularities is flat \cite{lazaridou2021mindgap}. The practical reading for users: ask ``what changed since your cutoff?'' of facts, not of abilities.
+
+\section{Does the model know what it doesn't know?}
+If the boundary were known to the model, tail questions would be abstentions rather than fabrications. In reality the mapping is imperfect in both directions. Calibration studies find that LLMs are \emph{better calibrated than expected} on multiple-choice probes --- the probability mass assigned to the correct answer tracks its truth surprisingly well \cite{kadavath2022know} --- but this calibration does not automatically translate to generation, where sampling and post-training reshape the output distribution. Explicit ``I don't know'' behavior is worse still: models tend to answer unanswerable questions, and dedicated training is needed to elicit abstention \cite{yin2023dontknow}. The gap between ``representable'' and ``used'' is also a caution for the probing literature: a linear probe that decodes a relation from internal activations shows the information is \emph{present}, not that the model \emph{uses} it in its output --- probing finds structure, not necessarily the mechanism (Q13 develops probing and its pitfalls).
+
+\section{Memorization is the other boundary}
+Frequency-dependence has a dark twin: things seen \emph{very often} (or verbatim) can be regurgitated, not just recalled. Extraction attacks show that rare near-duplicate sequences in training data can be recovered verbatim from a production model \cite{carlini2021extracting}. So parametric memory's accuracy curve is non-monotone in a security sense: the tail fabricates, the extreme head leaks. Both failure modes are consequences of the same mechanism --- gradient descent fits frequent patterns strongly --- and both are reasons curation (deduplication, PII scrubbing) is part of knowledge management, not just data hygiene (Q09).
+
+\section{Fine-tuning does not cleanly add knowledge}
+The intuitive fix for a missing fact --- fine-tune the model on it --- fails in an instructive way. Fine-tuning on \emph{new} (unseen) knowledge teaches the model to produce that text without teaching it \emph{when} the knowledge applies, and training on such examples increases hallucination on held-out questions \cite{gekhman2024finetuning}. The reliable form of knowledge injection is contextual: retrieval, tool use, or prompting. This is the evidence behind the practitioner rule ``if you need the model to \emph{know}, put it in the context; fine-tune to change how it \emph{behaves}'' (Q26 develops the adaptation side).
+
+\section{The boundary map}
+\begin{itemize}[noitemsep]
+  \item \textbf{Head of the distribution} (frequent facts): parametric recall is reliable and cheapest --- answer directly.
+  \item \textbf{Tail} (rare entities/facts): parametric recall is unreliable; retrieval flips the accuracy curve flat \cite{mallen2023popqa}; adaptive retrieval (retrieve only for rare entities) captures most of the benefit.
+  \item \textbf{Post-cutoff facts}: absent from weights; only context/tools can supply them; skills, unlike facts, transfer across the cutoff \cite{lazaridou2021mindgap}.
+  \item \textbf{Unanswerable questions}: models tend to answer rather than abstain; calibrated self-knowledge exists on probes but does not automatically surface as abstention \cite{yin2023dontknow}.
+  \item \textbf{Extreme head} (near-duplicates): recall degrades into regurgitation; an extraction risk, not a capability \cite{carlini2021extracting}.
+\end{itemize}
+
+\section*{The one-sentence summary}
+\emph{A model knows what its data repeated, forgets what its data omitted, cannot know what postdates its cutoff (though it keeps its skills), and does not reliably volunteer the boundary --- so the engineering answer is to measure the boundary with probes and to move tail questions into the context.}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

@@ -1,0 +1,62 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q12: The Boundaries of an LLM's Knowledge}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+\frame{\titlepage}
+\begin{frame}{Two memories}
+\begin{itemize}
+\item \textbf{Parametric:} facts stored in weights; cheap, lossy, frozen at training time
+\item \textbf{In-context:} text in the prompt (incl.\ retrieved docs); exact, costs tokens
+\item Closed-book QA: a surprising amount \emph{is} in the weights \cite{roberts2020closedbook} --- but reliability is frequency-dependent
+\end{itemize}
+\end{frame}
+\begin{frame}{Frequency is the master variable}
+\begin{itemize}
+\item Long-tail effect: frequent facts recalled, tail facts mostly not \cite{kandpal2023longtail}
+\item Entity popularity predicts closed-book accuracy \cite{mallen2023popqa}
+\item The hallucination regime is the tail: fluent distribution, no reliable memory (Q11)
+\end{itemize}
+\end{frame}
+\begin{frame}{The cutoff: facts vs.\ skills}
+\begin{itemize}
+\item Post-cutoff facts: absent, full stop
+\item Post-cutoff skills: mostly fine --- procedures generalize \cite{lazaridou2021mindgap}
+\item Ask ``what changed since the cutoff?'' of facts, not abilities
+\end{itemize}
+\end{frame}
+\begin{frame}{Knowing the boundary}
+\begin{itemize}
+\item Probes: better-calibrated than expected \cite{kadavath2022know} --- but calibration $\neq$ abstention
+\item Models answer unanswerable questions; abstention needs training \cite{yin2023dontknow}
+\item Probing pitfall: present $\neq$ used (Q13)
+\end{itemize}
+\end{frame}
+\begin{frame}{The dark twin: memorization}
+\begin{itemize}
+\item Very frequent / near-duplicate text can be regurgitated verbatim \cite{carlini2021extracting}
+\item Non-monotone boundary: tail fabricates, extreme head leaks
+\item Curation is knowledge management (Q09)
+\end{itemize}
+\end{frame}
+\begin{frame}{Fine-tuning doesn't add knowledge cleanly}
+\begin{itemize}
+\item Fine-tuning on new knowledge $\to$ more hallucination on held-out questions \cite{gekhman2024finetuning}
+\item Rule: context for \emph{knowing}, tuning for \emph{behaving} (Q26)
+\end{itemize}
+\end{frame}
+\begin{frame}{The boundary map}
+\begin{itemize}
+\item Head: answer directly (parametric recall reliable)
+\item Tail: retrieve --- flips the accuracy curve flat \cite{mallen2023popqa}
+\item Adaptive retrieval (only for rare entities) captures most of the benefit
+\item Post-cutoff: context or tools only
+\item Unanswerable: expect answers unless trained to abstain
+\end{itemize}
+\end{frame}
+\begin{frame}{Summary}
+\emph{A model knows what its data repeated, forgets what it omitted, cannot know what postdates its cutoff (though skills persist), and does not volunteer the boundary --- so measure it and move tail questions into context.}
+\end{frame}
+\end{document}

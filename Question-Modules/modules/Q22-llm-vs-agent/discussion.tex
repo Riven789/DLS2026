@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q22 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item The module argues that agency lives in the loop design, not the weights. What evidence would \emph{falsify} this claim --- and does the fact that models are increasingly trained on agentic trajectories (tool-use data, RL on multi-step tasks) weaken it, or just move the loop inside training?
+\item Anthropic distinguishes workflows (predefined code paths) from agents (model-directed processes). Is that boundary stable, or is every workflow just an agent whose stopping criterion and action space were decided in advance? Where would you personally draw the line, and what rides on the distinction in practice (cost, trust, liability)?
+\item Claude Code is called an ``agentic harness.'' If the same model under a better harness jumps from 3.8\% to 12.5\% on SWE-bench, who deserves the credit --- and who should be accountable when the system damages a repository? Discuss how responsibility should be partitioned between model provider and harness author.
+\item The compounding-error argument ($p^k$) suggests long-horizon agents are hypersensitive to per-step reliability. Which harness mechanisms (retries, verification, sub-task decomposition, checkpoints) most effectively break the $p^k$ bound, and which merely hide failures until later?
+\item ``Context rot'' says a growing transcript degrades the very attention that must manage it. Is compaction/summarization a real fix or a lossy workaround that trades recall for brevity? What would a principled memory architecture for a long-running agent look like, and what would you measure to prove it works (a bridge to Q24)?
+\end{enumerate}
+\end{document}

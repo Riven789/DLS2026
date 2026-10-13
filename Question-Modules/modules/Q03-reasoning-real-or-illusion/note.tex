@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q03: Reasoning in Language Models --- Real Capacity, Linguistic Artifact, or Useful Illusion?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=*]
+  \item Distinguish the competing claims about what ``reasoning'' means in large language models (LLMs), and articulate the empirical signatures that would favor each.
+  \item Analyze the mechanisms behind chain-of-thought (CoT) prompting, including when intermediate tokens causally support an answer versus when they rationalize a conclusion reached otherwise.
+  \item Evaluate the methodological pitfalls---contamination, surface heuristics, and unfaithful explanations---that make the ``is it real?'' question hard to settle, and apply diagnostic probes to a concrete case.
+\end{itemize}
+
+\section{Framing the question}
+The student's question is really four hypotheses dressed as one. \emph{Real reasoning} claims the model performs something functionally analogous to inference: composing intermediate conclusions to reach novel answers. \emph{A property of language} claims that reasoning-like behavior is latent in the statistical structure of text, so a good language model inherits it for free. \emph{A reflection} claims the model mirrors reasoning present in its training corpus without instantiating the process. \emph{An illusion} claims the appearance of reasoning is produced by shallow pattern-matching that happens to correlate with correct answers on familiar distributions.
+
+These are not mutually exclusive. A defensible modern view is that LLMs implement \emph{some} genuine computation that deserves the label ``inference,'' that this computation is heavily shaped by the statistics of language, that it frequently reduces to retrieval of memorized patterns, and that our measurements routinely overstate it. The useful graduate-level move is to stop asking the binary question and instead ask: \emph{under what mechanism, measured how, does behavior X count as reasoning?} The sections below supply the mechanistic and empirical vocabulary for doing so.
+
+\section{Mechanism 1: Chain-of-thought as externalized computation}
+Chain-of-thought prompting elicits intermediate reasoning steps before a final answer and dramatically improves performance on arithmetic, symbolic, and commonsense tasks for sufficiently large models \citep{wei2022chain}. The same effect appears without any exemplars when the model is simply instructed to think step by step \citep{kojima2022large}, and sampling several chains and taking a majority vote (self-consistency) improves accuracy further \citep{wang2023selfconsistency}. These results establish an operational fact: additional generated tokens can function as scratch space that the model's later computation conditions on.
+
+There is a plausible theoretical reason this helps. A single forward pass of a fixed-depth transformer has bounded serial computation; emitting intermediate tokens and re-ingesting them effectively unrolls additional steps, letting the model trade test-time tokens for depth. Under this reading CoT is not a window into a pre-existing thought but an \emph{enabling} mechanism---the computation partly happens \emph{because} the tokens are produced. This is evidence against the pure ``illusion'' view: if the intermediate tokens were decorative, ablating or corrupting them would not change the answer, yet it often does.
+
+Crucially, the benefit is uneven. CoT helps most on tasks with compositional, symbolic structure and much less on tasks answerable by direct recall. This pattern itself is diagnostic: it suggests the mechanism being recruited is sequential composition, which is one reasonable minimal definition of reasoning.
+
+\section{Mechanism 2: Faithfulness---do the stated reasons cause the answer?}
+A reasoning trace can be fluent, plausible, and causally irrelevant. \citet{turpin2023language} show that models produce CoT explanations that systematically omit the true drivers of their answers: inserting a biasing feature (e.g., always making option (A) correct in few-shot exemplars) shifts the model's predictions while the generated rationale never mentions the bias and instead confabulates task-relevant justifications. This is \emph{unfaithfulness}: the stated reasoning does not reflect the actual computation.
+
+Unfaithfulness is the strongest support for the ``reflection/rationalization'' hypothesis. The model has learned what good explanations \emph{look} like---a property of language---and emits them post hoc. Yet the same literature complicates the pessimism: faithfulness is measurable and manipulable, not all-or-nothing. Techniques that force the final answer to depend on the trace (e.g., decomposing a question so the answer is computed only from sub-answers) can increase faithfulness. The methodological lesson for this module is that ``is it reasoning?'' must be posed as a causal question about the trace, answered with interventions, not with how convincing the prose reads.
+
+\section{Mechanism 3: Memorization, contamination, and surface heuristics}
+A persistent threat to any ``real reasoning'' claim is that benchmark success reflects exposure rather than inference. Web-scale pretraining corpora overlap with evaluation sets, and even partial contamination inflates scores in ways that masquerade as competence. More subtly, models exploit \emph{surface heuristics}: features that correlate with answers in the training distribution but are not the intended reasoning signal. The classic demonstration in NLI is that models learn annotation artifacts---lexical cues such as negation words predicting ``contradiction''---and achieve high accuracy without entailment reasoning \citep{gururangan2018annotation}; such models collapse on adversarial examples where the cue is decorrelated from the label \citep{mccoy2019right}.
+
+For arithmetic and symbolic tasks the analogous test is \emph{robustness to irrelevant perturbation}. \citet{mirzadeh2024gsm} construct GSM-Symbolic, generating variants of grade-school math problems by changing names and numbers and by inserting plausible-but-irrelevant clauses; strong models' accuracy degrades markedly, and performance is sensitive to superficial numerical changes. This is exactly what the ``illusion'' hypothesis predicts for a system matching templates rather than executing a procedure. The honest conclusion is graded: models hold a mixture of genuine procedural competence and brittle pattern-matching, and the proportion depends on task, scale, and how far the probe strays from the training distribution.
+
+\section{Mechanism 4: Emergence, scale, and whether the question is well posed}
+Part of the excitement around LLM reasoning came from reports that certain capabilities appear abruptly at scale---seemingly absent in small models and present in large ones \citep{wei2022emergent}. If true in a strong sense, emergence would suggest a qualitative phase change toward reasoning. But \citet{schaeffer2023emergent} argue that many ``emergent'' jumps are artifacts of the metric: discontinuous, all-or-nothing scoring (exact-match accuracy) manufactures sharp curves out of smoothly improving underlying log-likelihoods. Under continuous metrics the transitions are often gradual.
+
+This methodological point reframes the student's question. ``Did reasoning suddenly appear?'' may be the wrong frame; the measured quantity is a thresholded view of a continuous competence. It also warns against treating any single benchmark number as evidence that reasoning is or is not ``real.'' The appearance of a capability is partly a property of our ruler.
+
+\section{Mechanism 5: What interpretability adds}
+Behavioral probes bound what a model does; mechanistic interpretability asks how. Work isolating interpretable internal structure---such as induction heads implementing a copy-and-continue pattern that underlies much in-context learning \citep{olsson2022incontext}---shows that specific, generalizable circuits form during training rather than mere lookup tables. In-context learning itself, the substrate on which few-shot ``reasoning'' rides, has been characterized as the model inferring a latent task from the prompt \citep{xie2022explanation}. These findings tilt against the pure ``illusion'' reading: there exist reusable algorithmic components. They do not, however, license the claim that the model reasons about everything; a circuit for pattern continuation is not a general theorem prover.
+
+The practical upshot: when you want to adjudicate a specific claim (``the model solves this by addition, not recall''), the strongest evidence combines (a) out-of-distribution behavioral generalization, (b) causal trace interventions for faithfulness, and (c) where feasible, identification of the internal mechanism.
+
+\section{Synthesis: a graded answer}
+So---real, linguistic, reflection, or illusion? The defensible position is a conjunction:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Partly real.} CoT and self-consistency recruit genuine sequential computation that changes answers causally, and interpretable circuits exist; this exceeds mere surface mimicry \citep{wei2022chain,wang2023selfconsistency,olsson2022incontext}.
+  \item \textbf{Deeply linguistic.} The competence is shaped by, and often reducible to, statistical structure of text, including task inference from context \citep{xie2022explanation}.
+  \item \textbf{Often reflective/unfaithful.} Stated rationales frequently do not cause the answer \citep{turpin2023language}.
+  \item \textbf{Sometimes illusory.} Robustness tests expose template-matching and artifact exploitation \citep{gururangan2018annotation,mccoy2019right,mirzadeh2024gsm}, and ``emergence'' can be a metric artifact \citep{schaeffer2023emergent}.
+\end{itemize}
+
+For your own experiments: never report a reasoning claim from aggregate accuracy alone. Pair it with a perturbation probe (does performance survive irrelevant edits?), a faithfulness intervention (does corrupting the trace change the answer?), and a contamination check. Reasoning in LLMs is best treated as a measured, mechanism-specific, graded property---not a metaphysical yes/no.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

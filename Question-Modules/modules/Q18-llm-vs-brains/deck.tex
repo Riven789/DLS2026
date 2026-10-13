@@ -1,0 +1,54 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q18: LLMs vs.\ Brains}
+\subtitle{What the analogy gets right and wrong}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#06, \#11)}
+How similar is LLM ``thinking'' to human thinking? How similar are AI systems to biological brains, and
+could we build AI from brain structure?
+\end{block}
+\end{frame}
+\begin{frame}{Separate three claims}
+\begin{enumerate}
+\item \textbf{Behavioral} similarity (same outputs).
+\item \textbf{Representational} similarity (same internal codes).
+\item \textbf{Mechanistic} similarity (same process).
+\end{enumerate}
+\alert{Often conflated; very different evidence.}
+\end{frame}
+\begin{frame}{Where the analogy holds}
+\begin{itemize}
+\item Distributed representations + superposition (both).
+\item Hierarchical features; model activations \emph{predict} sensory cortex.
+\item Learning from experience (adapt connection strengths).
+\end{itemize}
+\end{frame}
+\begin{frame}{Where it breaks}
+\begin{itemize}
+\item \textbf{Learning rule}: backprop is biologically implausible.
+\item \textbf{Substrate}: spiking, stochastic, $\sim$20\,W brain vs clocked GPUs.
+\item \textbf{Objective}: next-token text vs embodied, evolved, reward-driven.
+\item \textbf{Architecture}: attention/KV-cache has no cortical analog.
+\end{itemize}
+\end{frame}
+\begin{frame}{Build AI from brain structure?}
+\begin{itemize}
+\item Transfers that worked were \textbf{abstractions} (distributed codes, convolution, attention).
+\item Literal spiking/connectome models have \emph{not} matched deep learning on tasks.
+\item Flow reverses: deep nets are now a leading \emph{model} of sensory cortex.
+\end{itemize}
+\alert{``Copy the connectome and run it'' is not a proven route to capability.}
+\end{frame}
+\begin{frame}{Takeaway}
+Shared: distributed, hierarchical, experience-shaped representations.\\
+Different: learning rule, substrate, objective, architecture.\\[1em]
+\alert{Behavioral resemblance $\ne$ mechanistic identity.}
+\end{frame}
+
+\end{document}

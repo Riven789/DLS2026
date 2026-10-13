@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q09 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item FineWeb's global MinHash dedup removed 80\% of the data and trained \emph{worse} than per-snapshot dedup. When is a duplicate not a duplicate --- that is, which kinds of repetition are noise (boilerplate) and which are signal (naturally recurrent facts, common code idioms)? What would a principled stopping rule for dedup aggressiveness look like?
+\item FineWeb-Edu's classifier was trained on Llama-3 annotations that explicitly targeted grade-school-level educational value, and it still improved MMLU and ARC. What capabilities do you expect such a filter to \emph{suppress}, and how would you detect that suppression in evaluation?
+\item Muennighoff et al.\ find up to $\sim$4 epochs of repetition is nearly as good as fresh data, yet up-sampling a single domain 4$\times$ can change a model's behavior substantially. Is there a tension here, or are these simply different interventions (whole-corpus repetition vs.\ mixture reweighting)? Design the experiment that would separate them.
+\item The tokenizer is trained on a sample of the mixture, and fertility differs by domain. Propose a concrete protocol for measuring how much of a declared mixture change is ``real'' (changed content) versus ``artifactual'' (changed token accounting), and predict where the artifact term is largest.
+\item Given Villalobos et al.'s projection that the public human-text stock could be fully utilized between roughly 2026 and 2032, argue for or against: \emph{data composition research is now more important to capability progress than architecture research.} What evidence over the next two years would change your mind?
+\end{enumerate}
+\end{document}

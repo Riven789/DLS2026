@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q13 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A colleague proposes a new knowledge-editing system: ``We'll find the single neuron that stores each fact --- say, the Eiffel Tower's location --- and rewrite its outgoing weights. Superposition doesn't matter because we'll operate at the neuron level.'' Identify the two key mistakes in this plan, referencing (a) the causal-tracing evidence about where facts are mediated and (b) the superposition account of what individual neurons contain.
+
+\vspace{1em}
+\textbf{Answer:} (1) Facts are not mediated by single neurons: causal tracing (ROME, Meng et al.\ 2022) localizes factual recall to middle-layer \emph{MLP modules} processing the last subject token --- a distributed, module-level site, not an individual neuron --- and the successful edits (ROME/MEMIT) are rank-one \emph{matrix} updates in a linear-associative-memory view, not neuron rewrites. (2) Superposition (Elhage et al.\ 2022) means individual neurons are polysemantic: each participates in many feature directions, and features span more directions than there are neurons. Editing ``at the neuron level'' would therefore co-edit every unrelated feature sharing that neuron --- bleedover by construction. The colleague has the granularity backwards: the safe level is directions/matrices with covariance-regularized updates, not neurons.
+\end{document}

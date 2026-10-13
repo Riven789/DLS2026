@@ -1,0 +1,1 @@
+Run `python3 scorecard.py` (standard library only). The arbitrary utility weights are instructional, not a universal metric: the point is that equal completion can conceal cost and safety differences.

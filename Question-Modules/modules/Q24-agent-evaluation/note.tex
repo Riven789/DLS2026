@@ -1,0 +1,36 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem,booktabs}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q24: How Do We Judge Whether an Agent Is Good? Benchmarks and Metrics}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will distinguish a model score from an agent outcome, choose metrics aligned with a stated deployment goal, identify benchmark leakage and reward-hacking risks, and write an evaluation plan with safety and human-oversight measures.
+
+\section{An agent is more than a response model}
+An agent receives an observation, selects actions such as tool calls, sees new observations, and eventually produces an outcome. Evaluation must therefore assess a trajectory, not only whether one final sentence resembles a reference answer. A coding agent might need to find the right repository files, make a minimal change, run tests, and avoid changing unrelated behavior. SWE-bench operationalizes part of this setting using real GitHub issues and repository test suites \cite{jimenez2024swebench}. WebArena evaluates multi-step web interaction in a controlled environment \cite{zhou2023webarena}.
+
+A high language-model benchmark score can be relevant, but it is not enough to establish dependable agency. Tool schemas, environment state, retries, context management, permissions, latency, and recovery from failure can determine whether a deployment succeeds. Conversely, an agent can reach a correct end state with an unnecessarily risky or expensive trajectory. The unit of evaluation should match the intended responsibility.
+
+\section{Start from a task contract}
+Before choosing a benchmark, state what counts as success, what inputs and tools are permitted, which actions are forbidden, the time and cost budget, and how an evaluator will observe the result. For a support agent, success may combine issue resolution, correct escalation, privacy preservation, and user time. For a research agent, it may combine evidence traceability, calibrated uncertainty, reproducible computation, and avoidance of unsupported conclusions.
+
+The same task can support several metrics. Completion rate asks how often the end state is achieved. Conditional success rate separates attempts that had a usable environment from infrastructure failures. Cost and wall-clock time reveal efficiency. Intervention rate measures how often a human must correct or take over. Constraint-violation rate measures unsafe actions. Reporting only the best metric invites optimization against a narrow proxy.
+
+\section{Metrics need failure analysis}
+Consider two agents that each solve 70 of 100 tasks. Agent A spends ten times as much and makes five prohibited tool calls; Agent B fails safely and asks for clarification when required. A single success percentage hides a consequential difference. A useful scorecard reports distributions, not just means: success by task type, tail latency, cost, retry count, and the severity of failures.
+
+A human rubric may be needed for open-ended quality, but it requires blinded examples, rater instructions, inter-rater agreement or adjudication, and clear separation of human preference from factual correctness. Automatic judges can be useful scaling tools, but they should be validated against humans and protected against prompt injection or style-based gaming. Chatbot evaluation research emphasizes that human preference is itself multi-dimensional and noisy, and must be aggregated with explicit statistical models rather than a single universal score \cite{chiang2024chatbotarena}.
+
+\section{Benchmark validity and contamination}
+A benchmark may be too easy, leak into training data, have brittle tests, or reward a shortcut. AgentBench intentionally spans several environments because agent ability does not reduce to one task family \cite{liu2024agentbench}. Report uncertainty across seeds and evaluation reruns (variance or confidence intervals), not only point estimates: agent benchmarks are small and stochastic, so a leaderboard gap without a spread is not evidence. Even a diverse suite is only a sample from the target distribution. Keep a private or freshly generated holdout set; vary task wording and environment state; record versions of tools and data; and inspect successes manually.
+
+Avoid repeatedly tuning an agent against the test set. Development tasks are for iteration; an untouched evaluation set is for estimation. When the agent uses the web or retrieval, log the sources and time because the environment can change. A score without the evaluated environment version is difficult to reproduce.
+
+\section{A minimal evaluation card}
+For each run, record: task population and sampling method; agent/model and prompt versions; tools, permissions, and environment image; seed and budget; end-state checker; trajectory/constraint checker; costs; failures; and known exclusions. The included toy program demonstrates why success rate alone can select a worse agent when cost and safety violations differ.
+
+\section{Takeaway}
+A good agent is good relative to a declared task contract. Evaluate outcomes, trajectories, cost, reliability, and constraints together; preserve a holdout; and inspect failures. A benchmark leaderboard is evidence about its setting, not a universal certificate of agent quality.
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

@@ -1,4 +1,4 @@
-# LaTeX build products; retain curated PDFs explicitly tracked by author intent.
+# LaTeX transient build products
 *.aux
 *.bbl
 *.bcf
@@ -14,12 +14,8 @@
 *.toc
 *.vrb
 
-# Editors and system files
-.DS_Store
-.vscode/
-.idea/
-
-# Python artifacts
+# Local-only compile scratch (not canonical styling)
+.localtest/
+*.mp4
 __pycache__/
-*.py[cod]
-.venv/
+media/

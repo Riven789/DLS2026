@@ -1,0 +1,1 @@
+Run `python3 cache_accounting.py` (Python standard library only). It computes the idealized stored K/V tensor sizes for a fixed configuration and demonstrates why fewer K/V heads reduce cache storage. It is not a latency benchmark or a claim about model quality.

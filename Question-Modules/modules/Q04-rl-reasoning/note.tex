@@ -1,0 +1,40 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q04: How Does RL-Based Reasoning Differ from Ordinary LLM Generation?}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will distinguish pre-training, prompting, supervised fine-tuning, preference optimization, and reinforcement learning; explain why a verifier or reward changes the optimization signal; and identify why improved reward does not automatically establish faithful reasoning.
+
+\section{Ordinary generation at inference time}
+A pretrained autoregressive model generates tokens from $p_\theta(y_t\mid x,y_{<t})$. At inference time, prompting, temperature, and sampling alter which continuations are selected, but the model parameters $\theta$ are fixed. Chain-of-thought prompting can elicit longer intermediate text and improve some measured task results \cite{wei2022chain}; that observation alone does not change how the model was trained.
+
+Pre-training itself minimizes next-token cross-entropy over a large corpus. The resulting model learns to imitate the conditional distribution of that corpus. If a question has many plausible-looking but incorrect continuations, next-token training does not directly reward a final answer merely because it is mathematically correct. It rewards likelihood under its training distribution.
+
+\section{What post-training changes}
+Post-training changes parameters or selection policy using an additional target. In supervised fine-tuning (SFT), the target is a chosen response. In preference optimization, data identify a preferred response relative to a rejected one. In reinforcement learning (RL), a sampled completion receives a scalar reward and the policy is updated to increase expected reward, usually while constrained not to move too far from a reference policy.
+
+The distinction matters because the signal can be external to surface imitation. A verifier can reward a program that passes tests, a proof that checks, or a numerical answer that satisfies a known condition. For a policy $\pi_\theta$, an idealized objective is
+\[
+\max_\theta\;\mathbb E_{y\sim\pi_\theta(\cdot\mid x)}[r(x,y)]-\beta D_{\mathrm{KL}}(\pi_\theta\|\pi_{\mathrm{ref}}).
+\]
+The reward $r$ says which outcome is preferred; the KL term limits destructive drift. Real systems differ in details, estimators, and data pipelines.
+
+\section{Preference optimization and RL}
+RLHF commonly learns a reward model from human comparisons and then optimizes a policy against it; InstructGPT is a widely cited example \cite{ouyang2022instructgpt}. Direct Preference Optimization (DPO) instead derives an objective from preference pairs that can be optimized without a separate online reward-model/RL loop \cite{rafailov2023dpo}. Neither method is inherently ``reasoning training.'' They are tools for shifting response distributions toward a stated preference signal.
+
+RL with verifiable rewards is particularly relevant for reasoning-like tasks. A unit test, symbolic checker, or final-answer oracle can provide an outcome signal at scale. Process supervision can also score intermediate steps rather than only final answers \cite{lightman2023process}. But a verifier only measures what it checks. Models may exploit reward loopholes, learn shortcuts, or produce persuasive rationales unrelated to the computation that produced the answer.
+
+\section{A concrete contrast}
+Suppose a model must output a program that sorts a list. Ordinary generation samples a likely program conditioned on the prompt. SFT increases likelihood of curated reference programs. Preference training favors programs humans rate better. Verifier-driven RL rewards programs that pass hidden tests. Each can improve a different failure mode; none guarantees correctness outside the test distribution.
+
+The accompanying toy code illustrates a bandit-style update: sampled answers receive reward from an exact checker, and probability mass shifts toward rewarded answers. It is not an LLM or a full RLHF implementation. Its value is to make the changed optimization signal visible.
+
+\section{Evaluation: measure outcomes and the process separately}
+To claim improved reasoning, evaluate held-out tasks, control test-time budget, disclose the verifier, and report reward hacking or failure categories. Compare final-answer accuracy, calibrated abstention, compute cost, and robustness under changed wording. Treat a written chain of thought as an output artifact, not automatically as a faithful trace of the model's internal computation.
+
+\section{Takeaway}
+RL-based reasoning differs from ordinary generation because an added reward or preference signal changes the policy optimization target. Verifiable rewards can make correctness more directly learnable than raw text likelihood. They also create new measurement and incentive problems. The right question is always: what behavior did the reward actually test?
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

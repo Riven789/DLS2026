@@ -1,0 +1,41 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q06: What Are Models Computing? Generalization, Memorization, and Emergent Capabilities}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will define generalization relative to a distribution and task, explain why memorization and generalization can coexist, identify what an ``emergent capability'' plot does and does not prove, and construct a held-out evaluation that rules out at least one shortcut.
+
+\section{There is no answer without a distribution}
+A model is trained on examples and evaluated on cases it did not see. It generalizes when its performance transfers to a specified target distribution. That last phrase matters: a random held-out split, a new wording of the same task, a new composition of known skills, and a new domain are different tests. A score only says what it says about the distribution represented by its test set.
+
+Memorization is also not a single failure label. A model may retain individual training examples, use memorized fragments as part of a broader solution, or exploit accidental correlations that happen to hold in a benchmark. Modern neural networks can fit random labels and still generalize on natural data, a result that makes simplistic capacity explanations inadequate \cite{zhang2021understanding}. The practical question is not ``memorization or generalization?'' but \emph{which information is reused, on which new cases, and with what robustness?}
+
+\section{What could a model be computing?}
+For a next-token model, the immediate computation is a conditional distribution over continuations. To lower loss, its internal representations can encode many regularities: local syntax, factual associations, program patterns, task formats, and possibly procedures that are useful across contexts. We infer a useful computation from controlled behavior, interventions, or mechanistic evidence; we should not infer it solely from a fluent explanation.
+
+Few-shot prompting provides one example of context-sensitive behavior: demonstrations in the prompt can change outputs without changing parameters \cite{brown2020language}. A strong test varies the surface form and holds out the combinations that a lookup table or shallow heuristic would fail. A model that succeeds only on familiar templates has shown a narrower capability than one that transfers under these changes.
+
+\section{Emergence: observation before explanation}
+Some studies report sharp-looking gains in particular benchmark measures as scale increases \cite{wei2022emergent}. This observation motivates hypotheses: perhaps a representation, algorithm, or usable context behavior appears after enough training. But sharp plots do not uniquely identify a cause. Thresholded exact-match scores, prompt choices, and nonlinear metrics can make smooth improvement appear discontinuous \cite{schaeffer2023mirage}.
+
+A responsible emergence claim therefore reports the underlying continuous metric, model family, prompt protocol, variance, contamination controls, and failures near the claimed threshold. It also compares alternative scales and task formulations. ``The curve changed'' is a result; ``a new internal algorithm appeared'' is a stronger mechanistic claim requiring different evidence.
+
+\section{A diagnostic ladder for a capability claim}
+A useful evaluation can become progressively harder while preserving the intended skill. First, test ordinary held-out examples; this checks whether the system simply reproduces its training examples. Next, paraphrase the request or alter irrelevant formatting; this tests sensitivity to surface form. Then hold out combinations of factors, such as an operation paired with an unfamiliar representation. Finally, introduce a distribution shift that changes the causal structure or available tools. A score drop at one rung is evidence about the boundary of the capability, not a reason to erase all results from earlier rungs.
+
+Baselines matter on every rung. A nearest-neighbor retrieval system, a simple program, a frequency heuristic, and a human or expert-designed solver can reveal whether an apparently difficult benchmark has an easy shortcut. Error analysis should be sampled and categorized: was the answer wrong because the model misunderstood the task, used an invalid intermediate step, copied a distractor, lacked a fact, or failed to use an available tool? Without this record, aggregate accuracy can hide the most educational result.
+
+\section{What a reproducible report includes}
+For a module experiment, record the exact data split, prompt template, decoding parameters, model/version, tool permissions, compute budget, scoring code, and exclusions. Keep a small set of adversarial examples separate from development so that they are not repeatedly optimized against. If a benchmark contains public answers or common web text, explicitly discuss contamination risk rather than interpreting a high score as clean evidence of generalization.
+
+The goal is not to demand an impossible proof that a model has never seen anything similar. It is to make competing explanations costly: a claimed rule should survive cases designed to defeat a lookup shortcut, and a claimed robust system should survive ordinary variations in presentation. Reproducibility turns an impressive example into a result another student can challenge.
+
+\section{A small evaluation design}
+Imagine a task in which color and shape jointly determine an answer. Train on most pairs but withhold a diagonal of novel combinations. A memorizing lookup baseline cannot answer the held-out combinations; a rule that has captured the relation can. The included code constructs this split and reports both scores. It does not establish how a language model works. It illustrates the principle that a good test makes intended generalization and shortcut behavior produce different predictions.
+
+\section{Takeaway}
+Generalization is transfer to a declared target distribution, not a vibe conveyed by a demo. Memorization, pattern reuse, and rule-like behavior can coexist. Emergence is a useful empirical description only when the metric and evaluation design are exposed. To learn what a model computes, make competing explanations predict different outcomes and test them.
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

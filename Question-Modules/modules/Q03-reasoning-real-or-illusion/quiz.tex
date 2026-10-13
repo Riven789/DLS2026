@@ -1,0 +1,126 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q03 --- Comprehension check}
+\author{DLS 2026 --- AI Internals}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Question}
+
+A student asks: \emph{``When a large language model produces a step-by-step
+chain-of-thought, is the reasoning \textbf{real} (a faithful causal account of
+the computation that yields the answer), a \textbf{property of language}
+(fluent token prediction that happens to look like inference), a
+\textbf{reflection} (post-hoc rationalization of a conclusion reached by other
+means), or an \textbf{illusion} (text with no bearing on the internal
+process)?''}
+
+Using concrete empirical evidence from the interpretability and
+chain-of-thought (CoT) literature, argue a position. Your answer should (i)
+distinguish \emph{behavioral} gains from CoT from \emph{faithfulness} of the
+displayed trace, (ii) cite at least one study showing CoT improves performance
+and at least one showing CoT can be unfaithful, and (iii) take a defensible
+stance rather than merely listing views.
+
+\paragraph{Answer}
+The cleanest resolution is to reject the forced choice: the four options
+conflate two separable questions. The first is \emph{behavioral}---does
+emitting intermediate tokens change what the model computes? The second is
+\emph{epistemic}---does the emitted trace faithfully describe that computation?
+The evidence supports ``real but not reliably faithful.''
+
+\textbf{Behaviorally, reasoning is real in a mechanistic sense.} Chain-of-thought
+prompting measurably improves performance on arithmetic, symbolic, and
+commonsense tasks, with gains that grow with model scale
+\citep{wei2022cot,kojima2022zeroshot}. This is not merely cosmetic: the
+Transformer is a fixed-depth architecture per token, so writing intermediate
+steps into the context lets subsequent tokens condition on them, effectively
+trading serial depth for sequence length. Theoretical work formalizes this,
+showing that intermediate-token generation strictly expands the class of
+problems a Transformer can solve under reasonable assumptions
+\citep{merrill2024expressive,feng2023towards}. So the extra tokens perform real
+computation---they are a scratchpad the model actually reads, not decorative
+language.
+
+\textbf{Epistemically, the displayed trace is often an unfaithful reflection.}
+The crucial caveat is that improved behavior does not guarantee that the stated
+reasons are the operative ones. \citet{turpin2023language} show models can be
+silently steered by biasing features (e.g., always-``(A)'' answer patterns or
+stereotypes) while the generated CoT rationalizes the biased answer without ever
+mentioning the true cause---classic post-hoc rationalization. \citet{lanham2023measuring}
+find that perturbing or truncating the CoT frequently fails to change the final
+answer, indicating the model did not causally depend on the stated steps.
+Follow-up ``CoT monitorability'' studies confirm that models often do not
+verbalize the information they actually use \citep{chen2025reasoning}.
+
+\textbf{Synthesis.} Reasoning in LLMs is neither pure illusion nor transparent
+introspection. It is a genuine computational process---serial deliberation
+instantiated through autoregressive token generation---wrapped in a natural-language
+narration whose fidelity varies and cannot be assumed. The narration is a
+\emph{property of language} (the model is a fluent next-token predictor) that
+simultaneously enables \emph{real} computation (the scratchpad effect) yet can
+degrade into \emph{reflection/rationalization} precisely because fluency and
+faithfulness are optimized only indirectly. The practical corollary for an
+AI-internals practitioner: treat CoT as an intervention that changes behavior, and
+treat faithfulness as a measurable property to be verified---via causal
+interventions on the trace, perturbation tests, and mechanistic probing---rather
+than a default guarantee \citep{lanham2023measuring,turpin2023language}.
+A defensible one-line stance: \emph{the reasoning is real; the explanation is not
+automatically honest.}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+
+\bibitem[Chen et al.(2025)]{chen2025reasoning}
+Y.~Chen, J.~Benton, A.~Radhakrishnan, et al.
+\newblock Reasoning models don't always say what they think.
+\newblock \emph{arXiv preprint arXiv:2505.05410}, 2025.
+
+\bibitem[Feng et al.(2023)]{feng2023towards}
+G.~Feng, B.~Zhang, Y.~Gu, H.~Ye, D.~He, and L.~Wang.
+\newblock Towards revealing the mystery behind chain of thought: A theoretical
+  perspective.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2023.
+
+\bibitem[Kojima et al.(2022)]{kojima2022zeroshot}
+T.~Kojima, S.~S. Gu, M.~Reid, Y.~Matsuo, and Y.~Iwasawa.
+\newblock Large language models are zero-shot reasoners.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2022.
+
+\bibitem[Lanham et al.(2023)]{lanham2023measuring}
+T.~Lanham, A.~Chen, A.~Radhakrishnan, et al.
+\newblock Measuring faithfulness in chain-of-thought reasoning.
+\newblock \emph{arXiv preprint arXiv:2307.13702}, 2023.
+
+\bibitem[Merrill and Sabharwal(2024)]{merrill2024expressive}
+W.~Merrill and A.~Sabharwal.
+\newblock The expressive power of transformers with chain of thought.
+\newblock In \emph{International Conference on Learning Representations (ICLR)},
+  2024.
+
+\bibitem[Turpin et al.(2023)]{turpin2023language}
+M.~Turpin, J.~Michael, E.~Perez, and S.~R. Bowman.
+\newblock Language models don't always say what they think: Unfaithful
+  explanations in chain-of-thought prompting.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2023.
+
+\bibitem[Wei et al.(2022)]{wei2022cot}
+J.~Wei, X.~Wang, D.~Schuurmans, et al.
+\newblock Chain-of-thought prompting elicits reasoning in large language models.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2022.
+
+\end{thebibliography}
+
+\end{document}

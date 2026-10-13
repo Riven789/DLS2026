@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q22: What Separates an LLM from an Agent? Is Claude Code an Agent or a Harness?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module, a student should be able to (i) place any LLM-based system on the agent spectrum, from a single model call through tool-augmented loops to autonomous goal pursuit, (ii) state the minimal definition of an agent --- model, loop, tools, memory, stopping criterion --- and say which systems fail it, (iii) distinguish the \emph{harness} (the scaffold managing the loop) from the model it wraps, and (iv) explain what changes technically when the loop is added: non-stationary context, error recovery, compounding context rot, and what this does to evaluation.
+
+\section{The spectrum: from model call to goal pursuit}
+``Agent'' is used loosely in practice, but the systems the word covers fall on a fairly clean spectrum of \emph{who controls the control flow}.
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Single model call.} A chat completion: prompt in, tokens out. The caller owns everything --- context assembly, what happens to the output, whether to try again. A base LLM is, in the classical vocabulary, a mapping from a percept (the prompt) to an action (the next token or completion); it has no persistent state across calls, no goals, and no ability to act on the world by itself \cite{russell2021aima}.
+  \item \textbf{Tool-augmented single call.} The model can emit structured tool requests (function calls), and the runtime executes them and feeds results back \cite{schick2023toolformer}. If the result comes back and the process stops there, the model is a \emph{component with side effects}, not yet an agent: control flow is still one pass, owned by the caller.
+  \item \textbf{The agentic loop.} The model's output is fed back as new input, with tool results appended, until a stop condition holds. This is ReAct's structure --- interleave reasoning traces and actions, let observations update the next step \cite{yao2023react} --- and it is the load-bearing pattern of every system marketed as an agent today.
+  \item \textbf{Autonomous goal pursuit.} Long-horizon variants: the system is given a goal rather than a task instance, manages its own memory and subgoals across many episodes, and self-critiques and retries (Reflexion-style verbal reinforcement between episodes) \cite{shinn2023reflexion}. Surveys of this literature typically decompose such systems into profile, memory, planning, and action modules \cite{wang2024survey}.
+\end{enumerate}
+
+Anthropic's own engineering guidance draws the line the same way, splitting ``agentic systems'' into \emph{workflows} (LLMs and tools orchestrated through predefined code paths) and \emph{agents} (systems where the LLM dynamically directs its own process and tool usage), and recommending the simplest design that works \cite{anthropic2024agents}. The move up the spectrum is a move of \emph{control-flow ownership} from the caller to the system.
+
+\section{A minimal definition of an agent}
+Strip the marketing and a minimal agent is five things:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Model:} something that maps the current context to a next action. Today, usually an LLM, but the definition does not require it --- the code demo in this module uses a $\sim$30-line rule-based policy and still produces agent behavior.
+  \item \textbf{Loop:} a control structure that feeds results back until a stop condition. Without this you have a function call, not an agent.
+  \item \textbf{Tools:} actions with effects on an environment (read a file, run a command, call an API), plus their results as observations. Tools convert text generation into interaction with a world.
+  \item \textbf{Memory:} whatever carries information across steps --- at minimum the growing transcript, often explicit scratchpads or retrieved context.
+  \item \textbf{Stopping criterion:} a decision rule that terminates the loop --- a \texttt{finish} action, a budget of steps or dollars, a detected error. An agent without a stopping criterion is a \texttt{while True} loop.
+\end{itemize}
+
+Each element is a design surface. The model decides \emph{locally} (one step at a time, from the current context); the loop, tools, memory, and stopping criterion jointly determine what the system can accomplish. This split --- local decisions in the weights, global behavior in the loop design --- is the module's central claim.
+
+\section{The harness: the scaffold that owns the loop}
+Call the software around the model the \textbf{harness}: the scaffold that assembles the prompt, dispatches tool calls, appends results, manages context and memory, handles retries and malformed output, enforces permissions, and decides when to stop. The model chooses the next action; the harness owns everything else about the control flow.
+
+Why insist on the distinction? Because the two layers fail differently, are built by different people, and improve independently:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Agency is in the loop design, not the weights.} The same frontier model behaves as a chatbot, a workflow step, or a coding agent depending on the loop around it. The progression from single call $\to$ tool use $\to$ loop is a harness change, not a model change.
+  \item \textbf{The harness is where most engineering lives.} SWE-agent's central result is that the \emph{agent--computer interface} --- a curated set of edit/search/navigation commands with guardrails and concise feedback, plus context management and malformed-generation retries --- improved SWE-bench resolution from about 3.8\% (non-interactive retrieval) to 12.47\% and beat a raw-shell agent by a wide margin, with the base LM's weights untouched \cite{yang2024sweagent}.
+  \item \textbf{Harnesses are swappable and mix-and-match.} One harness can drive several models; one model can sit under several harnesses. ``Which model?'' and ``which harness?'' are separate questions, and conflating them is the most common category error in agent discourse.
+\end{itemize}
+
+\section{So is Claude Code an agent or a harness?}
+Strictly: Claude Code is a \emph{harness} --- a terminal-native scaffold around one or more LLMs that manages tools (file edits, shell, MCP servers), permissions, context, and retries, and exposes both an interactive and a headless mode \cite{anthropic2025claudecode}. The \emph{system} (harness + model, running a task) is an agent in the sense of \S2--3: the model directs its own process step by step inside the loop. Both statements are true because they describe different layers. The useful phrasing is \textbf{agentic harness}: the LLM makes local decisions; the harness owns the control flow. The same analysis applies to OpenAI's Codex CLI and to Hermes Agent (the system writing this module) --- each is a scaffold of prompt assembly, tool dispatch, context management, and stopping rules wrapped around a model.
+
+Two caveats keep this honest. First, the boundary moves over time: model-side features (tool-use training, longer context, better instruction-following) absorb work the harness used to do, so today's harness responsibility may be tomorrow's model capability. Second, the word ``autonomy'' is doing heavy lifting in level 4 of the spectrum; a system that runs for hours still executes one locally-chosen action at a time, and its apparent goal-directedness is the loop plus memory plus a stopping rule, not a persistent internal optimizer \cite{wang2024survey}.
+
+\section{What changes when you add the loop}
+The loop is cheap to describe and expensive to live with. Four technical consequences:
+
+\paragraph{Non-stationary context.} In a single call, the context is fixed at request time. In a loop, the context is rewritten every iteration by the agent's own actions: tool outputs, error messages, partial files. The model conditions on a distribution it is itself generating --- a feedback loop the base next-token objective never saw in training in this form.
+
+\paragraph{Error recovery as a first-class concern.} A chat completion fails visibly; a loop fails \emph{silently and compounding}. A misread filename becomes a wrong edit becomes a failing test becomes a confusing traceback in context. Harnesses therefore invest heavily in retries, validation of tool arguments, and readable error feedback --- SWE-agent's guardrails and per-turn feedback exist precisely because agents cannot otherwise recover from their own mistakes \cite{yang2024sweagent}, and Reflexion shows the recovery can even be pushed back into context as verbal self-critique \cite{shinn2023reflexion}.
+
+\paragraph{Compounding context rot.} The transcript grows monotonically, and long-context use is not free: performance on retrieving relevant information degrades when it sits in the middle of long contexts \cite{liu2024lost}. Each step adds tokens; each added token dilutes attention to earlier constraints; the diluted attention produces worse actions, which produce noisier observations, which further bloat the context. This is why harnesses implement context compaction, summarization, and selective history --- Claude Code's own guidance recommends clearing context between tasks for exactly this reason \cite{anthropic2025claudecode}.
+
+\paragraph{Compounding error rates.} If per-step reliability is $p$ and a task needs $k$ dependent steps, end-to-end success is bounded by roughly $p^k$: a 95\% per-step system over 40 dependent steps succeeds about 13\% of the time. Long-horizon competence is therefore hypersensitive to per-step quality --- and to harness features (retries, verification, self-correction) that effectively raise $p$ or cut $k$.
+
+\section{Evaluation implications (forward link to Q24)}
+Everything above breaks the single-call evaluation habit. You cannot score an agent the way you score a model:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{The unit is the trajectory, not the response.} Two systems with identical final answers can differ in cost, tool discipline, and number of dangerous actions.
+  \item \textbf{Harness and model must be evaluated separately.} A leaderboard entry conflates them; the same model under a better harness jumps --- SWE-agent's gains came entirely from the interface layer \cite{yang2024sweagent}. Comparative claims need a stated harness, tools, prompts, and budgets.
+  \item \textbf{Variance and cost are first-class.} Agent benchmarks are small, stochastic, and often overfit; accuracy-only comparisons mislead, and cost--accuracy tradeoffs are real optimization targets \cite{kapoor2024agentsmatter}.
+\end{itemize}
+
+Module Q24 (\emph{How do we judge whether an agent is good?}) takes up benchmark design, leakage, and cost--accuracy measurement in detail; the point established here is \emph{why} that module needs to exist.
+
+\section{Takeaway}
+An LLM is a next-action selector; an agent is what you get when a loop wraps that selector with tools, memory, and a stopping rule. The loop --- not the weights --- supplies the agency, and the software that manages the loop, the harness, deserves to be named, designed, and evaluated as a first-class artifact. Claude Code is best described as an agentic harness: the model decides, the harness governs. When someone asks ``is X an agent?'', the productive reframe is: \emph{which layer are you asking about, and who owns the control flow?}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

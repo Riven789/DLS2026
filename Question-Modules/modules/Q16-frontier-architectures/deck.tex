@@ -1,0 +1,12 @@
+\documentclass[aspectratio=169,10pt]{beamer}\usetheme{metropolis}
+\title{Q16: Frontier Architectures}\subtitle{Transformer family, MoE, alternatives, and systems}\author{DLS 2026}\date{October 2026}
+\begin{document}\maketitle
+\begin{frame}{The question}\begin{block}{Q16}What do frontier models use now? Is it still a transformer? Could a better technique replace it?\end{block}\end{frame}
+\begin{frame}{The qualified answer}\begin{itemize}\item Many frontier LLMs remain decoder-only transformer families.\item The 2017 reference design is not a complete description of production stacks.\item Separate disclosed facts from inference about closed systems.\end{itemize}\end{frame}
+\begin{frame}{What remains recognizable}\begin{itemize}\item Token representations + self-attention\item Feed-forward transformations, residual paths, normalization\item Next-token objective for many LLMs\end{itemize}\vfill\small Vaswani et al. (2017)\end{frame}
+\begin{frame}{Within-family changes}\begin{itemize}\item Attention kernels and key/value cache layout\item Positional encoding and long-context methods\item Quantization, batching, compilation, cache policies\end{itemize}\alert{A systems optimization is not necessarily an architectural replacement.}\end{frame}
+\begin{frame}{MoE changes parameter accounting}\begin{itemize}\item Many experts exist; few are active per token.\item Total parameters $\ne$ activated parameters $\ne$ serving cost.\item Routing/load balance and communication matter.\end{itemize}\vfill\small DeepSeek-AI (2024)\end{frame}
+\begin{frame}{Alternatives and hybrids}\begin{itemize}\item State-space models offer different sequence scaling.\item Mamba uses selective, input-dependent state updates.\item A replacement claim requires matched quality \emph{and} systems evidence.\end{itemize}\vfill\small Gu and Dao (2023)\end{frame}
+\begin{frame}{Comparison protocol}\begin{enumerate}\item Fix tokens, task suite, precision, hardware, and decoding.\item Report quality, latency, memory, and robustness.\item Test long contexts and failure cases.\item State what is unknown for closed systems.\end{enumerate}\end{frame}
+\begin{frame}{Takeaway}\begin{block}{Ask four questions}What component changed? What was held fixed? Which metric improved? What evidence bounds the claim?\end{block}\end{frame}
+\end{document}

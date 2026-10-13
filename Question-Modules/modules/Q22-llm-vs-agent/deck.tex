@@ -1,0 +1,108 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q22: LLM vs.\ Agent --- and Where Claude Code Sits}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``What separates an LLM from an agent? Is Claude Code an agent or a harness?''
+\item Why it matters: most ``agent'' claims are really claims about software around a model
+\item Answer preview: \textbf{the loop, not the weights, supplies the agency; the harness owns the loop}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The agent spectrum}
+\begin{enumerate}
+\item Single model call: prompt in, tokens out; caller owns everything
+\item Tool-augmented call: model emits tool requests, runtime executes them (Toolformer)
+\item The agentic loop: output fed back with tool results until a stop condition (ReAct)
+\item Autonomous goal pursuit: goals, cross-episode memory, self-critique (Reflexion; surveys)
+\end{enumerate}
+\vspace{0.4em}
+Anthropic: workflows (predefined code paths) vs.\ agents (model directs its own process)
+\end{frame}
+
+\begin{frame}{The minimal agent: five parts}
+\begin{itemize}
+\item \textbf{Model}: maps context $\to$ next action (an LLM --- or 30 lines of rules)
+\item \textbf{Loop}: feed results back until a stop condition
+\item \textbf{Tools}: actions with effects; observations back into context
+\item \textbf{Memory}: transcript, scratchpads, retrieval
+\item \textbf{Stopping criterion}: finish action, budget, error detection
+\end{itemize}
+\vspace{0.4em}
+Drop the loop: a function call. Drop the stopping rule: \texttt{while True}.
+\end{frame}
+
+\begin{frame}{The harness: who owns the control flow}
+The scaffold around the model:
+\begin{itemize}
+\item Prompt assembly, tool dispatch, result appending
+\item Context/memory management, retries, malformed-output handling
+\item Permissions, sandboxing, budgets, stop conditions
+\end{itemize}
+\vspace{0.4em}
+The model makes \emph{local} decisions (one step, from current context);\\
+the harness owns \emph{global} behavior. They fail differently, improve independently, and are swappable.
+\end{frame}
+
+\begin{frame}{Evidence that the harness matters}
+SWE-agent (Yang et al.\ 2024), same base LM:
+\begin{itemize}
+\item Non-interactive retrieval: 3.8\% of SWE-bench resolved
+\item Agent + raw Linux shell: 11.0\% (Lite split)
+\item Agent + designed agent--computer interface: 18.0\% (Lite), 12.47\% (full)
+\end{itemize}
+\vspace{0.4em}
+All of the gain is in the interface layer: guardrails, feedback, context management.\\
+Weights untouched $\Rightarrow$ agency is not only in the weights.
+\end{frame}
+
+\begin{frame}{So: is Claude Code an agent?}
+\begin{itemize}
+\item Claude Code = a \textbf{harness}: terminal scaffold managing tools, permissions, context, retries, headless mode
+\item Claude Code + model, running a task = an \textbf{agent} (model directs its own process)
+\item Both true --- different layers. Best phrase: \textbf{agentic harness}
+\item Same analysis for Codex CLI and Hermes Agent
+\end{itemize}
+\vspace{0.4em}
+Caveats: the boundary moves (models absorb harness work over time);\\``autonomy'' = loop + memory + stopping rule, not a hidden optimizer
+\end{frame}
+
+\begin{frame}{What the loop costs you}
+\begin{itemize}
+\item \textbf{Non-stationary context}: the agent conditions on a context it is itself generating
+\item \textbf{Silent compounding failure}: misread filename $\to$ wrong edit $\to$ failing test $\to$ noisy traceback
+\item \textbf{Context rot}: retrieval degrades for information mid-context (Lost in the Middle); harnesses compact/summarize
+\item \textbf{Error compounding}: per-step reliability $p$, $k$ dependent steps $\Rightarrow$ success $\lesssim p^k$ (95\% over 40 steps $\approx$ 13\%)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation: why Q24 exists}
+\begin{itemize}
+\item Trajectory, not response, is the unit of evaluation
+\item Model and harness must be scored separately --- leaderboard rows conflate them
+\item Variance, cost, and overfitting are first-class (AI Agents That Matter)
+\end{itemize}
+\vspace{0.4em}
+The demo: same rule-based ``model'' --- with and without the loop.\\
+The loop supplies the agent-ness; the model is unchanged.
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Yao et al.\ 2023, ReAct (ICLR) --- the loop pattern
+\item Shinn et al.\ 2023, Reflexion (NeurIPS) --- self-critique between episodes
+\item Wang et al.\ 2024, survey of LLM-based autonomous agents --- the module taxonomy
+\item Yang et al.\ 2024, SWE-agent (NeurIPS) --- harness design moves the number
+\item Anthropic 2024--25, Building Effective Agents; Claude Code best practices
+\end{itemize}
+\end{frame}
+
+\end{document}

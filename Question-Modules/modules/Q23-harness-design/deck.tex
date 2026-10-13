@@ -1,0 +1,105 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q23: Agent Harnesses and Failure Attribution}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``What is a harness, why does it matter, and how much of an agent failure comes from model vs.\ instructions vs.\ harness?''
+\item You are seeing one right now: Claude Code, Codex, Hermes = model + harness
+\item Answer preview: \textbf{the harness is the only layer you can change --- and it routinely induces failures that look like model failures}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What a harness is}
+Everything around the model in an agentic loop:
+\begin{enumerate}
+\item \textbf{Context construction} --- system prompt, files, history assembly
+\item \textbf{Tool schemas} --- what tools exist and how they are described
+\item \textbf{Dispatch} --- validating and routing calls to real code
+\item \textbf{Error surfaces} --- how failures are phrased back to the model
+\item \textbf{Permission gates} --- which actions need approval
+\item \textbf{Stopping} --- max turns, budgets, timeouts, completion detection
+\end{enumerate}
+
+\vspace{0.5em}
+ReAct loop \cite{yao2023react} is the skeleton; production harnesses are this loop plus engineering.
+\end{frame}
+
+\begin{frame}{Why the harness matters}
+\begin{itemize}
+\item It is the \emph{only} layer most teams can change: model is fixed, tools are fixed, harness is yours
+\item SWE-agent: an interface designed for the model (ACI) beat the human Linux shell on SWE-bench by a wide margin --- \textbf{same weights} \cite{yang2024sweagent}
+\item Anthropic's agent guidance: successful deployments = simple, composable patterns + carefully designed tools, not exotic orchestration \cite{schluntz2024building}
+\item Harness-layer changes can move performance by margins that look like model-generation jumps
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Three suspects when an agent fails}
+\begin{itemize}
+\item \textbf{Model failure}: wrong reasoning, hallucinated tool args --- \emph{given correct context and correct tool results}
+\item \textbf{Instruction failure}: the model did what it was told; the spec was wrong (ambiguous prompt, missing constraint, missing tool)
+\item \textbf{Harness failure}: truncated context, wrong tool result injected, timeout kills a correct run, gate blocks without explanation
+\end{itemize}
+
+\vspace{0.5em}
+Easy to state, hard to apply --- because the layers \emph{interact}.
+\end{frame}
+
+\begin{frame}{Why attribution is hard: harness $\to$ model causation}
+\begin{itemize}
+\item Opaque error surface (``error'') $\Rightarrow$ model retries blindly $\Rightarrow$ \emph{looks like} a dumb model, \emph{is} an error-surface design
+\item Ambiguous tool schema $\Rightarrow$ model passes plausible-but-wrong args $\Rightarrow$ ``hallucination'' that the schema caused
+\item Reflexion works when feedback is informative \cite{shinn2023reflexion} --- informativeness is a harness property
+\item Transcript shows what the model did, \textbf{not what it was given}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Four concrete failure modes}
+\begin{itemize}
+\item \textbf{Context rot}: turn-2 constraint buried under 40k tokens by turn 30; every injection individually correct
+\item \textbf{Tool-result injection errors}: model reasons flawlessly from false premises; found only by diffing raw vs.\ injected result
+\item \textbf{Retry storms}: uninformative errors + premature timeouts; reads as ``model is dumb''
+\item \textbf{Silent schema drift}: renamed backend field, stale schema, task fails much later
+\end{itemize}
+
+\vspace{0.5em}
+Each sits on the model/harness boundary --- which is exactly why they get misattributed.
+\end{frame}
+
+\begin{frame}{Instrumenting attribution}
+\begin{enumerate}
+\item \textbf{Log tool I/O}: exact context sent, raw tool result, \emph{transformed} result injected --- the diff exposes injection errors
+\item \textbf{Replay}: re-run on logged contexts; splice in the correct tool result --- if the run then succeeds, you proved a harness cause
+\item \textbf{Ablation}: swap one layer at a time --- model / instructions / harness version
+\end{enumerate}
+
+\vspace{0.5em}
+Demo: \texttt{code/attribution\_harness.py} --- 3 configs, failure-attribution table, pass/fail assertions.
+\end{frame}
+
+\begin{frame}{The honest summary}
+\begin{itemize}
+\item The decomposition is a \emph{model} of causation; real failures are often joint
+\item Attribution answers ``which fix is cheapest,'' not ``which layer sinned''
+\item Discipline: log everything $\to$ replay to confirm $\to$ ablate to attribute
+\item Teams default to blaming the layer they do not own; a swap table forces the evidence to name the layer
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Yao et al.\ 2023 (ReAct --- the loop)
+\item Yang et al.\ 2024 (SWE-agent --- the agent-computer interface result)
+\item Schluntz \& Zhang 2024 (Anthropic, Building Effective Agents)
+\item Shinn et al.\ 2023 (Reflexion --- feedback quality and self-correction); Kim et al.\ 2023 (RCI)
+\end{itemize}
+\end{frame}
+
+\end{document}

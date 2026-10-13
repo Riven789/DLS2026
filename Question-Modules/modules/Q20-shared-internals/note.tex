@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q20: How Much of an LLM's Internals Are Shared with Other Deep Learning Models?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module, a student should be able to (i) enumerate the components an LLM shares with the broader deep-learning family and the ones unique to it, (ii) explain why the shared core (differentiable modules, SGD, backpropagation, GPUs) keeps getting reused, (iii) identify which design choices in a Transformer are inherited from prior architectures and which are specific, and (iv) reason about transfer: when does knowledge from CNNs/RNNs/RL transfer to LLMs and when does it mislead.
+
+\section{The shared core: what every deep model has in common}
+Strip away the architecture debates and every deep learning model --- convolutional network, recurrent network, Transformer, diffusion model, or policy network --- is built from the same four ingredients \cite{goodfellow2016deep}:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{A differentiable parametric function} $f_\theta$ composed of simple units (linear maps followed by nonlinearities), stacked in layers.
+  \item \textbf{A scalar loss} that scores how well $f_\theta$ performs the task.
+  \item \textbf{Gradient-based optimization} (SGD and its adaptive variants), which adjusts $\theta$ by following $-\nabla_\theta \mathcal{L}$ computed via \emph{reverse-mode automatic differentiation} (backpropagation).
+  \item \textbf{Tensor hardware}: every model in the family is, at the bottom, a schedule of dense matrix multiplications and elementwise kernels --- which is why one GPU ecosystem serves them all.
+\end{enumerate}
+
+An LLM is a particular composition of these ingredients, not a departure from them. This is why ``deep learning'' knowledge --- loss curves, learning-rate schedules, initialization, normalization, overfitting, regularization --- transfers to LLMs mostly intact, and why the same tooling (PyTorch/JAX) runs everything in the family.
+
+\section{What the Transformer changed relative to its ancestors}
+The lineage is direct. The Transformer inherits \emph{embeddings} from word2vec-era models, \emph{attention} from seq2seq decoder--encoder attention \cite{bahdanau2015attention}, and the \emph{residual stream + layer normalization} pattern from ResNet-era design \cite{he2016resnet}. Its specific contribution was removing recurrence: attention \emph{alone} mixes information across positions, so the whole sequence is processed in parallel and gradients no longer travel through a time-chain \cite{vaswani2017attention}. Table~\ref{tab:lineage} summarizes.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llp{6.2cm}}
+\hline
+Component & Origin & Status in an LLM \\
+\hline
+SGD + backprop & 1980s--90s & identical, scaled up \\
+Embeddings & word2vec (2013) & identical idea: discrete token $\to$ vector \\
+Attention & seq2seq (2014--15) & promoted from helper to the only mixer \\
+Residual stream & ResNet (2015) & every sublayer writes additively into it \\
+Layer norm & 2016 & standard (pre-norm placement in LLMs) \\
+Parallel sequence mixing & Transformer (2017) & \textbf{new}: replaces recurrence \\
+Next-token loss & language modeling & \textbf{new at scale}: one objective for everything \\
+\hline
+\end{tabular}
+\caption{Component lineage: an LLM is mostly inherited parts with two specific additions.}
+\label{tab:lineage}
+\end{table}
+
+The practical reading: an LLM is a particular composition of inherited parts, not a new kind of machine --- Transformers are a special case of ``neural sequence model'' that won the scaling race.
+
+\section{Where LLM internals differ from other family members}
+Four real differences matter for practice:
+
+\paragraph{Scale and sparsity of parameters.} A CNN's parameters live in small spatial filters shared across positions; an LLM's live in huge dense matrices (embeddings, attention projections, feed-forward blocks). LLMs today add \emph{mixture-of-experts} sparsity \cite{shazeer2017sparsely}, a trick with roots in the 1990s gating literature.
+
+\paragraph{The loss is unsupervised and self-supplied.} CNNs for vision were trained on labeled objectives; the LLM loss (predict the next token) is computed from the raw text itself. This changes everything about data pipelines and evaluation, while changing nothing about the optimizer.
+
+\paragraph{Generation, not classification, is the interface.} A classifier maps input $\to$ label once; an LLM maps prefix $\to$ distribution and then \emph{iterates} its own output as new input. This autoregressive loop is where decoding strategies (sampling, temperature, beam search) enter --- a concern inherited from RNN language models and machine translation.
+
+\paragraph{RL enters after pre-training.} Modern LLMs are stacked pipelines: pre-training (prediction) + supervised fine-tuning + preference optimization (DPO/RLHF) + RL with verifiable rewards \cite{ouyang2022training,rafailov2023direct}. Other deep models sometimes add an RL fine-tuning stage (e.g., RL for robotics control), but the LLM stack's post-training is now a discipline of its own.
+
+\section{What this means for transfer of understanding}
+Because the core is shared, your CNN/RNN intuitions \emph{mostly} carry over: vanishing gradients, normalization, initialization, learning-rate warmup, overfitting, data augmentation (for text: curation and de-duplication). Two systematic transfer mistakes to avoid:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Treating attention weights as explanations.} In CNNs, feature maps are at least spatially aligned with the input; attention weights are mixing coefficients, not evidence of ``what the model looked at.'' Feature-attribution tools from vision do not transplant cleanly.
+  \item \textbf{Assuming transfer learning works the same way.} In vision, fine-tuning a pretrained backbone on a small labeled set is the standard recipe. In LLMs, the analogous moves are prompting, in-context learning, LoRA-style parameter-efficient tuning, and full fine-tuning --- with very different cost/benefit curves.
+\end{itemize}
+
+\section{A map you can carry}
+One sentence: \emph{an LLM shares the deep-learning skeleton (differentiable modules + SGD + backprop + tensor hardware) with every other deep model; it differs in its mixer (attention), its objective (next-token prediction at extreme scale), its interface (autoregressive generation), and its post-training stack.} When a new architecture appears (state-space models, diffusion language models), check the map: skeleton unchanged, mixer swapped, objective tweaked \cite{gu2023mamba}. The skeleton is the stable part of the field.
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

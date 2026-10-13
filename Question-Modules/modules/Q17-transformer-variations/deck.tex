@@ -1,0 +1,12 @@
+\documentclass[aspectratio=169,10pt]{beamer}\usetheme{metropolis}
+\title{Q17: Transformer Variations and Alternatives}\subtitle{Map a bottleneck to a design choice}\author{DLS 2026}\date{October 2026}
+\begin{document}\maketitle
+\begin{frame}{The question}\begin{block}{Q17}How do the latest models vary the transformer architecture, and are there non-transformer approaches?\end{block}\end{frame}
+\begin{frame}{A family, not one recipe}\begin{itemize}\item Attention, feed-forward paths, residuals, normalization\item Heads/cache, position, activation, routing, and layer layout vary\item Start with the constrained quantity: memory, latency, context, capacity, or quality\end{itemize}\end{frame}
+\begin{frame}{Autoregressive decoding}\begin{itemize}\item Every new token consults prior key/value state.\item Multi-query attention shares K/V heads.\item Grouped-query attention is a compromise.\end{itemize}\alert{This targets cache traffic; it does not abolish attention.}\end{frame}
+\begin{frame}{Position and context}\begin{itemize}\item RoPE encodes relative position in query/key rotations.\item Context length is a configuration and an evaluation question.\item Test distant evidence, distractors, and paraphrases.\end{itemize}\end{frame}
+\begin{frame}{Do not conflate sparsities}\begin{itemize}\item MoE: sparse \emph{expert} activation\item Sparse attention: limited token-to-token links\item Quantization: lower precision\item Batching: serving execution choice\end{itemize}\end{frame}
+\begin{frame}{State-space alternatives}\begin{itemize}\item Recurrence updates a state while scanning.\item Selective state spaces offer a different linear-time mechanism.\item Test long-range selective recall, not only average benchmark accuracy.\end{itemize}\vfill\small Gu and Dao (2023)\end{frame}
+\begin{frame}{Comparison protocol}\begin{enumerate}\item Match data, token/compute budget, precision, and hardware.\item Measure quality, latency, memory, and long-context failures.\item Report which resource, not just which label, improved.\end{enumerate}\end{frame}
+\begin{frame}{Takeaway}\begin{block}{Architecture choice is a hypothesis}State the workload bottleneck and test a design against matched alternatives.\end{block}\end{frame}
+\end{document}

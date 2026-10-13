@@ -1,0 +1,40 @@
+{
+  "module": "video-recommendations-ric-2026-10-10",
+  "videos": [
+    {
+      "rank": 1,
+      "title": "Transformers, the tech behind LLMs",
+      "channel": "3Blue1Brown",
+      "url": "https://www.youtube.com/watch?v=wjZofJX0v4M",
+      "runtime": "27:14",
+      "teaching_use": "Best visual intuition: tokens to embeddings, through transformer layers, to next-token probabilities. Strong on embedding geometry, learned weights, output projection, softmax with temperature. Limitation: establishes overall architecture; detailed attention calculations come in the following chapter.",
+      "verified": true,
+      "verified_date": "2026-10-10",
+      "in_contract_window": false
+    },
+    {
+      "rank": 2,
+      "title": "Decoder-Only Transformers, ChatGPT's Specific Transformer, Clearly Explained",
+      "channel": "StatQuest with Josh Starmer",
+      "url": "https://www.youtube.com/watch?v=bQ5BoolX9Ag",
+      "runtime": "36:44",
+      "teaching_use": "Best focused explanation of the decoder-only architecture; patient step-by-step, small concrete examples; good for students who benefit from slower pacing on how pieces fit together.",
+      "verified": true,
+      "verified_date": "2026-10-10",
+      "in_contract_window": false
+    },
+    {
+      "rank": 3,
+      "title": "Let's build GPT: from scratch, in code, spelled out",
+      "channel": "Andrej Karpathy",
+      "url": "https://www.youtube.com/watch?v=kCc8FmEb1nY",
+      "runtime": "116:20",
+      "teaching_use": "Turning understanding into implementation: builds a working GPT-style LM in PyTorch. Assumes Python/tensors/basic PyTorch (Karpathy recommends his makemore lessons first). Rick's strongest single recommendation for a technical audience. NOTE: exceeds the 10-15 min window \u2014 recommend as supplementary deep-dive, not the module's in-window pointer.",
+      "verified": true,
+      "verified_date": "2026-10-10",
+      "in_contract_window": false
+    }
+  ],
+  "note": "Rick's recommended progression for decoder-only transformers: visual understanding (3B1B) -> decoder architecture (StatQuest) -> working implementation (Karpathy). Multiple videos per module allowed per Rick. Map to modules: Q01 (next-token), Q16/Q17 (architectures/variations).",
+  "verification_note": "All three verified live via oEmbed on 2026-10-10 (titles, channels, durations). None fits the 10-15 min contract window; Rick allows multiple videos per module. Decision for team: use as flagged supplementary deep-dives on Q01/Q16/Q17 with the in-window contract pointer still required separately, OR Rick can waive the window for these three."
+}

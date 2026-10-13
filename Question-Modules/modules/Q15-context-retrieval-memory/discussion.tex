@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q15: Discussion Questions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item Attention is $O(n^2)$ and the KV cache is $O(n)$. For a very long document, which becomes the binding constraint first in practice, and how does that shape serving decisions?
+\item RAG reduces hallucination by grounding answers in retrieved text. What new failure modes does it introduce, and how would you detect them?
+\item ``Lost in the middle'' shows models use the start and end of a long context better than the middle. What does this imply for how you order retrieved chunks?
+\item Context is volatile and weights are fixed, so where should a long-term personal assistant store what it learns about a user---and what are the privacy consequences?
+\item When would you pay for a 1M-token context instead of building a retrieval system, and vice versa? Give concrete decision criteria.
+\end{enumerate}
+\end{document}

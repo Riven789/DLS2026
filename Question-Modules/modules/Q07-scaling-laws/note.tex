@@ -1,0 +1,100 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q07: Why Does Scaling Work, and What Are Its Limits?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item State the empirical scaling laws and what they predict.
+\item Explain compute-optimal (Chinchilla) training and why it changed practice.
+\item Reason about the known limits of scaling and whether theory can explain it.
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion video (12:35):} \emph{LLM Scaling Laws Explained: Kaplan vs.\ Chinchilla vs.\ Inference-Optimal} --- Ryan Rad.\\ \url{https://www.youtube.com/watch?v=Zy23dMqk_Rs}\end{quote}
+
+\section{The empirical finding}
+Student responses \#21, \#22, \#39 ask why scaling works, whether there is a ``science of scaling,'' and
+what its limits are. The surprising empirical fact: test loss of language models falls as a smooth
+\emph{power law} in model size $N$, dataset size $D$, and compute $C$, over many orders of magnitude
+\citep{kaplan2020scaling}. Concretely, loss $L(N) \approx L_\infty + (N_0/N)^{\alpha}$ with small
+exponent $\alpha$; doubling parameters cuts the \emph{reducible} loss by a fixed fraction. That such a
+noisy, high-dimensional system obeys a clean low-parameter curve is the empirical backbone of the whole
+scaling program, and it is what lets labs \emph{predict} the loss of a model before training it.
+
+\section{Compute-optimal training (Chinchilla)}
+Kaplan et al.\ emphasized model size; Hoffmann et al.\ (``Chinchilla'') corrected the recipe: for a fixed
+compute budget $C \approx 6ND$, loss is minimized by scaling $N$ and $D$ \emph{together}, roughly
+equally \citep{hoffmann2022chinchilla}. Many earlier models were badly over-parameterized and
+under-trained---too many weights, too few tokens. The practical upshot that reshaped the field: a smaller
+model trained on more data can beat a larger model trained on less, at equal cost. This is the clearest
+example of scaling laws being not just descriptive but \emph{prescriptive}.
+
+\section{Why would scaling work at all?}
+There is no complete theory, but several partial accounts. (1) \textbf{Prediction as compression}: lower
+loss means a better model of the data-generating process, and richer structure must be learned to predict
+better. (2) \textbf{Manifold / data-distribution} arguments relate the power-law exponent to the
+intrinsic dimension of the data. (3) \textbf{Over-parameterization} lets gradient descent find
+generalizing solutions (ties to module Q06's double descent). None of these yet predicts the exponents
+from first principles, so ``science of scaling'' today means \emph{reliable empirical laws with partial
+theoretical understanding}, not a closed theory.
+
+\section{Reading a scaling law, concretely}
+It helps to put numbers to the power law. Suppose the reducible loss follows $(N_0/N)^{\alpha}$ with
+$\alpha \approx 0.08$ (a representative value for the parameter axis). Then a $10\times$ increase in
+parameters multiplies the reducible loss by $10^{-0.08} \approx 0.83$---a 17\% cut. To halve the reducible
+loss you need $0.5 = (1/f)^{0.08}$, i.e.\ $f = 2^{1/0.08} \approx 5{,}700\times$ more parameters. That
+single calculation explains three things at once: why progress looked smooth and reliable (the curve is
+stable), why it is so \emph{expensive} (halving loss costs thousands-fold compute), and why labs obsess
+over the exponent (a small change in $\alpha$ swings the economics enormously). The companion code fits
+exactly this kind of curve and shows the fit extrapolating cleanly in-regime but drifting if the exponent
+estimate is slightly off---a caution that applies to every published forecast built on a scaling law.
+
+\section{Loss curves vs.\ what people actually care about}
+Students should not confuse the thing that scales smoothly (next-token loss, in bits/token) with the thing
+they care about (can it pass the bar exam, write correct code, avoid hallucinating). The mapping from loss
+to downstream capability is itself nonlinear and task-dependent: large regions of loss improvement produce
+little visible change, then a threshold is crossed and a benchmark jumps. Whether those jumps are genuine
+phase transitions or artifacts of hard-edged metrics is the ``emergence'' debate (module Q06). The
+practical takeaway: a confident loss forecast is \emph{not} a confident capability forecast, and
+responsible planning tracks both.
+
+\section{The limits}
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{The data wall}: compute-optimal scaling demands more tokens, but high-quality human text is
+finite; this is a binding constraint and drives work on data quality, synthetic data, and multi-epoch
+training.
+\item \textbf{Diminishing returns}: the exponent is small, so each new capability costs exponentially
+more compute; naive loss-scaling eventually becomes uneconomic.
+\item \textbf{Loss is not capability}: a smooth loss curve can hide abrupt, uneven changes in downstream
+task performance, and whether such ``emergence'' is real or a measurement artifact is debated (module Q06).
+\item \textbf{New axes}: recent gains come increasingly from \emph{post-training} and \emph{inference-time}
+compute (modules Q04, Q05), not just bigger pre-training---evidence the pre-training power law alone is
+not the whole story.
+\end{itemize}
+
+\section{Can learning theory model it?}
+Classical statistical learning theory (VC dimension, uniform convergence) predicts over-parameterized
+models should overfit---yet they scale gracefully, so classical bounds are too loose to explain scaling.
+Newer approaches (data-manifold dimension arguments, solvable models in simplified settings) recover
+power laws under assumptions, but a predictive theory matching real exponents across architectures does
+not yet exist. The companion code (\texttt{code/scaling\_fit.py}) fits a power law to synthetic
+loss-vs-compute data and extrapolates, illustrating both the method and its fragility.
+
+\section{Summary}
+Scaling works empirically: loss follows clean power laws in $N$, $D$, $C$, enabling pre-training outcome
+prediction. Chinchilla showed $N$ and $D$ should grow together. Partial theories (compression,
+data-manifold, over-parameterization) explain \emph{that} it works but not the exponents. Limits are real
+(data wall, diminishing returns, loss$\ne$capability), and the frontier is shifting toward post-training
+and inference-time compute.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q15: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Build a tiny RAG (small, 2--3 days).} Extend \texttt{tiny\_rag.py} with a real embedding model and a small document set; measure answer grounding with and without retrieval.
+\item \textbf{Lost-in-the-middle replication (medium, 3--5 days).} Place a needle fact at varying positions in a long context and measure retrieval accuracy vs.\ position; reproduce the U-shaped curve.
+\item \textbf{Agent memory (larger, 1--2 weeks).} Implement a conversation-memory layer that summarizes old turns and re-injects relevant facts; evaluate whether it preserves useful information across sessions better than a fixed sliding window.
+\end{enumerate}
+\end{document}

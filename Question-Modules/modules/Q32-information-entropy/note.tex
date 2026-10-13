@@ -1,0 +1,184 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{preamble}
+\authorsig{KUKLA}
+
+\begin{document}
+
+\moduletitle{Q32}{Can information flow through a model be quantified, for example with entropy?}
+
+\noindent\textit{Anchor lecture L2.1 (From Next-Token Prediction to Capabilities), Week 4.
+Source survey response \#38.}
+
+\section{The question, made precise}
+
+``Can we quantify the information flowing through a model?'' is really three
+different questions wearing one coat. Separating them is most of the work:
+
+\begin{enumerate}[noitemsep]
+\item \textbf{Output uncertainty.} How unsure is the model about the \emph{next
+  token}? This is the entropy of the predictive distribution $p(x_t \mid x_{<t})$.
+  It is cheap, exact, and the single most useful number you can read off a
+  language model.
+\item \textbf{Compression / modelling quality.} How many \emph{bits per token}
+  does the model need to encode real text? This is cross-entropy, and it is
+  exactly what pre-training minimises. ``A language model is a compressor''
+  (Del\'etang et al.\ 2023) is this statement taken literally.
+\item \textbf{Internal information flow.} How much information does one layer, head,
+  or token position carry about another, or about the input/label? This is the
+  hard one. It uses mutual information between \emph{activations}, and it is where
+  most of the subtlety (and most of the bad plots) live.
+\end{enumerate}
+
+The short answer to the survey question is \textbf{yes for (1) and (2) --- exactly
+and cheaply --- and ``yes but carefully'' for (3)}, because estimating mutual
+information between high-dimensional continuous activations is a genuinely hard
+statistical problem, and several famous ``information flow'' stories turned out to
+be artefacts of the estimator rather than facts about the network.
+
+\section{Entropy, cross-entropy, and perplexity (the exact part)}
+
+For a discrete next-token distribution $p$ over vocabulary $\mathcal V$, the
+\textbf{Shannon entropy} \citep{shannon1948} is
+\[
+  H(p) = -\sum_{v \in \mathcal V} p(v)\,\log_2 p(v) \quad\text{(bits)}.
+\]
+$H=0$ means the model is certain; $H=\log_2|\mathcal V|$ means uniform guessing.
+This is a per-step read-out of ``how much the model is hedging.''
+
+When we score the model against \emph{real} text $x_{1:T}$, we use the
+\textbf{cross-entropy} of the data under the model,
+\[
+  \mathrm{CE} = -\frac{1}{T}\sum_{t=1}^{T} \log_2 p_\theta(x_t \mid x_{<t}),
+\]
+and \textbf{perplexity} $\mathrm{PPL}=2^{\mathrm{CE}}$ (or $e^{\mathrm{CE}}$ in
+nats). Cross-entropy decomposes as
+\[
+  \mathrm{CE} = \underbrace{H(p_{\text{data}})}_{\text{irreducible}}
+            + \underbrace{D_{\mathrm{KL}}\!\big(p_{\text{data}} \,\|\, p_\theta\big)}_{\text{what training removes}} ,
+\]
+which is why minimising cross-entropy \emph{is} minimising the KL divergence from
+the model to the true distribution. The irreducible term is the entropy rate of
+language itself --- Shannon's 1951 estimate \citep{shannon1951} for English was
+roughly 1 bit per character; modern byte-level LMs get close to the same
+ballpark, which is a neat closing of a 70-year-old loop.
+
+\begin{keybox}[Compression is not a metaphor]
+A model with cross-entropy $c$ bits/token induces, via \emph{ideal} arithmetic
+coding, a code length that approaches $c$ bits/token asymptotically --- real
+encoders pay a small finite-message and implementation overhead, and $c$ itself
+depends on the model and the corpus. Del\'etang et al.\ \citeyearpar{deletang2023compression}
+ran this the other way: they used a frozen LLM as the probability model inside a
+standard compressor and beat \texttt{gzip}/\texttt{PNG} on text \emph{and}
+images. ``Bits per token'' measures modelling quality \emph{relative to a given
+task and data distribution} --- it is not a free-floating ``quality'' scalar, but
+on a fixed distribution lower bits/token is a strictly better model of that
+distribution.
+\end{keybox}
+
+\section{Three things entropy buys you in practice}
+
+\paragraph{(a) A confidence / hallucination signal.}
+Predictive entropy is a signal about the \emph{model's output distribution}, not a
+ground-truth correctness detector. Low token entropy does \emph{not} guarantee a
+correct answer (a model can be confidently wrong), and high entropy does
+\emph{not} guarantee an error. What entropy \emph{can} do, \emph{after
+calibration and task-specific validation}, is support selective prediction and
+abstention: a high-entropy (or low logit-margin) decision-critical token is a
+useful flag that the model is uncertain and may warrant deferral
+\citep{holtzman2020nucleus}. These methods underlie practical abstention and
+selective-prediction (cf.\ L2.5, Q10--Q12). A subtlety students should
+internalise: entropy is computed \emph{after} the temperature scaling and
+softmax, so it measures the \emph{sampling} distribution, not some Platonic belief.
+
+\paragraph{(b) Entropy-guided decoding.}
+Temperature, top-$k$, top-$p$ (nucleus), and min-$p$ sampling are all entropy
+re-shaping operators. Nucleus sampling \citep{holtzman2020nucleus} exists precisely
+because the \emph{tail} of a high-entropy distribution contains most of the
+degeneracy. ``Entropy collapse'' during RL fine-tuning --- the policy becoming
+over-confident and losing exploration --- is a live failure mode in RLHF/GRPO
+training (relevant to Q04/Q05/Q26).
+
+\paragraph{(c) A training diagnostic.}
+Plotting mean predictive entropy over training shows the model moving from
+near-uniform ($\log_2|\mathcal V|\approx 15$--17 bits for a 50k vocab) down to a
+few bits as it learns the statistics of language. It is one of the cleanest
+``the model is learning something'' curves you can draw.
+
+\section{Internal information flow (the careful part)}
+
+Now the ambitious reading: can we quantify information moving \emph{between parts}
+of the network? The natural tool is \textbf{mutual information}
+\[
+  I(X;Y) = H(X) - H(X\mid Y) = \sum_{x,y} p(x,y)\log_2\frac{p(x,y)}{p(x)p(y)},
+\]
+applied to, say, a hidden representation $Z=f_\ell(X)$ at layer $\ell$ versus the
+input $X$ or the label $Y$. This is the setting of the \textbf{Information
+Bottleneck} view of deep learning \citep{tishby2015ib,shwartzziv2017opening},
+which claimed networks undergo a ``compression phase'' where $I(Z;X)$ drops
+while $I(Z;Y)$ stays high.
+
+\begin{keybox}[The cautionary tale every student should hear]
+Saxe et al.\ \citeyearpar{saxe2018ib} showed the famous ``compression phase'' is
+largely an \emph{artefact of binning a continuous variable to estimate entropy}:
+with a double-sided saturating nonlinearity (\texttt{tanh}) you see compression;
+with \texttt{ReLU} you often don't. The deterministic-mapping subtlety matters and
+splits by variable type: for a \emph{deterministic} network $f$ with
+\emph{continuous} $X$, the standard differential-entropy $I(Z;X)$ is
+ill-defined/infinite (an invertible-in-practice map preserves all information),
+whereas for \emph{discrete} $X$ it is finite and bounded by $H(X)$. Either way,
+the number you actually \emph{plot} is a property of your discretisation/estimator.
+\textbf{Mutual information between activations is not a free lunch; the estimator
+\emph{is} the measurement.}
+\end{keybox}
+
+This does not mean internal information is unmeasurable --- it means you must be
+honest about what you are estimating:
+\begin{itemize}[noitemsep]
+\item \textbf{Discrete-by-construction quantities are safe.} Attention weights are
+  a probability distribution per query, so their entropy is exact and
+  interpretable (a low-entropy head is ``pointing''; a high-entropy head is
+  ``averaging''). This is a legitimate, assumption-free information read-out.
+\item \textbf{MI needs a principled estimator.} KSG \citep{kraskov2004ksg} for
+  low dimensions; MINE / InfoNCE \citep{belghazi2018mine,vanderoord2018cpc} for
+  high dimensions --- and even these are \emph{bounds}, often loose, and
+  notoriously hard above a few nats \citep{mcallester2020limitations}.
+\item \textbf{Perturbation beats estimation for causal flow.} If the real question
+  is ``does information from token $i$ reach position $j$?'', ablating/patching the
+  path and measuring the change in output (activation patching, causal tracing;
+  cf.\ Q14/Q27) answers the \emph{causal} question directly, without estimating a
+  high-dimensional MI at all.
+\end{itemize}
+
+\section{What to tell a student who asks this question}
+
+\begin{enumerate}[noitemsep]
+\item \textbf{Yes}, and you probably want \emph{predictive entropy} and
+  \emph{cross-entropy/perplexity} --- they are exact, cheap, and tell you most of
+  what you want (uncertainty, compression quality, training progress, decoding
+  behaviour).
+\item For \emph{internal} flow, attention entropy is a safe exact read-out;
+  layer$\leftrightarrow$input/label mutual information is seductive but
+  estimator-dependent --- treat any ``information plane'' plot as a claim about the
+  estimator until proven otherwise.
+\item When you want \emph{causal} flow, don't estimate information --- intervene
+  (patch/ablate) and measure the output change.
+\end{enumerate}
+
+The accompanying code (\texttt{code/entropy\_flow.py}) computes all of the ``safe''
+quantities --- per-token predictive entropy, corpus cross-entropy/perplexity,
+per-head attention entropy, and the H${}+{}$KL decomposition --- on
+\emph{synthetic} next-token and attention distributions, so the file is
+dependency-free (numpy only), deterministic, and needs no model download. The
+arithmetic is identical to what you would run on a real model: swap the synthetic
+\texttt{softmax(logits)} for your model's actual output logits and attention
+tensors and nothing in the entropy/MI math changes. It also includes the
+deliberate cautionary demo --- an information-plane estimate that visibly changes
+when you only change the number of bins, so students \emph{see} the artefact
+rather than just read about it. Running the same pipeline on a real small model
+(e.g.\ reading logits and attention from a local transformer) is listed as a
+project in \texttt{projects.tex}, not claimed as this module's execution evidence.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+
+\end{document}

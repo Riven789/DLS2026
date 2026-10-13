@@ -1,0 +1,39 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem,amsmath}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q16: What Do Frontier Models Use Now? Is It Still a Transformer?}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will identify the transformer components that remain central in many frontier language models, distinguish an architecture from a systems optimization, explain why mixture-of-experts changes the meaning of parameter count, and evaluate a claim that a non-transformer has ``replaced'' attention.
+
+\section{The short answer needs qualifications}
+Many current large language models remain decoder-only transformer families: a stack of token representations, self-attention, feed-forward transformations, residual connections, and normalization produces a distribution over the next token. The original transformer made attention a content-dependent way for each position to combine information from other positions \cite{vaswani2017attention}. Saying ``it is still a transformer,'' however, does not mean implementations are frozen at the 2017 design.
+
+Published model cards and papers often disclose only part of a frontier stack. We should therefore separate three claims: (1) the broad computational family, (2) reported architectural modifications, and (3) unverified inference from performance or marketing. An undisclosed production system should be described as unknown rather than reverse-engineered from a benchmark score.
+
+\section{What changes inside a transformer family?}
+Attention can be made less expensive without changing the high-level operation. FlashAttention, for example, computes exact attention while reorganizing memory traffic to reduce costly reads and writes \cite{dao2022flashattention}. Grouped-query or multi-query attention reduces key/value cache cost by sharing key/value heads across multiple query heads. Positional encodings, normalization choices, activation functions, and layer schedules also vary. These decisions can materially affect training stability, context length, latency, and memory without making the model a non-transformer.
+
+Long context exposes a central cost: standard dense self-attention has $O(n^2)$ pairwise interactions in sequence length $n$. Production systems can combine attention variants, context management, retrieval, caching, and serving policies. A large advertised context window is not, by itself, evidence that all positions are used equally well or that a system has durable memory.
+
+\section{Mixture-of-experts changes the accounting}
+A mixture-of-experts (MoE) model routes each token through only a small subset of many feed-forward experts. This can raise total parameter count while keeping the active computation per token much lower than a dense model of the same total size. DeepSeek-V2 is one reported example of an MoE language-model design \cite{deepseek2024moe}. Total parameters, activated parameters, memory footprint, communication cost, and serving throughput are therefore distinct quantities.
+
+MoE is not a magic multiplication of capability. Routing may produce load imbalance; experts must be trained and served; and communication can dominate at scale. When comparing models, ask whether the stated size is total or active parameters, what context length and batch size were measured, and whether quality was measured under the same decoding budget.
+
+\section{Beyond transformers: alternatives and hybrids}
+State-space sequence models maintain a recurrent state whose update cost can scale linearly with sequence length. Mamba proposes selective state spaces with input-dependent behavior and reports competitive sequence-modeling results \cite{gu2023mamba}. Such approaches motivate real research questions: can they preserve long-range, content-addressable behavior while reducing cost, and on which workloads do they win?
+
+The appropriate conclusion is not that one paper has settled a successor architecture. A replacement claim needs matched evidence on quality, training cost, inference latency, memory, long-context retrieval, robustness, and tooling. Hybrid designs are plausible because different operations may suit different portions of a workload. An architecture can also be excellent in a controlled benchmark and hard to deploy at frontier scale.
+
+\section{Architecture versus serving system}
+Some improvements live outside the learned network. Speculative decoding uses a smaller draft model to propose tokens that a larger model verifies, reducing latency when proposals are accepted \cite{leviathan2023fast}. Quantization, batching, compilation, kernels, and cache policies likewise change cost and speed. They do not necessarily change the model's learned function. This distinction prevents a common confusion: a faster chatbot is not automatically evidence of a new neural architecture.
+
+\section{A disciplined comparison protocol}
+To compare transformer and alternative families, fix a task suite, training-token budget, hardware, precision, decoding policy, and latency definition. Report both quality and systems metrics with confidence intervals or repeated runs where feasible. Include failure cases: longer contexts, distribution shifts, and different batch sizes. A useful course project is to reproduce a small matched comparison, then identify which conclusion remains after the comparison controls are applied.
+
+\section{Takeaway}
+Transformers remain a central family, but modern systems alter attention, feed-forward routing, context handling, and serving substantially. MoE and systems optimizations change what headline parameter counts and speed claims mean. Alternatives are promising research programs, not automatic replacements. Ask what component changed, what was held fixed, and what evidence supports the scope of the claim.
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

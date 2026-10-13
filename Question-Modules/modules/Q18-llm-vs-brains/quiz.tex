@@ -1,0 +1,25 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q18: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A researcher shows that a language model solves a reasoning task with the
+same accuracy and error pattern as humans, and concludes ``the model thinks like a brain.'' Name the
+specific inference error, and state what \emph{additional} kind of evidence would be needed to support a
+claim of mechanistic similarity.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} The error is inferring \emph{mechanistic} similarity from \emph{behavioral}
+similarity---matching outputs (and even error patterns) does not show the internal process is the same.
+Supporting mechanistic similarity would require evidence about the computation itself: e.g.\ that the
+model's internal representations predict neural activity during the same task, that identified circuits
+correspond to known neural processes, or that causal interventions (ablation/patching) produce
+effects analogous to lesion/stimulation studies in brains. Representational and causal-mechanistic
+evidence, not behavioral matching, is what the claim needs.}
+\end{document}

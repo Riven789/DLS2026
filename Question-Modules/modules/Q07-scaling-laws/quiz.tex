@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q07: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A lab has a fixed compute budget and plans to spend it all on a very large
+model trained on a relatively small dataset. Citing the compute-optimal result, what is likely wrong with
+this plan, and what does $C \approx 6ND$ tell them to do instead?
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} The plan over-parameterizes and under-trains: Chinchilla showed that for a fixed
+compute budget, loss is minimized by scaling model size $N$ and training tokens $D$ \emph{together}
+(roughly equally), not by maximizing $N$ alone. Since $C \approx 6ND$ is fixed, pouring budget into $N$
+forces $D$ down, leaving the big model undertrained and achieving \emph{higher} loss than a smaller model
+trained on more tokens at the same cost. They should rebalance toward a smaller $N$ and a larger $D$ to
+hit the compute-optimal point.}
+\end{document}

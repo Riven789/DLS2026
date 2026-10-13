@@ -1,0 +1,575 @@
+The atom stores energy. Scientists compare the model with data.
+
+The atom stores heat. Scientists compare the model with data.
+
+The atom stores charge. Scientists compare the model with data.
+
+The atom stores light. Scientists compare the model with data.
+
+The atom stores momentum. Scientists compare the model with data.
+
+The atom stores a signal. Scientists compare the model with data.
+
+The atom releases energy. Scientists compare the model with data.
+
+The atom releases heat. Scientists compare the model with data.
+
+The atom releases charge. Scientists compare the model with data.
+
+The atom releases light. Scientists compare the model with data.
+
+The atom releases momentum. Scientists compare the model with data.
+
+The atom releases a signal. Scientists compare the model with data.
+
+The atom absorbs energy. Scientists compare the model with data.
+
+The atom absorbs heat. Scientists compare the model with data.
+
+The atom absorbs charge. Scientists compare the model with data.
+
+The atom absorbs light. Scientists compare the model with data.
+
+The atom absorbs momentum. Scientists compare the model with data.
+
+The atom absorbs a signal. Scientists compare the model with data.
+
+The atom transfers energy. Scientists compare the model with data.
+
+The atom transfers heat. Scientists compare the model with data.
+
+The atom transfers charge. Scientists compare the model with data.
+
+The atom transfers light. Scientists compare the model with data.
+
+The atom transfers momentum. Scientists compare the model with data.
+
+The atom transfers a signal. Scientists compare the model with data.
+
+The atom measures energy. Scientists compare the model with data.
+
+The atom measures heat. Scientists compare the model with data.
+
+The atom measures charge. Scientists compare the model with data.
+
+The atom measures light. Scientists compare the model with data.
+
+The atom measures momentum. Scientists compare the model with data.
+
+The atom measures a signal. Scientists compare the model with data.
+
+The atom changes energy. Scientists compare the model with data.
+
+The atom changes heat. Scientists compare the model with data.
+
+The atom changes charge. Scientists compare the model with data.
+
+The atom changes light. Scientists compare the model with data.
+
+The atom changes momentum. Scientists compare the model with data.
+
+The atom changes a signal. Scientists compare the model with data.
+
+The molecule stores energy. Scientists compare the model with data.
+
+The molecule stores heat. Scientists compare the model with data.
+
+The molecule stores charge. Scientists compare the model with data.
+
+The molecule stores light. Scientists compare the model with data.
+
+The molecule stores momentum. Scientists compare the model with data.
+
+The molecule stores a signal. Scientists compare the model with data.
+
+The molecule releases energy. Scientists compare the model with data.
+
+The molecule releases heat. Scientists compare the model with data.
+
+The molecule releases charge. Scientists compare the model with data.
+
+The molecule releases light. Scientists compare the model with data.
+
+The molecule releases momentum. Scientists compare the model with data.
+
+The molecule releases a signal. Scientists compare the model with data.
+
+The molecule absorbs energy. Scientists compare the model with data.
+
+The molecule absorbs heat. Scientists compare the model with data.
+
+The molecule absorbs charge. Scientists compare the model with data.
+
+The molecule absorbs light. Scientists compare the model with data.
+
+The molecule absorbs momentum. Scientists compare the model with data.
+
+The molecule absorbs a signal. Scientists compare the model with data.
+
+The molecule transfers energy. Scientists compare the model with data.
+
+The molecule transfers heat. Scientists compare the model with data.
+
+The molecule transfers charge. Scientists compare the model with data.
+
+The molecule transfers light. Scientists compare the model with data.
+
+The molecule transfers momentum. Scientists compare the model with data.
+
+The molecule transfers a signal. Scientists compare the model with data.
+
+The molecule measures energy. Scientists compare the model with data.
+
+The molecule measures heat. Scientists compare the model with data.
+
+The molecule measures charge. Scientists compare the model with data.
+
+The molecule measures light. Scientists compare the model with data.
+
+The molecule measures momentum. Scientists compare the model with data.
+
+The molecule measures a signal. Scientists compare the model with data.
+
+The molecule changes energy. Scientists compare the model with data.
+
+The molecule changes heat. Scientists compare the model with data.
+
+The molecule changes charge. Scientists compare the model with data.
+
+The molecule changes light. Scientists compare the model with data.
+
+The molecule changes momentum. Scientists compare the model with data.
+
+The molecule changes a signal. Scientists compare the model with data.
+
+The crystal stores energy. Scientists compare the model with data.
+
+The crystal stores heat. Scientists compare the model with data.
+
+The crystal stores charge. Scientists compare the model with data.
+
+The crystal stores light. Scientists compare the model with data.
+
+The crystal stores momentum. Scientists compare the model with data.
+
+The crystal stores a signal. Scientists compare the model with data.
+
+The crystal releases energy. Scientists compare the model with data.
+
+The crystal releases heat. Scientists compare the model with data.
+
+The crystal releases charge. Scientists compare the model with data.
+
+The crystal releases light. Scientists compare the model with data.
+
+The crystal releases momentum. Scientists compare the model with data.
+
+The crystal releases a signal. Scientists compare the model with data.
+
+The crystal absorbs energy. Scientists compare the model with data.
+
+The crystal absorbs heat. Scientists compare the model with data.
+
+The crystal absorbs charge. Scientists compare the model with data.
+
+The crystal absorbs light. Scientists compare the model with data.
+
+The crystal absorbs momentum. Scientists compare the model with data.
+
+The crystal absorbs a signal. Scientists compare the model with data.
+
+The crystal transfers energy. Scientists compare the model with data.
+
+The crystal transfers heat. Scientists compare the model with data.
+
+The crystal transfers charge. Scientists compare the model with data.
+
+The crystal transfers light. Scientists compare the model with data.
+
+The crystal transfers momentum. Scientists compare the model with data.
+
+The crystal transfers a signal. Scientists compare the model with data.
+
+The crystal measures energy. Scientists compare the model with data.
+
+The crystal measures heat. Scientists compare the model with data.
+
+The crystal measures charge. Scientists compare the model with data.
+
+The crystal measures light. Scientists compare the model with data.
+
+The crystal measures momentum. Scientists compare the model with data.
+
+The crystal measures a signal. Scientists compare the model with data.
+
+The crystal changes energy. Scientists compare the model with data.
+
+The crystal changes heat. Scientists compare the model with data.
+
+The crystal changes charge. Scientists compare the model with data.
+
+The crystal changes light. Scientists compare the model with data.
+
+The crystal changes momentum. Scientists compare the model with data.
+
+The crystal changes a signal. Scientists compare the model with data.
+
+The magnet stores energy. Scientists compare the model with data.
+
+The magnet stores heat. Scientists compare the model with data.
+
+The magnet stores charge. Scientists compare the model with data.
+
+The magnet stores light. Scientists compare the model with data.
+
+The magnet stores momentum. Scientists compare the model with data.
+
+The magnet stores a signal. Scientists compare the model with data.
+
+The magnet releases energy. Scientists compare the model with data.
+
+The magnet releases heat. Scientists compare the model with data.
+
+The magnet releases charge. Scientists compare the model with data.
+
+The magnet releases light. Scientists compare the model with data.
+
+The magnet releases momentum. Scientists compare the model with data.
+
+The magnet releases a signal. Scientists compare the model with data.
+
+The magnet absorbs energy. Scientists compare the model with data.
+
+The magnet absorbs heat. Scientists compare the model with data.
+
+The magnet absorbs charge. Scientists compare the model with data.
+
+The magnet absorbs light. Scientists compare the model with data.
+
+The magnet absorbs momentum. Scientists compare the model with data.
+
+The magnet absorbs a signal. Scientists compare the model with data.
+
+The magnet transfers energy. Scientists compare the model with data.
+
+The magnet transfers heat. Scientists compare the model with data.
+
+The magnet transfers charge. Scientists compare the model with data.
+
+The magnet transfers light. Scientists compare the model with data.
+
+The magnet transfers momentum. Scientists compare the model with data.
+
+The magnet transfers a signal. Scientists compare the model with data.
+
+The magnet measures energy. Scientists compare the model with data.
+
+The magnet measures heat. Scientists compare the model with data.
+
+The magnet measures charge. Scientists compare the model with data.
+
+The magnet measures light. Scientists compare the model with data.
+
+The magnet measures momentum. Scientists compare the model with data.
+
+The magnet measures a signal. Scientists compare the model with data.
+
+The magnet changes energy. Scientists compare the model with data.
+
+The magnet changes heat. Scientists compare the model with data.
+
+The magnet changes charge. Scientists compare the model with data.
+
+The magnet changes light. Scientists compare the model with data.
+
+The magnet changes momentum. Scientists compare the model with data.
+
+The magnet changes a signal. Scientists compare the model with data.
+
+The detector stores energy. Scientists compare the model with data.
+
+The detector stores heat. Scientists compare the model with data.
+
+The detector stores charge. Scientists compare the model with data.
+
+The detector stores light. Scientists compare the model with data.
+
+The detector stores momentum. Scientists compare the model with data.
+
+The detector stores a signal. Scientists compare the model with data.
+
+The detector releases energy. Scientists compare the model with data.
+
+The detector releases heat. Scientists compare the model with data.
+
+The detector releases charge. Scientists compare the model with data.
+
+The detector releases light. Scientists compare the model with data.
+
+The detector releases momentum. Scientists compare the model with data.
+
+The detector releases a signal. Scientists compare the model with data.
+
+The detector absorbs energy. Scientists compare the model with data.
+
+The detector absorbs heat. Scientists compare the model with data.
+
+The detector absorbs charge. Scientists compare the model with data.
+
+The detector absorbs light. Scientists compare the model with data.
+
+The detector absorbs momentum. Scientists compare the model with data.
+
+The detector absorbs a signal. Scientists compare the model with data.
+
+The detector transfers energy. Scientists compare the model with data.
+
+The detector transfers heat. Scientists compare the model with data.
+
+The detector transfers charge. Scientists compare the model with data.
+
+The detector transfers light. Scientists compare the model with data.
+
+The detector transfers momentum. Scientists compare the model with data.
+
+The detector transfers a signal. Scientists compare the model with data.
+
+The detector measures energy. Scientists compare the model with data.
+
+The detector measures heat. Scientists compare the model with data.
+
+The detector measures charge. Scientists compare the model with data.
+
+The detector measures light. Scientists compare the model with data.
+
+The detector measures momentum. Scientists compare the model with data.
+
+The detector measures a signal. Scientists compare the model with data.
+
+The detector changes energy. Scientists compare the model with data.
+
+The detector changes heat. Scientists compare the model with data.
+
+The detector changes charge. Scientists compare the model with data.
+
+The detector changes light. Scientists compare the model with data.
+
+The detector changes momentum. Scientists compare the model with data.
+
+The detector changes a signal. Scientists compare the model with data.
+
+The plasma stores energy. Scientists compare the model with data.
+
+The plasma stores heat. Scientists compare the model with data.
+
+The plasma stores charge. Scientists compare the model with data.
+
+The plasma stores light. Scientists compare the model with data.
+
+The plasma stores momentum. Scientists compare the model with data.
+
+The plasma stores a signal. Scientists compare the model with data.
+
+The plasma releases energy. Scientists compare the model with data.
+
+The plasma releases heat. Scientists compare the model with data.
+
+The plasma releases charge. Scientists compare the model with data.
+
+The plasma releases light. Scientists compare the model with data.
+
+The plasma releases momentum. Scientists compare the model with data.
+
+The plasma releases a signal. Scientists compare the model with data.
+
+The plasma absorbs energy. Scientists compare the model with data.
+
+The plasma absorbs heat. Scientists compare the model with data.
+
+The plasma absorbs charge. Scientists compare the model with data.
+
+The plasma absorbs light. Scientists compare the model with data.
+
+The plasma absorbs momentum. Scientists compare the model with data.
+
+The plasma absorbs a signal. Scientists compare the model with data.
+
+The plasma transfers energy. Scientists compare the model with data.
+
+The plasma transfers heat. Scientists compare the model with data.
+
+The plasma transfers charge. Scientists compare the model with data.
+
+The plasma transfers light. Scientists compare the model with data.
+
+The plasma transfers momentum. Scientists compare the model with data.
+
+The plasma transfers a signal. Scientists compare the model with data.
+
+The plasma measures energy. Scientists compare the model with data.
+
+The plasma measures heat. Scientists compare the model with data.
+
+The plasma measures charge. Scientists compare the model with data.
+
+The plasma measures light. Scientists compare the model with data.
+
+The plasma measures momentum. Scientists compare the model with data.
+
+The plasma measures a signal. Scientists compare the model with data.
+
+The plasma changes energy. Scientists compare the model with data.
+
+The plasma changes heat. Scientists compare the model with data.
+
+The plasma changes charge. Scientists compare the model with data.
+
+The plasma changes light. Scientists compare the model with data.
+
+The plasma changes momentum. Scientists compare the model with data.
+
+The plasma changes a signal. Scientists compare the model with data.
+
+The protein stores energy. Scientists compare the model with data.
+
+The protein stores heat. Scientists compare the model with data.
+
+The protein stores charge. Scientists compare the model with data.
+
+The protein stores light. Scientists compare the model with data.
+
+The protein stores momentum. Scientists compare the model with data.
+
+The protein stores a signal. Scientists compare the model with data.
+
+The protein releases energy. Scientists compare the model with data.
+
+The protein releases heat. Scientists compare the model with data.
+
+The protein releases charge. Scientists compare the model with data.
+
+The protein releases light. Scientists compare the model with data.
+
+The protein releases momentum. Scientists compare the model with data.
+
+The protein releases a signal. Scientists compare the model with data.
+
+The protein absorbs energy. Scientists compare the model with data.
+
+The protein absorbs heat. Scientists compare the model with data.
+
+The protein absorbs charge. Scientists compare the model with data.
+
+The protein absorbs light. Scientists compare the model with data.
+
+The protein absorbs momentum. Scientists compare the model with data.
+
+The protein absorbs a signal. Scientists compare the model with data.
+
+The protein transfers energy. Scientists compare the model with data.
+
+The protein transfers heat. Scientists compare the model with data.
+
+The protein transfers charge. Scientists compare the model with data.
+
+The protein transfers light. Scientists compare the model with data.
+
+The protein transfers momentum. Scientists compare the model with data.
+
+The protein transfers a signal. Scientists compare the model with data.
+
+The protein measures energy. Scientists compare the model with data.
+
+The protein measures heat. Scientists compare the model with data.
+
+The protein measures charge. Scientists compare the model with data.
+
+The protein measures light. Scientists compare the model with data.
+
+The protein measures momentum. Scientists compare the model with data.
+
+The protein measures a signal. Scientists compare the model with data.
+
+The protein changes energy. Scientists compare the model with data.
+
+The protein changes heat. Scientists compare the model with data.
+
+The protein changes charge. Scientists compare the model with data.
+
+The protein changes light. Scientists compare the model with data.
+
+The protein changes momentum. Scientists compare the model with data.
+
+The protein changes a signal. Scientists compare the model with data.
+
+The battery stores energy. Scientists compare the model with data.
+
+The battery stores heat. Scientists compare the model with data.
+
+The battery stores charge. Scientists compare the model with data.
+
+The battery stores light. Scientists compare the model with data.
+
+The battery stores momentum. Scientists compare the model with data.
+
+The battery stores a signal. Scientists compare the model with data.
+
+The battery releases energy. Scientists compare the model with data.
+
+The battery releases heat. Scientists compare the model with data.
+
+The battery releases charge. Scientists compare the model with data.
+
+The battery releases light. Scientists compare the model with data.
+
+The battery releases momentum. Scientists compare the model with data.
+
+The battery releases a signal. Scientists compare the model with data.
+
+The battery absorbs energy. Scientists compare the model with data.
+
+The battery absorbs heat. Scientists compare the model with data.
+
+The battery absorbs charge. Scientists compare the model with data.
+
+The battery absorbs light. Scientists compare the model with data.
+
+The battery absorbs momentum. Scientists compare the model with data.
+
+The battery absorbs a signal. Scientists compare the model with data.
+
+The battery transfers energy. Scientists compare the model with data.
+
+The battery transfers heat. Scientists compare the model with data.
+
+The battery transfers charge. Scientists compare the model with data.
+
+The battery transfers light. Scientists compare the model with data.
+
+The battery transfers momentum. Scientists compare the model with data.
+
+The battery transfers a signal. Scientists compare the model with data.
+
+The battery measures energy. Scientists compare the model with data.
+
+The battery measures heat. Scientists compare the model with data.
+
+The battery measures charge. Scientists compare the model with data.
+
+The battery measures light. Scientists compare the model with data.
+
+The battery measures momentum. Scientists compare the model with data.
+
+The battery measures a signal. Scientists compare the model with data.
+
+The battery changes energy. Scientists compare the model with data.
+
+The battery changes heat. Scientists compare the model with data.
+
+The battery changes charge. Scientists compare the model with data.
+
+The battery changes light. Scientists compare the model with data.
+
+The battery changes momentum. Scientists compare the model with data.
+
+The battery changes a signal. Scientists compare the model with data.

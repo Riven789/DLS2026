@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q18: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Brain-score mini (medium, 4--6 days).} Take a pretrained vision model and a public neural-response dataset; measure how well layer activations linearly predict neural firing. Relate predictivity to layer depth.
+\item \textbf{Biologically-plausible learning (medium, 1 week).} Implement feedback-alignment (random backward weights) vs.\ backprop on a small task; quantify the accuracy gap and discuss what it implies for the brain-plausibility debate.
+\item \textbf{Energy accounting (small, 2--3 days).} Estimate joules-per-inference for a small transformer and compare to the $\sim$20\,W human brain budget for a loosely matched task; write up the orders-of-magnitude gap and its sources.
+\end{enumerate}
+\end{document}

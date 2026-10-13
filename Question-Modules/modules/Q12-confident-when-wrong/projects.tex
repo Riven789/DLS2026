@@ -1,0 +1,186 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q12 --- Deeper projects\\\large Why do models give confident answers even when wrong?}
+\author{Deep Learning Systems 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing the question}
+
+Confident wrong answers are a symptom, not a single mechanism. They arise from
+the interaction of several internal properties: modern neural networks are
+\emph{poorly calibrated}, with confidence systematically exceeding accuracy
+\citep{guo2017calibration}; maximum-likelihood training pushes probability mass
+toward sharp distributions regardless of epistemic uncertainty; and
+reinforcement learning from human feedback can reward assertive, fluent
+responses over hedged ones, amplifying overconfidence and hallucination
+\citep{ouyang2022training,ji2023survey}. A further source is that language
+models can be ``calibrated'' at the token level yet still produce factually
+wrong claims stated fluently, because fluency and factuality are governed by
+different internal pathways \citep{kadavath2022know}. The projects below ask you
+to measure, localize, and partially mitigate these phenomena, treating
+confidence as an internal computation that can be probed rather than an opaque
+model trait.
+
+\section*{Project 1 --- Calibration cartography across tasks and scale}
+
+\textbf{Goal.} Build an empirical map of how calibration error relates to model
+scale, task type, and decoding temperature, and determine whether
+overconfidence is uniform or concentrated in specific regimes.
+
+\textbf{Approach.} Select at least three model sizes from an open family.
+Evaluate on a mix of multiple-choice benchmarks (where token probabilities over
+answer letters give a clean confidence signal) and short free-form QA (where you
+elicit a verbalized confidence or use sequence likelihood). Compute expected
+calibration error (ECE), Brier score, and reliability diagrams following
+\citet{guo2017calibration}, and separately measure selective-prediction quality
+via risk--coverage curves. Contrast pretrained checkpoints against
+instruction-tuned ones to test whether alignment tuning degrades calibration
+\citep{kadavath2022know,ouyang2022training}.
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item Reliability diagrams and ECE/Brier tables broken down by model size,
+  task type, and temperature.
+  \item A risk--coverage analysis with at least two selection scores.
+  \item A 4--6 page report stating where overconfidence is worst and whether it
+  is driven by scale, tuning, or decoding, with reproducible code.
+\end{itemize}
+
+\section*{Project 2 --- Does the model ``know'' it is wrong internally?}
+
+\textbf{Goal.} Test whether a model's hidden states encode a usable signal of
+its own correctness that is stronger than its stated confidence.
+
+\textbf{Approach.} Collect model answers labeled correct/incorrect on a
+factual-QA set. Train lightweight linear probes on frozen hidden
+representations at several layers to predict correctness, following the
+self-knowledge paradigm of \citet{kadavath2022know} and probing methodology from
+\citet{alain2017understanding}. Compare probe AUROC against the model's own
+token-level or verbalized confidence. Investigate layer-wise emergence: does an
+internal correctness signal appear before the final layer, and is it discarded
+by the output head? Optionally relate findings to representation-level factuality
+signals in the hallucination literature \citep{ji2023survey}.
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item Layer-wise probe AUROC curves vs.\ baseline confidence.
+  \item An analysis of whether the ``knows-it-is-wrong'' signal is linearly
+  decodable and where it peaks.
+  \item A short report discussing implications for why the output layer can be
+  confident when intermediate states are not.
+\end{itemize}
+
+\section*{Project 3 --- Mitigation: temperature, ensembling, and verbalized uncertainty}
+
+\textbf{Goal.} Compare post-hoc and prompting-based mitigations for
+overconfidence and quantify their accuracy/calibration trade-offs.
+
+\textbf{Approach.} Implement three mitigations on a shared evaluation suite:
+(a) temperature scaling fit on a held-out set \citep{guo2017calibration};
+(b) deep-ensemble or sampling-based uncertainty, aggregating multiple stochastic
+decodes and using self-consistency as a confidence proxy
+\citep{lakshminarayanan2017simple,wang2023selfconsistency}; and (c) explicit
+prompting for calibrated verbalized confidence. Measure ECE, selective accuracy,
+and the cost in latency/compute for each.
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item A unified benchmark harness applying all three mitigations.
+  \item Before/after reliability diagrams and a cost--benefit table.
+  \item A recommendation note on which mitigation suits latency-constrained vs.\
+  accuracy-critical deployments.
+\end{itemize}
+
+\section*{Project 4 --- Training dynamics of overconfidence}
+
+\textbf{Goal.} Trace how confidence miscalibration emerges during training or
+fine-tuning, connecting it to loss-surface and memorization phenomena.
+
+\textbf{Approach.} Fine-tune a small model while checkpointing frequently. At
+each checkpoint, measure accuracy and ECE, and track whether the model becomes
+confident on examples it later gets wrong. Relate observations to the tendency of
+networks to fit noisy or memorized data with high confidence
+\citep{zhang2021understanding} and to over-sharpening under cross-entropy. If
+using preference fine-tuning, test whether reward optimization increases
+assertiveness independent of correctness \citep{ouyang2022training}.
+
+\textbf{Deliverables.}
+\begin{itemize}[leftmargin=1.5em]
+  \item Trajectory plots of accuracy and ECE across training steps.
+  \item An analysis isolating when confidence decouples from correctness.
+  \item A report linking the empirical dynamics to at least one theoretical
+  account of overconfidence.
+\end{itemize}
+
+\section*{Submission notes}
+
+Each project must ship with runnable code, fixed random seeds, a data manifest,
+and a self-contained report. Grading weights reproducibility and the clarity of
+the causal story linking an \emph{internal} mechanism to the observed symptom of
+confident errors, not benchmark leaderboard position.
+
+\begin{thebibliography}{9}
+
+\bibitem[Alain and Bengio(2017)]{alain2017understanding}
+G.~Alain and Y.~Bengio.
+\newblock Understanding intermediate layers using linear classifier probes.
+\newblock \emph{International Conference on Learning Representations (Workshop)},
+2017.
+
+\bibitem[Guo et~al.(2017)]{guo2017calibration}
+C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2017.
+
+\bibitem[Ji et~al.(2023)]{ji2023survey}
+Z.~Ji, N.~Lee, R.~Frieske, T.~Yu, D.~Su, Y.~Xu, E.~Ishii, Y.~J. Bang,
+  A.~Madotto, and P.~Fung.
+\newblock Survey of hallucination in natural language generation.
+\newblock \emph{ACM Computing Surveys}, 55(12):1--38, 2023.
+
+\bibitem[Kadavath et~al.(2022)]{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, T.~Henighan, D.~Drain, E.~Perez,
+  N.~Schiefer, Z.~Hatfield-Dodds, N.~DasSarma, et~al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Lakshminarayanan et~al.(2017)]{lakshminarayanan2017simple}
+B.~Lakshminarayanan, A.~Pritzel, and C.~Blundell.
+\newblock Simple and scalable predictive uncertainty estimation using deep
+  ensembles.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2017.
+
+\bibitem[Ouyang et~al.(2022)]{ouyang2022training}
+L.~Ouyang, J.~Wu, X.~Jiang, D.~Almeida, C.~L. Wainwright, P.~Mishkin, C.~Zhang,
+  S.~Agarwal, K.~Slama, A.~Ray, et~al.
+\newblock Training language models to follow instructions with human feedback.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2022.
+
+\bibitem[Wang et~al.(2023)]{wang2023selfconsistency}
+X.~Wang, J.~Wei, D.~Schuurmans, Q.~Le, E.~Chi, S.~Narang, A.~Chowdhery, and
+  D.~Zhou.
+\newblock Self-consistency improves chain of thought reasoning in language
+  models.
+\newblock In \emph{International Conference on Learning Representations (ICLR)},
+2023.
+
+\bibitem[Zhang et~al.(2021)]{zhang2021understanding}
+C.~Zhang, S.~Bengio, M.~Hardt, B.~Recht, and O.~Vinyals.
+\newblock Understanding deep learning (still) requires rethinking
+  generalization.
+\newblock \emph{Communications of the ACM}, 64(3):107--115, 2021.
+
+\end{thebibliography}
+
+\end{document}

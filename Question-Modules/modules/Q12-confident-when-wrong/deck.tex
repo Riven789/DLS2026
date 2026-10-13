@@ -1,0 +1,140 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+
+\title{Module Q12: Why Do Models Give Confident Answers Even When Wrong?}
+\subtitle{Calibration, Hallucination, and the Limits of Softmax Confidence}
+\author{DLS 2026 --- AI Internals}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{The student's intuition --- and why it's sharp}
+  The complaint: a model states a wrong fact (or a wrong answer) with no hedging.
+  \begin{itemize}
+    \item \textbf{Confidence} here can mean two different things:
+    \begin{itemize}
+      \item \emph{Linguistic} confidence --- fluent, assertive phrasing (``The capital is X.'').
+      \item \emph{Probabilistic} confidence --- the model's internal probability on its output tokens.
+    \end{itemize}
+    \item These are only loosely coupled. A model can emit assertive prose while assigning mediocre internal probability, or vice versa.
+    \item The core issue: \textbf{a model's output probability is not a faithful estimate of being correct}. This is the \emph{calibration} problem~\citep{guo2017calibration}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Calibration: what ``confidence'' should mean}
+  A model is \textbf{calibrated} if, among all predictions made with confidence $p$, a fraction $p$ are actually correct.
+  \[
+    \mathbb{P}\bigl(\hat{Y}=Y \,\big|\, \hat{P}=p\bigr) = p \quad \forall p \in [0,1].
+  \]
+  \begin{itemize}
+    \item Measured by \emph{Expected Calibration Error} (ECE): bin predictions by confidence, compare accuracy vs.\ mean confidence per bin~\citep{guo2017calibration}.
+    \item \citet{guo2017calibration} showed modern deep networks are systematically \textbf{overconfident} relative to older, shallower models --- accuracy improved but calibration degraded.
+    \item So ``confident when wrong'' is a measurable, reproducible property, not a vibe.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Why training produces overconfidence}
+  \begin{itemize}
+    \item \textbf{Cross-entropy with hard labels} pushes probability mass toward 1 on the target token. With high-capacity models and no error signal left, the optimizer keeps sharpening logits.
+    \item Softmax has no built-in notion of ``I don't know'' --- probability is always redistributed over the vocabulary, summing to 1.
+    \item \textbf{RLHF / instruction tuning} can worsen this: human raters prefer decisive, helpful-sounding answers, so preference optimization rewards assertive phrasing independent of correctness~\citep{ouyang2022instructgpt}.
+    \item Result: linguistic confidence is reinforced even where epistemic warrant is absent.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hallucination: confident fabrication}
+  \begin{itemize}
+    \item A fluent language model is a \emph{next-token} predictor; it optimizes plausibility of continuations, not truth~\citep{bender2021parrots}.
+    \item When a fact is absent or underdetermined in context, the most \emph{probable} continuation is often a well-formed but false statement --- these are \textbf{hallucinations}~\citep{ji2023survey}.
+    \item The model has no separate ``retrieval failed'' pathway; it fills the gap with the statistically typical answer, delivered in the same assertive register as true answers.
+    \item \citet{ji2023survey} distinguish intrinsic (contradicts source) vs.\ extrinsic (unverifiable) hallucination --- both arrive sounding equally certain.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Do large models even know they're uncertain?}
+  Mixed, encouraging evidence:
+  \begin{itemize}
+    \item \citet{kadavath2022know} find large models can be trained/prompted to predict their own correctness (``P(True)'') with non-trivial calibration --- the signal exists internally but is not surfaced by default.
+    \item \citet{lin2022teaching} show models can be taught to \emph{verbalize} calibrated uncertainty (``I'm 70\% sure'').
+    \item Caveat: RLHF-tuned chat models are often \emph{worse} calibrated in raw probabilities than their base counterparts (OpenAI's GPT-4 report notes calibration degrading after RLHF)~\citep{openai2023gpt4}.
+    \item Takeaway: the capacity for self-assessment is partly present but routinely masked by the training objective.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mitigations}
+  \begin{itemize}
+    \item \textbf{Post-hoc calibration:} temperature scaling --- divide logits by $T$ tuned on held-out data; cheap and effective for classification~\citep{guo2017calibration}.
+    \item \textbf{Elicited confidence:} prompt the model to state and justify uncertainty; fine-tune to verbalize probabilities~\citep{lin2022teaching}.
+    \item \textbf{Self-consistency:} sample multiple reasoning chains; agreement correlates with correctness~\citep{wang2023selfconsistency}.
+    \item \textbf{Retrieval grounding:} supply authoritative context so the probable continuation \emph{is} the correct one, reducing fabrication.
+    \item \textbf{Abstention objectives:} train/evaluate for ``I don't know'' as a valid, rewarded output.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Answering the student directly}
+  \begin{itemize}
+    \item \textbf{Confidence $\neq$ correctness.} Output probability and assertive tone are optimized for plausibility and human preference, not truth.
+    \item \textbf{Overconfidence is a training artifact}, exacerbated by hard-label cross-entropy, softmax normalization, and preference tuning.
+    \item \textbf{Hallucinations fill knowledge gaps} with typical-sounding text, inheriting the default confident register.
+    \item \textbf{The uncertainty signal often exists internally} but is not exposed --- it can be recovered through calibration, elicitation, sampling, or grounding.
+    \item Practical rule: treat model fluency as \emph{zero evidence} of accuracy; verify, ground, and request calibrated confidence explicitly.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+  \small
+  \begin{thebibliography}{9}
+    \bibitem[Guo et al.(2017)]{guo2017calibration}
+    C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger.
+    \newblock On calibration of modern neural networks.
+    \newblock \emph{ICML}, 2017.
+
+    \bibitem[Ouyang et al.(2022)]{ouyang2022instructgpt}
+    L.~Ouyang et al.
+    \newblock Training language models to follow instructions with human feedback.
+    \newblock \emph{NeurIPS}, 2022.
+
+    \bibitem[Bender et al.(2021)]{bender2021parrots}
+    E.~M. Bender, T.~Gebru, A.~McMillan-Major, and S.~Shmitchell.
+    \newblock On the dangers of stochastic parrots: Can language models be too big?
+    \newblock \emph{FAccT}, 2021.
+
+    \bibitem[Ji et al.(2023)]{ji2023survey}
+    Z.~Ji et al.
+    \newblock Survey of hallucination in natural language generation.
+    \newblock \emph{ACM Computing Surveys}, 55(12), 2023.
+
+    \bibitem[Kadavath et al.(2022)]{kadavath2022know}
+    S.~Kadavath et al.
+    \newblock Language models (mostly) know what they know.
+    \newblock \emph{arXiv:2207.05221}, 2022.
+
+    \bibitem[Lin et al.(2022)]{lin2022teaching}
+    S.~Lin, J.~Hilton, and O.~Evans.
+    \newblock Teaching models to express their uncertainty in words.
+    \newblock \emph{Transactions on Machine Learning Research}, 2022.
+
+    \bibitem[OpenAI(2023)]{openai2023gpt4}
+    OpenAI.
+    \newblock GPT-4 technical report.
+    \newblock \emph{arXiv:2303.08774}, 2023.
+
+    \bibitem[Wang et al.(2023)]{wang2023selfconsistency}
+    X.~Wang et al.
+    \newblock Self-consistency improves chain of thought reasoning in language models.
+    \newblock \emph{ICLR}, 2023.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q12 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A colleague proposes to fix a model's missing post-cutoff knowledge by fine-tuning it on 500 recent news articles, expecting the facts to ``stick.'' Based on this module, evaluate each of these three expectations: (a) the facts will be reliably recalled when asked about later; (b) the model's behavior on unrelated questions will be unchanged; (c) a better-performing alternative exists that does not touch the weights.
+
+\vspace{1em}
+\textbf{Answer:} (a) Unlikely --- fine-tuning on new (unseen) knowledge teaches production of that text without reliable conditions-of-application, and empirically \emph{increases} hallucination on held-out questions (Gekhman et al.\ 2024). (b) Not guaranteed --- fine-tuning reshapes the response distribution beyond the target facts (Q26). (c) Yes --- retrieval or tool use injects post-cutoff facts into context exactly where they're needed; the module's boundary map reserves parametric memory for frequent facts and moves tail/post-cutoff questions into context.
+\end{document}

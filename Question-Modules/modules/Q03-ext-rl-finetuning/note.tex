@@ -1,0 +1,72 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q03: Why RL After Pre-Training? RLHF, DPO, GRPO}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module you should be able to (i) explain why preference optimization cannot be reached by more next-token prediction, (ii) describe the RLHF loop and the role of the KL anchor, (iii) derive the DPO objective from the RLHF optimum, and (iv) state what GRPO changes and what all three methods still get criticized for.
+
+\section{The problem pre-training cannot solve}
+Pre-training optimizes next-token likelihood on a corpus. The corpus demonstrates \emph{how people write}, not \emph{how an assistant should respond}: it contains flame wars, half-finished drafts, and questions answered wrongly. Naively sampling a pretrained model yields text that is corpus-plausible but not assistant-\emph{good} --- it may ignore instructions, produce harmful content, or answer in the wrong register. SFT (supervised fine-tuning on demonstration responses) moves the model toward the right \emph{behavioral family}, but demonstrations only show one good answer per prompt and say nothing about \emph{relative} quality. What is missing is a training signal defined over \emph{comparisons}: response $A$ is better than response $B$ for this prompt. Likelihood training cannot express a preference between two full responses without labeling one of them as a target sequence; RL can, because reward is an arbitrary scalar function of the whole output \cite{ouyang2022training,christiano2017deep}.
+
+That is the honest one-line answer to ``why RL?'': \textbf{the objective (human preference over complete responses) is not a likelihood}. Everything after is machinery for optimizing that non-likelihood objective without destroying the model.
+
+\section{RLHF: reward model + policy optimization + anchor}
+The InstructGPT recipe \cite{ouyang2022training}:
+\begin{enumerate}[noitemsep]
+\item \textbf{Collect preferences:} humans rank candidate responses to the same prompt.
+\item \textbf{Fit a reward model} $r_\phi(x, y)$ from pairwise preferences, typically via the Bradley--Terry likelihood: $P(y_w \succ y_l) = \sigma(r_\phi(x,y_w) - r_\phi(x,y_l))$.
+\item \textbf{Optimize the policy} (the LLM) to maximize reward, with a penalty for drifting from a reference policy $\pi_\text{ref}$:
+\begin{equation}
+\max_\pi \; \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi(\cdot|x)}\big[ r_\phi(x,y) \big] - \beta\, \mathrm{KL}\!\big(\pi(\cdot|x) \,\|\, \pi_\text{ref}(\cdot|x)\big).
+\label{eq:rlhf}
+\end{equation}
+\end{enumerate}
+PPO \cite{schulman2017ppo} is the usual optimizer: the LLM is the policy, tokens are actions, and a value network estimates advantages for clipped surrogate updates.
+
+\paragraph{Why the KL anchor matters.} The reward model is only an \emph{approximation} of human judgment, valid near the distribution it was trained on. Without the anchor, the policy finds adversarial outputs where $r_\phi$ is high but humans disagree --- \emph{reward hacking} --- and can collapse to a degenerate style. The KL term keeps the policy in the region where the reward model can be trusted; $\beta$ encodes how far you are willing to go. It is a trust region, not a safety feature per se.
+
+\paragraph{Constitutional AI} replaces part of the human preference collection with AI feedback guided by explicit principles \cite{bai2022constitutional}, scaling the labeling without scaling human annotators (and shifting the questions to which principles and whose).
+
+\section{DPO: the closed-form shortcut}
+Equation~\eqref{eq:rlhf} has an analytic solution: the optimal policy is a Boltzmann reweighting of the reference,
+$\pi^*(y|x) \propto \pi_\text{ref}(y|x)\exp\!\big(r(x,y)/\beta\big)$.
+Solving this expression for the reward gives $r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_\text{ref}(y|x)} + \beta\log Z(x)$. Substituting into the Bradley--Terry preference model, the intractable partition function $Z(x)$ \emph{cancels between the pair}, leaving a pure classification loss on the policy itself:
+\begin{equation}
+\mathcal{L}_\text{DPO} = -\mathbb{E}\Big[ \log \sigma\Big( \beta \log\tfrac{\pi_\theta(y_w|x)}{\pi_\text{ref}(y_w|x)} - \beta \log\tfrac{\pi_\theta(y_l|x)}{\pi_\text{ref}(y_l|x)} \Big) \Big].
+\label{eq:dpo}
+\end{equation}
+DPO \cite{rafailov2023direct} thus optimizes the same preference data toward the same objective family \emph{without sampling from the policy during training and without a reward model at all} --- the log-ratio in \eqref{eq:dpo} \emph{is} an implicit reward. The trade-offs: no reward model means no reusable, inspectable reward signal, and the absence of explicit sampling makes the method sensitive to distribution shift (the policy is never probed on its own outputs during training).
+
+\section{GRPO: group-relative advantages}
+PPO's value network is expensive at LLM scale: it doubles the served parameter count during training. GRPO (Group Relative Policy Optimization, introduced in DeepSeekMath \cite{shao2025deepseekmath}) drops it. For each prompt, sample a \emph{group} of $G$ responses, score them all with the reward, and use the group's own statistics as the baseline:
+\begin{equation}
+\hat{A}_i = \frac{r_i - \mathrm{mean}(r_1,\dots,r_G)}{\mathrm{std}(r_1,\dots,r_G)}.
+\end{equation}
+The advantage of each response is measured against its siblings --- no value network, no stored rollouts. This works especially well with \emph{verifiable} rewards (unit tests pass/fail, exact answers) where a group of samples naturally contains both successes and failures. GRPO is the backbone of RL with verifiable rewards in recent reasoning-model training.
+
+\section{Honest limitations (all methods)}
+\begin{itemize}[noitemsep]
+\item \textbf{Reward hacking:} any learned $r_\phi$ has exploits; the KL anchor mitigates, does not eliminate.
+\item \textbf{Length bias:} humans (and reward models) favor longer answers; models learn verbosity without substance.
+\item \textbf{Evaluator gaming:} where the evaluator is another model, the policy learns its blind spots (LLM-as-judge biases, style effects).
+\item \textbf{Distribution shift:} DPO never samples its own outputs; PPO/GRPO do, at cost.
+\item \textbf{Preferences are not truth:} preference optimization aligns to \emph{raters}, with everything that implies about whose preferences and which failure modes transfer.
+\end{itemize}
+
+\section*{The one-sentence summary}
+\emph{RL enters after pre-training because ``better'' is a comparison between whole responses, not a likelihood; RLHF optimizes it with a learned reward plus a KL trust region, DPO eliminates the machinery via the closed-form optimum, and GRPO replaces the value network with group-relative baselines --- all three inheriting the same core risks: reward hacking, length bias, and optimizing for raters rather than truth.}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

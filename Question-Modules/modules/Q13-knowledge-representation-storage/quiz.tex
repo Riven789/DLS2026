@@ -1,0 +1,126 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q13 --- Comprehension check}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Knowledge representation, storage, and retrieval in transformers}
+
+A central puzzle in the study of large language models is \emph{where} factual
+knowledge physically lives inside the network, and \emph{how} it is surfaced at
+inference time. The dominant empirical account points to the feed-forward
+(MLP) sublayers as key--value memory stores: the first weight matrix acts as a
+bank of pattern-detecting ``keys'' that fire on specific input contexts, and
+the second matrix contributes corresponding ``value'' vectors that are written
+into the residual stream \citep{geva2021kvmemories}. Causal interventions
+reinforce this picture: \citet{meng2022rome} show that a small set of
+mid-layer MLP modules are decisive for recalling a given subject--relation fact,
+and that editing those weights (ROME) can surgically alter the stored
+association. Complementary work attributes facts to neurons that, when ablated
+or amplified, change the predicted object \citep{dai2022knowledgeneurons}.
+Attention heads then play a retrieval role, moving information between token
+positions---induction heads, for instance, implement a copy-and-complete
+mechanism that underlies in-context recall \citep{olsson2022induction}. The
+interpretability toolkit that connects these components treats the residual
+stream as a shared communication channel written and read by each layer
+\citep{elhage2021mathematical}, with intermediate ``logit lens'' readouts
+revealing how a prediction is progressively refined
+\citep{geva2022promoting}.
+
+\paragraph{Question.}
+A model reliably completes the prompt ``\emph{The Eiffel Tower is located in
+the city of}'' with ``\emph{Paris}.'' (a) Using the key--value memory and
+causal-tracing perspectives, describe where this fact is most likely stored
+and by which mechanism it is retrieved and written to the output. (b) An
+engineer applies ROME to a mid-layer MLP so that the model now answers
+``\emph{Rome}.'' Explain concretely what ROME changes and why editing that
+specific component suffices, and name one limitation such weight edits exhibit.
+
+\paragraph{Answer.}
+(a) The fact is stored predominantly in the second (output) weight matrix of
+one or more \emph{mid-layer} MLP sublayers, operating as key--value memory
+\citep{geva2021kvmemories}. As the subject token ``Eiffel Tower'' is processed,
+attention heads first aggregate the relevant subject information at the last
+token position---a routing step consistent with the induction/copy mechanisms
+and residual-stream communication framework
+\citep{olsson2022induction,elhage2021mathematical}. At a mid-layer MLP, a
+subset of keys in the first matrix detects this subject-plus-relation pattern
+(``located-in-city'' context), and the paired value vectors in the second
+matrix are added into the residual stream, incrementing the component of the
+representation aligned with the ``Paris'' output direction. Causal tracing
+localizes this effect: corrupting the subject tokens and then restoring
+individual hidden states shows that restoring the mid-layer MLP outputs at the
+last subject token recovers the correct prediction, identifying those modules
+as the decisive site of storage \citep{meng2022rome}. The ``logit lens'' view
+shows the ``Paris'' prediction becoming readable in the residual stream after
+these layers write to it \citep{geva2022promoting}, and the final unembedding
+projects this to a high logit for ``Paris.''
+
+(b) ROME treats the second MLP matrix $W$ as a linear associative memory and
+performs a rank-one update $W' = W + \Lambda (C^{-1} k_*)^{\top}$ that inserts a
+new key--value association: it computes the key vector $k_*$ that the subject
+``Eiffel Tower'' induces at the targeted layer, and chooses $\Lambda$ so the
+retrieved value $W' k_*$ now points toward the ``Rome'' output direction while
+minimally disturbing other stored associations (hence the $C^{-1}$
+covariance-whitening term) \citep{meng2022rome}. Editing this one mid-layer MLP
+suffices precisely because causal tracing identified it as the pivotal
+read/write site for subject--relation facts; changing where the value is
+written at that bottleneck propagates to the final logits. A key limitation is
+that such weight edits generalize poorly and can damage unrelated knowledge:
+they may fail to update logically entailed or paraphrased queries, can be
+undone or confused by related edits, and risk collateral drift in nearby
+associations---so the edit is local and brittle rather than a robust belief
+update \citep{meng2022rome,dai2022knowledgeneurons}.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+
+\bibitem[Dai et al.(2022)]{dai2022knowledgeneurons}
+Damai Dai, Li Dong, Yaru Hao, Zhifang Sui, Baobao Chang, and Furu Wei.
+\newblock Knowledge neurons in pretrained transformers.
+\newblock In \emph{Proceedings of the 60th Annual Meeting of the Association
+for Computational Linguistics (ACL)}, 2022.
+
+\bibitem[Elhage et al.(2021)]{elhage2021mathematical}
+Nelson Elhage, Neel Nanda, Catherine Olsson, et al.
+\newblock A mathematical framework for transformer circuits.
+\newblock \emph{Transformer Circuits Thread}, 2021.
+\newblock \url{https://transformer-circuits.pub/2021/framework/index.html}.
+
+\bibitem[Geva et al.(2021)]{geva2021kvmemories}
+Mor Geva, Roei Schuster, Jonathan Berant, and Omer Levy.
+\newblock Transformer feed-forward layers are key-value memories.
+\newblock In \emph{Proceedings of the 2021 Conference on Empirical Methods in
+Natural Language Processing (EMNLP)}, 2021.
+
+\bibitem[Geva et al.(2022)]{geva2022promoting}
+Mor Geva, Avi Caciularu, Kevin Ro Wang, and Yoav Goldberg.
+\newblock Transformer feed-forward layers build predictions by promoting
+concepts in the vocabulary space.
+\newblock In \emph{Proceedings of the 2022 Conference on Empirical Methods in
+Natural Language Processing (EMNLP)}, 2022.
+
+\bibitem[Meng et al.(2022)]{meng2022rome}
+Kevin Meng, David Bau, Alex Andonian, and Yonatan Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+2022.
+
+\bibitem[Olsson et al.(2022)]{olsson2022induction}
+Catherine Olsson, Nelson Elhage, Neel Nanda, et al.
+\newblock In-context learning and induction heads.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+\newblock \url{https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html}.
+
+\end{thebibliography}
+
+\end{document}

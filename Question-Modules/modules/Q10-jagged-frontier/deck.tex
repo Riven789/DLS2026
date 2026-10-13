@@ -1,0 +1,52 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q10: The Jagged Frontier}
+\subtitle{Why 'simple' is a human notion the model never learned}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The puzzle}
+\begin{block}{Student question (\#18)}
+Why can models solve complex problems yet still make simple mistakes?
+\end{block}
+It explains relativity, then miscounts letters in ``strawberry''.
+\end{frame}
+\begin{frame}{Human vs model competence}
+\begin{itemize}
+\item Humans: competence is \emph{correlated} (hard $\Rightarrow$ easy follows).
+\item Models: a \textbf{jagged frontier} --- sharp, unpredictable variation.
+\end{itemize}
+\alert{``Hard'' and ``easy'' are human notions the model never learned.}
+\end{frame}
+\begin{frame}{Root cause 1: the objective}
+\begin{itemize}
+\item Trained to predict next token, not to be uniformly competent.
+\item Capability tracks \textbf{training frequency}, not logical difficulty.
+\item Relativity prose is abundant; exact long arithmetic is rare.
+\end{itemize}
+\end{frame}
+\begin{frame}{Root cause 2: tokenization}
+\begin{itemize}
+\item Model sees sub-word tokens, not letters or digits.
+\item Counting r's needs letter structure it doesn't represent.
+\item Number chunks break positional arithmetic.
+\end{itemize}
+\alert{Predictable representation artifacts, not ``stupidity''.}
+\end{frame}
+\begin{frame}{Root cause 3: no built-in checking}
+\begin{itemize}
+\item One forward pass, no scratchpad, no verification.
+\item Humans re-check; a base model doesn't unless prompted / given a tool.
+\item Same model often fixes it the instant you say ``think step by step''.
+\end{itemize}
+\end{frame}
+\begin{frame}{Predict the jaggedness}
+Strong where: well-represented, error-tolerant, pattern-like.\\
+Weak where: exact symbols, long chains, sub-token info, rare knowledge.\\[1em]
+\alert{Pair brittle regimes with reasoning, tools, and verifiers.}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,146 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Interpreting Weights and Persistence of Pre-training Traits}
+\subtitle{DLS 2026 --- Module Q27}
+\author{AI-Internals Teaching Group}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{The Two-Part Question}
+  A student asks:
+  \begin{enumerate}
+    \item \textbf{Can inspecting weights reveal a model's tendencies?}
+    \item \textbf{Do models revert to pre-training traits after deployment?}
+  \end{enumerate}
+  \medskip
+  Both touch the central interpretability goal: connecting the \emph{static artifact}
+  (parameters) to \emph{behavioral dispositions}.
+  \medskip
+
+  Key caveat up front: weights are necessary but \emph{not transparent}. Function is
+  distributed, polysemantic, and context-dependent \citep{elhage2022superposition,olah2020zoom}.
+\end{frame}
+
+\begin{frame}{What Weight Inspection Actually Buys You}
+  Direct reading of raw parameter matrices is rarely informative. Productive methods
+  instead \emph{structure} the weights:
+  \begin{itemize}
+    \item \textbf{Circuit analysis}: trace how attention heads and MLPs compose to
+      implement algorithms \citep{olsson2022incontext,wang2023ioi}.
+    \item \textbf{Feature decomposition}: sparse autoencoders recover
+      interpretable directions from superposed activations
+      \citep{bricken2023monosemanticity,cunningham2023sparse}.
+    \item \textbf{Weight-space probes}: logit lens / causal tracing localize where
+      factual associations live \citep{meng2022rome,geva2021keyvalue}.
+  \end{itemize}
+  Tendencies become visible as \emph{reusable mechanisms}, not as single numbers.
+\end{frame}
+
+\begin{frame}{From Mechanism to ``Tendency''}
+  A behavioral tendency is an emergent regularity. Interpretability links it to weights by:
+  \begin{itemize}
+    \item \textbf{Causal intervention}: ablate or patch a component and measure the
+      behavioral delta \citep{meng2022rome,wang2023ioi}.
+    \item \textbf{Feature attribution}: identify features whose activation predicts a
+      disposition (e.g., sycophancy, refusal).
+    \item \textbf{Steering vectors}: adding/subtracting activation directions shifts
+      outputs, evidence that the direction encodes the trait
+      \citep{turner2023steering,zou2023representation}.
+  \end{itemize}
+  \alert{Caution:} correlation between a direction and behavior is not proof of a
+  monolithic ``trait neuron''; features are superposed and polysemantic
+  \citep{elhage2022superposition}.
+\end{frame}
+
+\begin{frame}{The Reversion Question: What ``Deployment'' Changes}
+  Frozen deployment weights \emph{do not drift}: inference does not update parameters.
+  So ``reversion'' is not literal weight decay. What varies is:
+  \begin{itemize}
+    \item \textbf{Context}: prompts and few-shot examples can surface latent
+      pre-training behaviors suppressed by fine-tuning.
+    \item \textbf{Distribution shift}: inputs unlike alignment data fall back toward
+      base-model priors.
+    \item \textbf{Jailbreaks}: adversarial prompts route around safety fine-tuning
+      \citep{wei2023jailbroken,zou2023universal}.
+  \end{itemize}
+  Fine-tuning often adds a thin behavioral layer over durable pre-training knowledge.
+\end{frame}
+
+\begin{frame}{Evidence That Pre-training Traits Persist}
+  \begin{itemize}
+    \item \textbf{Superficial alignment}: instruction tuning adjusts style/format while
+      most capability comes from pre-training \citep{zhou2023lima}.
+    \item \textbf{Shallow safety}: safety behavior concentrated in the first few tokens
+      is easy to bypass, implying underlying tendencies remain
+      \citep{qi2024safetyshallow}.
+    \item \textbf{Fine-tuning fragility}: a few benign steps can remove safety alignment,
+      exposing base dispositions \citep{qi2023finetuning}.
+    \item \textbf{Sleeper agents}: backdoored behaviors survive standard safety training
+      \citep{hubinger2024sleeper}.
+  \end{itemize}
+  Together: pre-training traits are latent and \emph{recoverable}, not erased.
+\end{frame}
+
+\begin{frame}{Synthesis: Answering the Student}
+  \textbf{Q1.} Weight inspection, via circuits, feature decomposition, and causal
+  intervention, can reveal \emph{mechanisms} that underlie tendencies, with the
+  caveats of superposition and the gap between mechanism and behavior.
+  \medskip
+
+  \textbf{Q2.} Deployed weights are static, so there is no spontaneous reversion. But
+  because alignment is often shallow, pre-training tendencies can \emph{re-emerge}
+  under distribution shift, adversarial prompts, or further fine-tuning.
+  \medskip
+
+  Practical stance: treat alignment as a thin, bypassable layer; audit for latent
+  dispositions using interpretability plus red-teaming.
+\end{frame}
+
+\begin{frame}{Takeaways and Open Problems}
+  \begin{itemize}
+    \item Tendencies are \emph{distributed}; no single weight ``is'' a trait.
+    \item Causal methods beat passive weight-reading for attributing behavior.
+    \item Pre-training priors persist beneath fine-tuning and can resurface.
+    \item \textbf{Open}: scaling SAEs, verifying feature causality, and measuring how
+      ``deep'' alignment truly goes \citep{qi2024safetyshallow,bricken2023monosemanticity}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+  \footnotesize
+  \begin{thebibliography}{99}
+    \bibitem{elhage2022superposition} N.~Elhage et al. ``Toy Models of Superposition.'' \emph{Transformer Circuits Thread}, 2022.
+    \bibitem{olah2020zoom} C.~Olah et al. ``Zoom In: An Introduction to Circuits.'' \emph{Distill}, 2020.
+    \bibitem{olsson2022incontext} C.~Olsson et al. ``In-context Learning and Induction Heads.'' \emph{Transformer Circuits Thread}, 2022.
+    \bibitem{wang2023ioi} K.~Wang, A.~Variengien, A.~Conmy, B.~Shlegeris, J.~Steinhardt. ``Interpretability in the Wild: A Circuit for Indirect Object Identification in GPT-2 Small.'' \emph{ICLR}, 2023.
+    \bibitem{bricken2023monosemanticity} T.~Bricken et al. ``Towards Monosemanticity: Decomposing Language Models With Dictionary Learning.'' \emph{Transformer Circuits Thread}, 2023.
+    \bibitem{cunningham2023sparse} H.~Cunningham, A.~Ewart, L.~Riggs, R.~Huben, L.~Sharkey. ``Sparse Autoencoders Find Highly Interpretable Features in Language Models.'' arXiv:2309.08600, 2023.
+    \bibitem{meng2022rome} K.~Meng, D.~Bau, A.~Andonian, Y.~Belinkov. ``Locating and Editing Factual Associations in GPT.'' \emph{NeurIPS}, 2022.
+    \bibitem{geva2021keyvalue} M.~Geva, R.~Schuster, J.~Berant, O.~Levy. ``Transformer Feed-Forward Layers Are Key-Value Memories.'' \emph{EMNLP}, 2021.
+    \bibitem{turner2023steering} A.~Turner, L.~Thiergart, G.~Leech, D.~Udell, J.~Vazquez, U.~Mini, M.~MacDiarmid. ``Activation Addition: Steering Language Models Without Optimization.'' arXiv:2308.10248, 2023.
+    \bibitem{zou2023representation} A.~Zou et al. ``Representation Engineering: A Top-Down Approach to AI Transparency.'' arXiv:2310.01405, 2023.
+    \bibitem{wei2023jailbroken} A.~Wei, N.~Haghtalab, J.~Steinhardt. ``Jailbroken: How Does LLM Safety Training Fail?'' \emph{NeurIPS}, 2023.
+    \bibitem{zou2023universal} A.~Zou, Z.~Wang, J.~Z.~Kolter, M.~Fredrikson. ``Universal and Transferable Adversarial Attacks on Aligned Language Models.'' arXiv:2307.15043, 2023.
+    \bibitem{zhou2023lima} C.~Zhou et al. ``LIMA: Less Is More for Alignment.'' \emph{NeurIPS}, 2023.
+    \bibitem{qi2024safetyshallow} X.~Qi, A.~Panda, K.~Lyu, X.~Ma, S.~Roy, A.~Beirami, P.~Mittal, P.~Henderson. ``Safety Alignment Should Be Made More Than Just a Few Tokens Deep.'' arXiv:2406.05946, 2024.
+    \bibitem{qi2023finetuning} X.~Qi, Y.~Zeng, T.~Xie, P.-Y.~Chen, R.~Jia, P.~Mittal, P.~Henderson. ``Fine-tuning Aligned Language Models Compromises Safety, Even When Users Do Not Intend To.'' \emph{ICLR}, 2024.
+    \bibitem{hubinger2024sleeper} E.~Hubinger et al. ``Sleeper Agents: Training Deceptive LLMs That Persist Through Safety Training.'' arXiv:2401.05566, 2024.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

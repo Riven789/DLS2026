@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q07: Discussion Questions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item Scaling laws let you predict a model's loss before training it. What are the business and safety implications of being able to forecast capability from a budget?
+\item Chinchilla says scale $N$ and $D$ together, but high-quality data is finite. Rank the proposed escapes (synthetic data, multi-epoch, data curation, new modalities) by how much you trust them.
+\item A smooth loss curve can coexist with abrupt downstream capability jumps. Is ``emergence'' then a property of the model or of our metrics? Defend a view.
+\item Classical learning theory fails to explain why over-parameterized models scale gracefully. Does this mean the theory is wrong, or incomplete, or measuring the wrong thing?
+\item Recent gains come increasingly from post-training and inference-time compute. Does this mean the pre-training scaling era is ending, or just that we found additional axes? Argue.
+\end{enumerate}
+\end{document}

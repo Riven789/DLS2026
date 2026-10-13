@@ -1,0 +1,77 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs}
+\title{Q01: From Next-Token Prediction to Capabilities}
+\subtitle{What the objective can explain---and what it cannot}
+\author{DLS 2026}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{frame}{The question}
+\begin{block}{Student question}
+How does next-token prediction lead to problem solving, coding, and instruction following?
+\end{block}
+\begin{itemize}
+\item Start with the training objective, not a metaphor.
+\item Separate a plausible mechanism from a demonstrated claim.
+\item End with an evaluation design.
+\end{itemize}
+\end{frame}
+\begin{frame}{The objective is narrow}
+\[\mathcal{L}(\theta)=-\sum_t \log p_\theta(x_{t+1}\mid x_{\leq t})\]
+\begin{itemize}
+\item Predict the next token from prior context.
+\item No explicit ``reasoning,'' ``coding,'' or ``instruction following'' loss term.
+\item A Transformer is one architecture for computing this conditional distribution.
+\end{itemize}
+\end{frame}
+\begin{frame}{Why prediction rewards structure}
+\begin{enumerate}
+\item Text and code contain reusable regularities.
+\item Better representations of these regularities reduce prediction loss.
+\item Prompts supply examples and constraints at inference time.
+\end{enumerate}
+\alert{Important:} usefulness for prediction is not identical to human-like understanding.
+\end{frame}
+\begin{frame}{In-context learning is a concrete clue}
+\begin{itemize}
+\item A prompt can change behavior without changing weights.
+\item Few-shot prompting demonstrated substantial task adaptation in large LMs.
+\item Induction-head evidence links a particular circuit family to one in-context behavior in controlled models.
+\end{itemize}
+\vfill\small Brown et al. (2020); Olsson et al. (2022)
+\end{frame}
+\begin{frame}{Training data matters}
+\begin{columns}
+\column{.48\textwidth}
+\textbf{Pre-training}
+\begin{itemize}\item text, code, examples\item predicts continuations\item learns broad statistical structure\end{itemize}
+\column{.48\textwidth}
+\textbf{Post-training}
+\begin{itemize}\item preference/instruction data\item shifts favored responses\item does not erase the distinction from pre-training\end{itemize}
+\end{columns}
+\end{frame}
+\begin{frame}{Do not overclaim}
+\begin{itemize}
+\item A persuasive answer may be wrong.
+\item A correct answer may be memorized, pattern-completed, or generalized.
+\item ``Emergent'' can depend on the metric and threshold chosen.
+\end{itemize}
+\alert{Capability claims need held-out, contamination-aware evaluation.}
+\end{frame}
+\begin{frame}{Mini experiment}
+Sequence: \texttt{A B A B A \ldots}
+\begin{itemize}
+\item Unigram predictor: choose the globally frequent token.
+\item Context-copy predictor: find an earlier matching context and copy its continuation.
+\item Compare accuracy on repeated-pattern sequences and on a changed rule.
+\end{itemize}
+\vfill The toy heuristic illustrates a context-dependent algorithm; it is not a model of all Transformer behavior.
+\end{frame}
+\begin{frame}{Takeaway}
+\begin{block}{Best current answer}
+Next-token training can reward representations and context-sensitive computations that make structured text, code, and demonstrations predictable. It provides a route to broad behavior, not a proof of robust reasoning or human-like intelligence.
+\end{block}
+\vfill\small References: Vaswani et al. (2017); Brown et al. (2020); Olsson et al. (2022); Wei et al. (2022); Schaeffer et al. (2023).
+\end{frame}
+\end{document}

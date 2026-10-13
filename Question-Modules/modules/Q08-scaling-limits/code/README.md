@@ -1,0 +1,1 @@
+Run `python3 regime_shift.py`. The script fits a synthetic power law exactly inside its generating regime, then shows a failed extrapolation after an invented regime shift. It is a methodological demonstration, not a forecast for real models.

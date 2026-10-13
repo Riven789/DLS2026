@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q11 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item Kalai and Vempala show calibrated models \emph{must} hallucinate on arbitrary facts, yet post-trained models hallucinate less and are measurably \emph{less} calibrated. Is trading calibration for caution the right deal? What does a user lose when a model's probabilities stop meaning what they say?
+\item The module argues hallucination is not lying because there is no intent. Where does that line actually sit? If a model reliably maintains a false claim under clarification (``are you sure?'') because refusals are low-probability under its distribution, is that closer to confabulation, stubbornness, or deception --- and does the moral category change any engineering decision?
+\item Retrieval can inject errors: Mallen et al.\ found retrieval \emph{hurts} on popular entities the model already knows, and a RAG system inherits its index's failures. Given that, when would you \emph{not} ground a production system --- and what audit would you run on the index before trusting it?
+\item Gekhman et al.\ find fine-tuning on new factual knowledge linearly increases hallucination. If SFT teaches the form of answers rather than facts, what should a domain-adaptation team do whose corpus is 90\% new knowledge (e.g., internal company facts)? Defend a concrete pipeline.
+\item The module's taxonomy separates fabrication, misattribution, and faithful errors. Design an evaluation that reports all three separately for a RAG assistant --- what labeled data would you need, and which of TruthfulQA, cloze probes, or HaluEval could you reuse for which slice?
+\end{enumerate}
+\end{document}

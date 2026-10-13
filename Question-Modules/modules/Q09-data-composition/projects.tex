@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q09 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Dedup aggressiveness sweep:} implement exact, MinHash, and suffix-array-style substring dedup over a small public corpus (e.g., 100MB of C4 or The Stack samples) at varying Jaccard thresholds and band sizes; train a small LM at each setting and plot the frontier of (unique tokens retained) vs.\ (loss and verbatim-memorization rate on held-out prompts). Locate the FineWeb-style point where more dedup starts to hurt.
+\item \textbf{Mixture-weight scaling study:} pick 4--5 domains (web, code, math, books) and fit a small-scale analogue of DoReMi or data-mixing laws: train tiny models (10--50M params) on a grid of mixtures, fit a predictive function of validation loss vs.\ mixture, and test whether the predicted optimum transfers to a model 4--10$\times$ larger.
+\item \textbf{Repetition vs.\ reweighting:} run a controlled 2$\times$2 --- \{repeat whole corpus, upsample one domain\} $\times$ \{1 epoch, 4 epochs\} --- at fixed token budget and measure both in-domain and out-of-domain loss, to test whether the 4-epoch rule survives under targeted up-sampling.
+\item \textbf{Tokenizer-fertility audit:} train BPE tokenizers of the same vocabulary size on different mixtures (web-only vs.\ web+code+math), tokenize a fixed evaluation suite with each, and quantify how declared domain weights shift when accounting is done in tokens, bytes, and unique-word types; report where the discrepancy is largest.
+\end{enumerate}
+\end{document}

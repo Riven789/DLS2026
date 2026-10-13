@@ -1,0 +1,37 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{preamble}
+\authorsig{KUKLA}
+\begin{document}
+\moduletitle{Q32 --- Discussion}{Quantifying information flow with entropy}
+
+\begin{enumerate}[leftmargin=*,itemsep=0.6em]
+\item \textbf{Entropy vs.\ correctness.} A model answers a factual question with
+very low next-token entropy but is wrong. A second model answers with high entropy
+and is right. What does each case tell you, and why is ``confident'' not the same
+as ``calibrated''? (Connect to Q11/Q12.)
+
+\item \textbf{The irreducible term.} Cross-entropy decomposes into
+$H(p_\text{data}) + D_\text{KL}(p_\text{data}\|p_\theta)$. If a lab reports a new
+model with lower perplexity on the same corpus, which term moved --- and could a
+reported perplexity gain ever be an artefact of the \emph{tokenizer} rather than
+the model? How would you control for that?
+
+\item \textbf{The information-plane debate.} Shwartz-Ziv \& Tishby saw a
+``compression phase''; Saxe et al.\ showed it depends on the nonlinearity and the
+binning. If a classmate shows you an information-plane plot of a network, what
+three questions do you ask before believing it?
+
+\item \textbf{Attention entropy as interpretation.} A given head has near-zero
+entropy on syntax tokens but near-maximal entropy on content words. Is this head
+``doing more'' on syntax? What alternative explanations (induction behaviour,
+positional averaging, a ``no-op''/attention-sink head) could produce the same
+entropy signature, and how would you distinguish them?
+
+\item \textbf{Estimate vs.\ intervene.} You want to know whether information about
+token $i$ reaches the prediction at position $j$. One student proposes estimating
+$I(h_i; \hat y_j)$ with MINE; another proposes activation patching. Under what
+conditions does each answer a \emph{different} question, and which one answers the
+\emph{causal} question you probably care about?
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q11: Why Do LLMs Hallucinate?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module, a student should be able to (i) define hallucination and distinguish it from lying and from honest reasoning errors, (ii) state the compression/generalization, calibration, and knowledge-boundary accounts of why fluent falsehood emerges from next-token prediction, (iii) explain the Kalai--Vempala result that calibrated models must hallucinate on arbitrary facts, (iv) evaluate standard mitigations (retrieval, post-training) together with their documented failure modes, and (v) name the main evaluation instruments and what each actually measures.
+
+\section{What hallucination is, and is not}
+A language model \emph{hallucinates} when it produces output that is fluent and confident but unfaithful to its source, its training data, or the world. The standard survey distinguishes \emph{intrinsic} hallucination (output contradicting the source) from \emph{extrinsic} hallucination (output unverifiable from the source), and catalogues causes from noisy training data to erroneous parametric knowledge and exposure bias \cite{ji2023survey}. Three clarifications keep the term honest:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Hallucination is not lying.} Lying requires intent to deceive --- a model of the reader's beliefs and a goal of exploiting it. A next-token predictor has neither; it samples from a learned distribution. The failure is epistemic, not moral. This matters practically: you cannot deter a statistical process by demanding honesty, only by changing the process.
+  \item \textbf{Fluency is not evidence.} The same machinery that produces grammatical, coherent text produces its falsehoods. Surface quality carries no information about truth value, so humans who treat fluency as a credibility signal are systematically misled --- precisely what TruthfulQA measures in humans' own misconceptions replicated by models \cite{lin2022truthfulqa}.
+  \item \textbf{Not every error is a hallucination.} A multi-step arithmetic slip where each step is a plausible local continuation is a reasoning failure, not a fabricated fact. Conflating them produces bad post-mortems: the fixes differ.
+\end{enumerate}
+
+A working taxonomy for this module:
+\begin{itemize}[noitemsep]
+  \item \textbf{Fabrication:} the output has no source --- a cited paper that does not exist, an API function that was never written.
+  \item \textbf{Misattribution:} every component is real --- a real author, a real venue, a real year --- but the combination is false. The most common form in citations, biographies, and structured answers.
+  \item \textbf{Faithful error:} the model's premises were right and its reasoning slipped --- wrong count, wrong unit, dropped negation.
+\end{itemize}
+The distinction is operational, not merely stylistic: fabrication tracks unattested content, misattribution tracks interference between attested contents, and faithful errors track inference, so each responds to different interventions.
+
+\section{Account 1: Compression and generalization}
+Pre-training is lossy compression of the corpus under a parameter budget. A model that memorized every fact would generalize poorly; a model that generalizes must abstract, and abstraction means the specific truth of a rare fact is traded away for the statistics of common cases. The model's objective rewards \emph{plausible continuation}, and truth is only one subclass of plausible: the corpus itself contains fiction, error, contradiction, and out-of-date claims, so a perfect predictor of the corpus would still emit falsehoods. TruthfulQA formalizes this as \emph{imitative falsehood}: questions where the corpus's popular answer is false (``What happens if you crack your knuckles a lot?''). Early models reproduced human misconceptions at a high rate --- the best tested model was truthful on 58\% of questions against a 94\% human baseline, with \emph{larger} models generally \emph{less} truthful on this benchmark \cite{lin2022truthfulqa}.
+
+The same pressure has a quantitative face: QA accuracy correlates with how often a fact's evidence appears in pre-training data, and long-tail facts are not rescued by scale --- models would need to grow by many orders of magnitude to answer rarely-attested questions reliably \cite{kandpal2023longtail}. Hallucination is thus partly a \emph{frequency phenomenon}: the learned distribution concentrates on the popular continuation, and the true continuation of a rare fact loses the argmax to a more plausible rival. The toy experiment in \texttt{code/hallucination\_toy.py} makes this concrete: a smoothed count model trained on a 100\% truthful corpus still answers rare facts with the most popular entity, and its accuracy climbs a clean monotone staircase as a function of training frequency (0.00 at counts 0--2, 0.44 at counts 3--5, 1.00 at counts 6+).
+
+\section{Account 2: Calibration --- hallucination as sampling beyond the reliability boundary}
+An LLM is a distribution over continuations; generation is a \emph{sampling} act, not a lookup. Even a perfectly \emph{calibrated} model --- one whose token probabilities match true conditional frequencies --- samples from that distribution, and any sample that is not the single most-supported claim risks being false. Call the set of contexts where the model's support for the truth exceeds its support for every rival the \emph{reliability boundary}: greedy decoding is correct only inside it, and sampling is correct only where the truth's probability mass dominates, a strictly smaller region. Hallucination is what falling outside that boundary looks like from outside.
+
+Kalai and Vempala make this precise \cite{kalai2024calibrated}. Idealize facts as \emph{arbitrary} --- their truth cannot be inferred from training data alone (``Alex Wilkins ate at Salumeria on a Tuesday'') --- versus \emph{systematic} (arithmetic, or facts whose truth is checkable by rule). For arbitrary facts, any calibrated model with bounded per-fact probability must hallucinate at a rate lower-bounded by its \emph{monofact rate}: the fraction of training facts that appear exactly once, the Good--Turing estimator of the missing-fact mass. The intuition: there are exponentially more plausible-but-false arbitrary factoids than true ones; a calibrated model must spread probability over unattested candidates, and that spread \emph{is} the hallucination rate. Three hedges matter. (i) The bound applies to arbitrary facts only --- it does not force hallucination on systematic facts or frequently-attested references, which the authors attribute to capacity and learning dynamics instead. (ii) It assumes ideal training data; real corpora are noisier. (iii) It is a statement about \emph{pre-training} to be a good predictor --- post-training can trade calibration for reduced hallucination, which is exactly what alignment pipelines observe empirically. The theorem demystifies: some hallucination is not a bug of Transformers but a price of calibrated prediction under an open world.
+
+\section{Account 3: Knowledge boundaries --- parametric memory vs.\ context}
+A third lens: the model carries two knowledge sources with different authorities --- \emph{parametric memory} (facts baked into weights during pre-training) and \emph{context} (the prompt, retrieved documents, conversation state). Hallucination frequently arises at their boundary: the context implies one answer, the parameters insist on another, and the resolved output satisfies neither. When context is absent, the parametric answer for a rare fact is simply the popular continuation --- the frequency effect above. Interpretability work locates parametric associations in mid-layer MLP modules, editable in place by rank-one edits (ROME), which is evidence that factual recall is a localized, look-up-like computation that can fail independently of fluency \cite{meng2022rome}.
+
+Post-training interacts with this boundary in a documented way: fine-tuning on facts the model does not already know teaches it that \emph{generating unsupported claims is acceptable behavior}. Gekhman et al.\ show such ``new-knowledge'' examples are learned far more slowly than knowledge-consistent ones, and that as they are eventually memorized they raise hallucination on held-out questions roughly linearly \cite{gekhman2024finetuning}. The supported conclusion is modest but important: fine-tuning best teaches the \emph{form} of answers, not new world knowledge; new facts should enter through the data (pre-training or retrieval), not through SFT.
+
+\section{Mitigations and their honest limits}
+\paragraph{Retrieval-augmented generation.} RAG conditions generation on documents retrieved from an external index, combining parametric and non-parametric memory \cite{lewis2020rag}, and retrieval-in-the-loop dialogue measurably reduces hallucination over parametric-only baselines \cite{shuster2021retrieval}. But retrieval moves the problem, it does not delete it: the retriever can fetch irrelevant or wrong passages, the generator can ignore correct ones, and Mallen et al.\ show retrieval \emph{hurts} on popular entities the model already knows --- the retrieved context misleads a model whose parametric answer was right \cite{mallen2023trust}. Grounding to a bad source produces confident, citable falsehood. The failure mode of a RAG system is inherited from its index, and no amount of generation-side fluency audits it.
+\paragraph{Post-training.} Alignment reduces (does not eliminate) hallucination, at a measured cost: pipelines optimized for factuality degrade calibration --- the very property whose loss Kalai--Vempala's bound flags \cite{kalai2024calibrated}. RLHF-tuned models are systematically overconfident; a refusal or hedge, being low-probability under the base distribution, must be installed against the gradient of the training distribution.
+\paragraph{Decoding and verification.} Constrained decoding, self-consistency, and sample-and-verify filter the distribution after the fact; they shift the operating point on the reliability boundary but cannot move the boundary for unattested facts, and verifiers can themselves hallucinate.
+
+No mitigation is a cure; each converts one failure mode into another with a different signature. Engineering reality is choosing which failure signature you can audit.
+
+\section{Evaluation}
+\begin{itemize}[noitemsep]
+  \item \textbf{TruthfulQA} \cite{lin2022truthfulqa}: 817 adversarial questions targeting imitative falsehoods; measures resistance to \emph{popular} wrong answers. Limitations: saturation risk under contamination, static, multiple-choice and generation variants.
+  \item \textbf{Factual-association probes} \cite{meng2022rome}: cloze templates over (subject, relation, object) triples with causal-tracing edits; measure \emph{parametric storage}, not end-to-end truthfulness. They answer ``does the model contain the fact,'' not ``will it say the fact.''
+  \item \textbf{HaluEval} \cite{li2023halueval}: 35K crowd- and model-generated hallucinated/non-hallucinated pairs across QA, dialogue, summarization; measures \emph{recognition} of hallucination in context, where strong models are far from ceiling. Limitations: partially synthetic labels, English-centric.
+\end{itemize}
+No single number captures ``hallucination rate''; each instrument measures one slice (imitative falsehood, parametric storage, recognition), and progress on one does not certify the others. A system owner should track the slice that matches their failure mode --- fabrication-heavy workloads need retrieval audits, not TruthfulQA scores.
+
+\section{Synthesis}
+The three accounts are one story told at three levels. \emph{Compression}: truth is a subset of plausibility, and rare truths lose to frequent plausibilities. \emph{Calibration}: a calibrated predictor must spread mass over the unattested, so sampling emits falsehoods at a rate the monofact count predicts. \emph{Knowledge boundaries}: the popular continuation wins precisely where parametric memory is thin, and context, when wrong or ignored, fails to override it. Mitigations are boundary management --- retrieval extends what counts as attested; post-training trades calibration for caution; verification filters samples. The module's code demonstrates the first two accounts in miniature, with the same corpus driving every number: the model is perfectly truthful \emph{in distribution} (100\% of its argmax answers are attested, real entities) yet systematically false on rare facts, and its confidence crosses 50\% only for the most-attested facts --- the reliability boundary of a toy Kalai--Vempala world.
+
+\paragraph{What to remember.} Fluency is free; truth is not. The same loss that makes an LLM usable makes it fallible, and the fallibility is predictable from corpus statistics --- which is the optimistic part: a failure you can predict from frequency data is a failure you can route around with retrieval, abstention, and audit.
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

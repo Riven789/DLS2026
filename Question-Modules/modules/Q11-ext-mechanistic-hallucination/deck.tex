@@ -1,0 +1,101 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q11: Why Do LLMs Hallucinate?}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``Why do models hallucinate, and can they know when they are unsure?''
+\item A model output that is fluent, confident, and false --- where does it come from?
+\item Answer preview: \textbf{three levels of one mechanism --- truth is a narrow subclass of plausible, calibrated predictors must spread mass over the unattested, and rare facts lose the argmax to popular continuations}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Hallucination $\neq$ lying}
+\begin{itemize}
+\item Lying = intent to deceive: a model of the reader + a goal
+\item A next-token predictor has neither; it \emph{samples from a distribution}
+\item Fluent falsehood is an epistemic failure, not a moral one
+\item Taxonomy for tonight:
+  \begin{itemize}
+  \item \textbf{Fabrication}: no source exists (invented paper, invented API)
+  \item \textbf{Misattribution}: real entities, false combination (wrong venue, wrong year)
+  \item \textbf{Faithful error}: right premises, slipped reasoning (arithmetic slip)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Account 1: compression / generalization}
+\begin{itemize}
+\item Pre-training = lossy compression under a parameter budget
+\item The objective rewards \emph{plausible continuation}; truth is one subclass of plausible
+\item The corpus contains fiction, error, contradiction $\Rightarrow$ a perfect predictor of it still emits falsehoods (``imitative falsehoods'' --- TruthfulQA; best early model 58\% truthful vs.\ 94\% human, \emph{larger was worse})
+\item QA accuracy tracks pre-training frequency; long-tail facts are not rescued by scale
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Account 2: calibration}
+\begin{itemize}
+\item Generation \emph{samples} from a distribution --- hallucination = sampling beyond the reliability boundary
+\item Kalai--Vempala (STOC 2024): for \emph{arbitrary} facts (truth not inferable from data), any calibrated model with bounded per-fact probability must hallucinate at a rate $\approx$ its \textbf{monofact rate} (fraction of facts seen exactly once --- a Good--Turing estimate)
+\item Hedges: arbitrary facts only; ideal data; pre-training only --- post-training trades calibration for caution
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Account 3: knowledge boundaries}
+\begin{itemize}
+\item Two stores: \textbf{parametric memory} (weights) vs.\ \textbf{context} (prompt, retrieval)
+\item Hallucination lives at their conflict: context implies A, parameters insist on B
+\item Facts localize in mid-layer MLPs; rank-one edits rewrite them (ROME) --- recall is a lookup that can fail independently of fluency
+\item Fine-tuning on \emph{new} knowledge: learned slowly, and raises hallucination linearly as it is memorized (Gekhman et al.\\ 2024) $\Rightarrow$ SFT teaches the \emph{form} of answers, not new facts
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Mitigations, honestly}
+\begin{itemize}
+\item \textbf{Retrieval (RAG)}: extends what counts as attested; reduces hallucination in dialogue --- but the retriever can fetch wrong passages, generators can ignore right ones, and retrieval \emph{hurts} on popular entities the model already knows (Mallen et al.\\ 2023)
+\item \textbf{Post-training}: reduces hallucination, degrades calibration (overconfident refusal/hedge rates)
+\item \textbf{Decoding / verification}: filters samples; cannot move the boundary for unattested facts
+\item No cure --- each mitigation swaps failure modes; pick the signature you can audit
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation}
+\begin{table}
+\begin{tabular}{lp{7.6cm}}
+\textbf{Instrument} & \textbf{What it actually measures} \\
+TruthfulQA & resistance to \emph{imitative} falsehoods (popular wrong answers) \\
+Factual-association probes & parametric \emph{storage} (cloze + causal edit), not end-to-end truthfulness \\
+HaluEval & \emph{recognition} of hallucination in context (35K pairs; models far from ceiling) \\
+\end{tabular}
+\end{table}
+\vspace{0.5em}
+No single number is ``the hallucination rate'' --- track the slice matching your failure mode.
+\end{frame}
+
+\begin{frame}{Toy demo (NumPy, 100\% truthful corpus)}
+\begin{itemize}
+\item Smoothed count model, Zipf-popular facts: greedy accuracy by training count
+\item $0.00$ (count 0--2) $\to$ $0.44$ (3--5) $\to$ $1.00$ (6+): \textbf{rare facts lose the argmax to the most popular entity}
+\item Median $P(\text{truth})$ crosses $0.5$ only at count 16+: sampling hallucinates on a \emph{strictly larger} set than greedy
+\item Monofact rate 4.0\% $\approx$ empirical missing-fact rate 3.1\% (Good--Turing flavor)
+\item \emph{Fluency is free; truth is not} --- route around it: retrieval for the unattested, abstention for the unsure, audit for the rest
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Ji et al.\\ 2023 --- the NLG hallucination survey (definitions, taxonomy)
+\item Kalai \& Vempala 2024 --- calibrated models must hallucinate (the theorem)
+\item Lin et al.\\ 2022; Gekhman et al.\\ 2024 --- imitative falsehoods; fine-tuning on new knowledge
+\item Lewis et al.\\ 2020; Shuster et al.\\ 2021; Mallen et al.\\ 2023 --- RAG, its gains, its failure modes
+\end{itemize}
+\end{frame}
+
+\end{document}

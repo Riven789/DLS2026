@@ -1,0 +1,113 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q26: Fine-Tuning and Adaptation}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The questions}
+\begin{itemize}
+\item How does fine-tuning change a model's behavior?
+\item Which post-training pipelines adapt well to new domains?
+\item How do we tune systems online?
+\end{itemize}
+\vspace{1em}
+Answer preview: \textbf{tuning moves the response distribution more than the knowledge; keep the update bounded; retrieve for facts, tune for behavior; SFT before preference.}
+\end{frame}
+
+\begin{frame}{Weight update vs.\ behavior surface}
+\begin{itemize}
+\item Mechanics: SGD on a new loss from pretrained $\theta_0$ --- says nothing about \emph{what} changes
+\item \textbf{Behavior reshaping:} instruction tuning / preference opt move the response distribution
+  \begin{itemize}
+  \item InstructGPT 1.3B \emph{preferred} over GPT-3 175B (Hu et al.\ 2022 is LoRA; Ouyang et al.\ 2022)
+  \item DPO: classification-like loss, KL anchor to reference
+  \end{itemize}
+\item \textbf{Knowledge injection:} much harder --- unsupervised FT learns new facts poorly
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Catastrophic forgetting}
+\begin{itemize}
+\item Sequential training on B overwrites weights that A relied on --- abruptly, not gradually (French 1999)
+\item Plain SGD has no notion of ``important to old task'' (Kirkpatrick et al.\ 2017, EWC)
+\item Mitigations that matter in LLM practice:
+  \begin{enumerate}
+  \item Replay: mix old/general data into domain training
+  \item Constrained updates: EWC penalty $\cdot$ importance; LoRA by construction
+  \end{enumerate}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{LoRA: low-rank adapters}
+\[
+W = W_0 + \frac{\alpha}{r} BA, \quad B \in \mathbb{R}^{d \times r},\ A \in \mathbb{R}^{r \times k},\ r \ll \min(d,k)
+\]
+\begin{itemize}
+\item $B$ init at zero $\Rightarrow$ $\Delta W = 0$ at start; only $A, B$ get gradients
+\item Up to $10{,}000\times$ fewer trainable params on GPT-3; \textbf{zero added inference latency} (merge $W_0 + BA$)
+\item Hu et al.\ 2022: adaptation $\Delta W$ has low ``intrinsic rank'' --- tiny $r$ suffices
+\item \textbf{Why capabilities survive:} residual confined to an $r$-dim subspace; base directions untouched $\Rightarrow$ soft EWC
+\end{itemize}
+\end{frame}
+
+\begin{frame}{QLoRA and the PEFT family}
+\begin{itemize}
+\item QLoRA (Dettmers et al.\ 2023): backprop through a frozen \textbf{4-bit} quantized base into LoRA
+\item NF4 datatype + double quantization + paged optimizers
+\item 65B model fine-tuned on one 48GB GPU, 16-bit-level task performance
+\item Family view: adapters (Houlsby), prefix/prompt tuning, LoRA, QLoRA --- all share ``freeze the base, learn a small edit''
+\item Bonus: adapters are swappable per domain; one base serves all
+\end{itemize}
+\end{frame}
+
+\begin{frame}{RAG vs.\ fine-tune}
+\begin{block}{The rule}
+\emph{If it's facts you need, retrieve; if it's behavior you need, tune.}
+\end{block}
+\begin{itemize}
+\item Ovadia et al.\ 2024: RAG beats unsupervised FT for knowledge injection --- seen and unseen knowledge alike
+\item Retrieve: volatile, citable, large, revocable knowledge (Lewis et al.\ 2020)
+\item Tune: format, style, domain instruction-following, latency-critical skills
+\item Combine when both apply: LoRA generator over a domain index
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Online / continual adaptation}
+\begin{itemize}
+\item \textbf{Test-time training} (Sun et al.\ 2020): each test input becomes a self-supervised problem; model updated before predicting; extends to streams
+\item \textbf{Streaming weight updates:} fragile --- drift, small batches, forgetting at production cadence
+\item \textbf{Why naive online SGD breaks RLHF models:}
+  \begin{enumerate}
+  \item No KL anchor $\Rightarrow$ policy drifts past what preference data certified
+  \item Likelihood updates on a narrow stream sharpen/collapse entropy
+  \item Compounding: each update moves the next one's starting point
+  \end{enumerate}
+\item Deployed systems use bounded edits: small-$r$ LoRA, anchors, periodic re-tune from frozen base
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Pipeline order in practice}
+\begin{enumerate}
+\item \textbf{Retrieval first} --- cheapest iteration loop; measure the frozen base + RAG gap
+\item \textbf{SFT for domain behavior} --- LoRA/QLoRA, replay data mixed in
+\item \textbf{Preference optimization last} --- DPO/RLHF assumes SFT-level competence; anchor defined against post-SFT reference
+\end{enumerate}
+\vspace{1em}
+Reversing 2 and 3 wastes the preference stage re-teaching format.
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Hu et al.\ 2022 (LoRA); Dettmers et al.\ 2023 (QLoRA)
+\item Kirkpatrick et al.\ 2017 (EWC / catastrophic forgetting); French 1999 (survey)
+\item Lewis et al.\ 2020 (RAG); Ovadia et al.\ 2024 (fine-tune vs.\ retrieval)
+\item Sun et al.\ 2020 (test-time training); Ouyang et al.\ 2022; Rafailov et al.\ 2023
+\end{itemize}
+\end{frame}
+
+\end{document}

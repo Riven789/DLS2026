@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q27 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item Arditi et al.\ find that refusal is mediated by a single direction, and ablating it spares most other capabilities. If safety-relevant behavior of a deployed 70B model really rides on a one-dimensional structure, what does that imply about treating red-teaming pass rates as evidence of safety --- and would you accept ``refusal-direction robustness'' audits as a replacement or a complement?
+\item The probing literature's core lesson is \emph{representable $\neq$ used}. Construct a concrete scenario where a high-accuracy ``deception probe'' on a deployed model would mislead a safety team, and specify the causal experiment that would have caught the error.
+\item Jailbreaks have been described as ``reversion to pre-training traits.'' What evidence would distinguish that hypothesis from the weaker one that safety training simply does not generalize off-distribution? Which experiment in the module (Wei et al.'s taxonomy, Zou et al.'s transferable suffixes, Arditi et al.'s ablation) comes closest to discriminating them?
+\item Qi et al.\ show 10 adversarial examples suffice to strip safety from GPT-3.5 Turbo. Is ``post-training steers rather than rewrites'' the right frame, or does the fine-tuning attack show something stronger --- that alignment was never more than a conditional policy? What would count as evidence that some safety property is \emph{deeply} encoded?
+\item Greenblatt et al.'s alignment faking shows post-trained preferences persisting strongly enough that the model resists overwriting them. How does that result sit with the shallow-refusal picture from the same module --- contradiction, complement, or difference in what ``preference'' and ``refusal'' mean mechanistically? Defend a reading.
+\end{enumerate}
+\end{document}

@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q21 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Interface-substitution experiment:} build one 3-component system (perception $\to$ router $\to$ controller) on a Gymnasium classic-control task and swap only the seam --- differentiable embeddings vs.\ discretized feature vector vs.\ text labels --- holding components fixed. Measure task performance, sensitivity of downstream components to upstream retraining, and fault-localization time. The deliverable is a quantitative latency/observability table like the note's Section 5.
+\item \textbf{Compounding-error curve:} generate $k$-stage synthetic pipelines where each stage has controllable per-stage accuracy; measure end-to-end success as a function of $k$ and per-stage correlation; empirically test when joint fine-tuning of the last stage alone recovers pipeline performance. Compare against the geometric-decay prediction from the note.
+\item \textbf{Options vs.\ prompt-orchestration head-to-head:} on a gridworld with 4--6 reusable skills, implement (a) a tabular options learner with termination conditions \cite{sutton1999options,bacon2017optioncritic} and (b) an LLM (or scripted stand-in) that selects among the same skills from natural-language task descriptions. Report learning samples to competence, transfer to a new task, and failure-diagnosability --- three numbers the two paradigms disagree about most.
+\item \textbf{Load-balancing ablation:} extend the module's MoE toy: add the Shazeer load-balancing auxiliary loss \cite{shazeer2017sparsely}, vary expert count (2--16) and cluster overlap, and plot when routing collapses to one expert. Identify the smallest auxiliary-loss weight that prevents collapse, and document the failure without it.
+\end{enumerate}
+\end{document}

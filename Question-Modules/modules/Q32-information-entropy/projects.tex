@@ -1,0 +1,40 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{preamble}
+\authorsig{KUKLA}
+\begin{document}
+\moduletitle{Q32 --- Deeper projects}{Quantifying information flow with entropy}
+
+\begin{enumerate}[leftmargin=*,itemsep=0.7em]
+\item \textbf{Entropy-triggered abstention.} Build a selective-prediction wrapper
+around a small instruction model on a trivia or multiple-choice set. Use predictive
+entropy (and the logit margin) as the abstention score; plot the
+accuracy--coverage (risk--coverage) curve and compare entropy against a verbalised
+``how sure are you?'' baseline. \emph{Deliverable:} the curve + a short note on
+where entropy fails as a confidence proxy. (Links to Q10--Q12.)
+
+\item \textbf{Reproduce the binning artefact, then kill it.} Take a 2--3 layer MLP
+on a toy classification task. Reproduce a ``compression-phase'' information-plane
+plot with \texttt{tanh} + coarse binning, then show it weaken/vanish with (a)
+\texttt{ReLU}, (b) a finer/adaptive binning, and (c) a KSG estimator.
+\emph{Deliverable:} three plots and a paragraph on what, if anything, survives.
+
+\item \textbf{Attention-entropy atlas.} For a small open transformer, compute
+per-head attention entropy across layers on a fixed prompt set; cluster heads by
+entropy profile and cross-reference against known head taxonomies (induction heads,
+attention sinks, positional heads). \emph{Deliverable:} a heatmap + a claim about
+which clusters are real vs.\ which are averaging artefacts, tested by ablation.
+
+\item \textbf{Estimate vs.\ intervene bake-off.} Pick one specific information-flow
+hypothesis (e.g.\ ``the subject token's information reaches the final position
+through layer $\ell$''). Answer it two ways --- a variational MI bound (InfoNCE)
+\emph{and} activation patching --- and write up where they agree, where they
+diverge, and which you would trust in a paper.
+
+\item \textbf{LLM-as-compressor.} Reimplement the Del\'etang et al.\ experiment at
+toy scale: use a frozen small LM as the probability model inside an arithmetic
+coder and measure bits/token on held-out text; compare against \texttt{gzip} and
+against the LM's reported perplexity. \emph{Deliverable:} a table showing
+compression ratio $=$ perplexity in different units.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q18: How Similar Is LLM ``Thinking'' to Biological Brains?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item Compare transformer computation with biological neural computation at the mechanism level.
+\item Identify what the ``brain'' analogy gets right and where it misleads.
+\item Assess, soberly, whether building AI from brain structure is a promising path.
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion video:}\begin{itemize}\setlength\itemsep{0pt}\item \emph{AI vs Human Thinking: How LLMs Really Work} --- IBM Technology (12:11). \url{https://www.youtube.com/watch?v=-ovM0daP6bw}\end{itemize}\end{quote}
+
+\section{The question, made precise}
+Student responses \#06 and \#11 ask how similar LLM ``thinking'' is to human thinking, how similar AI
+systems are to biological brains, and whether we could build AI from brain structure. To answer without
+hand-waving we must separate three claims: (1) behavioral similarity, (2) representational similarity,
+and (3) mechanistic similarity. They are often conflated, and they have very different evidence.
+
+\section{Where the analogy holds}
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Distributed representations.} Both brains and nets encode concepts across many units
+rather than one-unit-per-concept, and both show \emph{superposition} (more features than
+neurons) \citep{elhage2022superposition}.
+\item \textbf{Hierarchy of features.} Vision models and visual cortex both build edge $\to$ texture
+$\to$ part $\to$ object hierarchies, and model activations can \emph{predict} neural responses in
+sensory cortex above chance \citep{yamins2014performance}.
+\item \textbf{Learning from experience.} Both adapt connection strengths from data rather than being
+fully hand-wired.
+\end{itemize}
+
+\section{Where it breaks}
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Learning rule.} Backpropagation requires a global, symmetric backward pass that biological
+synapses do not plausibly implement; the brain's credit-assignment mechanism is unknown and likely
+local and different \citep{lillicrap2020backprop}.
+\item \textbf{Substrate and dynamics.} Neurons are spiking, stochastic, continuous-time, energy-frugal
+($\sim$20\,W whole brain); transformers are clocked, deterministic-ish, and enormously power-hungry.
+\item \textbf{Objective.} An LLM is trained to predict the next token on text; a brain is shaped by
+evolution and embodied, multi-modal, reward-driven interaction with a physical world. Same word
+(``learning''), very different pressures.
+\item \textbf{Architecture.} Attention over a fixed context window is not how cortex routes information;
+there is no biological KV cache.
+\end{itemize}
+
+\begin{quote}\small
+\textbf{Caution.} Behavioral similarity (an LLM ``reasons'' like a person on a benchmark) does not imply
+mechanistic similarity (it does so \emph{the way} a person does). The strongest current evidence is
+representational (model activations predicting neural data in \emph{sensory} systems); evidence for
+shared mechanism in high-level reasoning is weak.
+\end{quote}
+
+\section{A worked comparison: one task, two systems}
+Consider recognizing a handwritten digit. In a convolutional network, the pixel grid passes through
+stacked filters; early filters respond to oriented edges, later units to strokes and whole digits, and a
+final softmax commits to a label---one deterministic forward sweep, then a backward sweep at training
+time to adjust every weight by the global loss gradient. In the primate visual system the same stimulus
+drives a cascade from retina through V1 (edge-selective simple cells), V2/V4 (contours, shapes), to
+inferotemporal cortex (object identity)---superficially the same hierarchy, which is exactly why models
+trained only to classify end up \emph{predicting} the firing of these areas \citep{yamins2014performance}.
+But the differences are not cosmetic: the cortical cascade is recurrent (massive feedback between
+stages), runs in continuous time with spikes, adapts through local plasticity rules rather than a global
+backward pass, and is embedded in a body that moves its eyes to gather the input. The lesson for
+students: the \emph{representations} converge because both systems are solving the same statistical
+problem under a hierarchy prior, while the \emph{mechanisms} that build those representations remain
+distinct. Convergent representations are evidence about the problem, not proof of shared machinery.
+
+\section{Why the distinction matters practically}
+This is not idle philosophy. If LLM and brain mechanisms differ, then (a) we cannot assume AI will fail
+or succeed where humans do---its error profile is its own (jagged capabilities, module Q10); (b)
+neuroscience findings transfer to AI only as loose priors, not blueprints, so ``it's how the brain does
+it'' is a weak argument for a design choice; and (c) safety and interpretability must study the model's
+\emph{actual} computation rather than reasoning by human analogy. Treating the analogy as literal is a
+recurring source of both over- and under-estimation of AI.
+
+\section{Could we build AI from brain structure?}
+This is the neuromorphic / brain-inspired program. Honest status: biologically detailed models
+(spiking networks, cortical microcircuits) have \emph{not} matched task performance of mainstream deep
+learning, while the ideas that \emph{did} transfer were abstract (distributed representations,
+convolution loosely inspired by receptive fields, attention loosely inspired by selective attention),
+not literal wiring diagrams \citep{hassabis2017neuroscience}. The useful lesson flows both ways: deep
+nets are now a leading \emph{model} of sensory cortex, and neuroscience occasionally suggests priors.
+But ``copy the connectome and run it'' is not a demonstrated route to capability today.
+
+\section{Summary}
+LLMs and brains share distributed, hierarchical, experience-shaped representations---enough that models
+predict sensory neural activity. They differ sharply in learning rule, substrate, objective, and
+architecture. Behavioral resemblance is not mechanistic identity. Brain-inspired AI has contributed
+\emph{abstractions}, not literal blueprints; building AI from brain structure remains a research
+aspiration, not a proven method.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

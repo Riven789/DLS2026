@@ -1,0 +1,43 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q25: AI Improving AI}
+\subtitle{Synthetic data, AI feedback, and the traps}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#40)}
+Can AI agents be used to fine-tune and improve other models efficiently?
+\end{block}
+Qualified \textbf{yes} --- specific uses, with real traps.
+\end{frame}
+\begin{frame}{Where AI already improves AI}
+\begin{itemize}
+\item \textbf{Synthetic data} + \textbf{distillation} (teacher $\to$ student).
+\item \textbf{RLAIF / Constitutional AI}: AI feedback replaces human labels.
+\item \textbf{LLM-as-judge}: evaluate at scale.
+\item \textbf{Data curation}: score, dedup, filter corpora.
+\item \textbf{Agentic loops}: propose + run experiments.
+\end{itemize}
+\end{frame}
+\begin{frame}{The traps}
+\begin{itemize}
+\item \textbf{Circularity}: generator = judge $\Rightarrow$ self-reinforcing bias.
+\item \textbf{Model collapse}: recursive training on synthetic data narrows the distribution.
+\item \textbf{Reward hacking}: optimize the signal's flaws, not the goal.
+\end{itemize}
+\alert{``Improvement'' can be illusory.}
+\end{frame}
+\begin{frame}{Doing it safely}
+\begin{itemize}
+\item Validate AI feedback on held-out \textbf{human-labeled} data.
+\item Mix synthetic with \textbf{fresh real} data (resist collapse).
+\item Generator $\ne$ judge on the same signal.
+\item Treat automatic metrics as proxies to audit.
+\end{itemize}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q05: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A model has single-sample accuracy $p_1=0.5$ on a task with a
+\emph{perfect} verifier. Using best-of-$n$, roughly how many samples $n$ do you need so that at least
+one sample is correct with probability $\ge 0.95$? What real-world cost grows as you do this, and name
+one task type where this whole strategy would \emph{not} help.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} Need $1-(1-0.5)^n \ge 0.95 \Rightarrow 0.5^n \le 0.05 \Rightarrow
+n \ge \log 0.05 / \log 0.5 \approx 4.32$, so $n=5$ samples. Cost that grows: inference compute
+(tokens), hence latency and money---roughly linear in $n$. It would not help on a task with no verifier
+or no single ``correct'' answer (e.g.\ open-ended generation), or on a single-step lookup where $p_1$
+is already near 1 and extra samples add nothing.}
+\end{document}

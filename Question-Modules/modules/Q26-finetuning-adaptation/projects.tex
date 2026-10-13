@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q26 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Rank sweep on the stability--plasticity curve:} extend this module's NumPy demo to sweep LoRA rank $r \in \{1, 2, 4, 8, 16, 64\}$ on a two-task sequence; plot task-A retention against task-B gain and identify the knee. Compare against full fine-tuning with replay at several replay ratios. Where does the rank constraint beat data mixing, and why?
+\item \textbf{Retrieve-vs-tune ablation on a real corpus:} pick a domain (e.g.\ a course's own lecture notes or an arXiv slice). Build (i) a frozen base model prompted zero-shot, (ii) the same model + a retrieval index, and (iii) the same model LoRA-tuned on the corpus. Evaluate on factoid questions vs.\ format/style tasks. Test the module's rule: does retrieval win facts and tuning win behavior on your stack?
+\item \textbf{Anchored online updates:} implement a streaming adaptation loop where a small-$r$ LoRA is refreshed on incoming minibatches against a pinned reference model, with an explicit KL anchor. Characterize drift, entropy collapse, and forgetting as functions of anchor strength; find the setting where naive online SGD visibly breaks and the anchored version does not.
+\item \textbf{Pipeline-order experiment:} on a domain-adaptation task, run SFT$\to$DPO and DPO$\to$SFT orderings with matched compute and data. Measure domain behavior quality, preference-metric scores, and regression on general benchmarks. Does the ``preference last'' ordering claim survive your setup?
+\end{enumerate}
+\end{document}

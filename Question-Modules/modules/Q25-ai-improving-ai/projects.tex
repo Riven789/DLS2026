@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q25: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Distillation (medium, 4--6 days).} Distill a larger model's outputs into a smaller student on a task; measure the student's gain vs.\ training on ground-truth labels alone, and where the teacher's errors propagate.
+\item \textbf{Judge-bias audit (small--medium, 3--5 days).} Quantify length bias, position bias, and self-preference in an LLM-as-judge setup; propose and test mitigations (randomized order, length normalization).
+\item \textbf{Collapse experiment (medium, 1 week).} Iteratively retrain a small generative model on its own outputs across generations; measure diversity/quality decay and how much fresh real data arrests it.
+\end{enumerate}
+\end{document}

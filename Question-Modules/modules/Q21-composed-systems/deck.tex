@@ -1,0 +1,124 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q21: Composing Networks and Learned Policies}
+\author{Paradise}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``How do different networks and learned RL policies combine in one system, and what is the design intuition?''
+\item Observation: no deployed system is one network on one loss
+\item Answer preview: \textbf{five patterns, one trade-off, three axes}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Five composition patterns}
+\begin{table}
+\begin{tabular}{ll}
+\textbf{Pattern} & \textbf{Seam} \\
+Pipeline & upstream output feeds downstream \\
+Ensemble & votes / average (all fire) \\
+Mixture-of-experts & learned router picks experts \\
+Options / hierarchy & high-level policy picks sub-policies \\
+LLM orchestrator & model calls tools/components \\
+\end{tabular}
+\end{table}
+
+Each pattern = a different answer to ``who decides, and what crosses the seam?''
+\end{frame}
+
+\begin{frame}{MoE: composition inside one training run}
+\begin{itemize}
+\item 1991: gating network allocates cases to experts \cite{jacobs1991adaptive}
+\item 2017: sparsely-gated layer, 2 of 137B experts per token \cite{shazeer2017sparsely}
+\item 2022: Switch top-1 routing to a trillion parameters \cite{fedus2022switch}
+\item Why it works: the joints (router--expert) are \emph{jointly trained} $\Rightarrow$ no interface brittleness
+\item Constraint: all experts share architecture, data stream, loss
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Options: composition along time}
+\begin{itemize}
+\item Options = closed-loop policies + initiation set + termination \cite{sutton1999options}
+\item Fixed option set $\Rightarrow$ the high level faces a semi-MDP
+\item MAXQ: value function decomposes across the hierarchy \cite{dietterich2000maxq}
+\item Option-critic: learn the options too \cite{bacon2017optioncritic}
+\item Payoff: state abstraction; cost: credit for delayed reward must split across options
+\end{itemize}
+\end{frame}
+
+\begin{frame}{LLM as orchestrator}
+\begin{itemize}
+\item ReAct: interleave reasoning traces with actions \cite{yao2023react}
+\item Toolformer: model learns to emit API calls self-supervised \cite{schick2023toolformer}
+\item SayCan: $p(\text{skill}\mid\text{instruction}) \times p(\text{success}\mid\text{state})$ from a learned value function \cite{ahn2022saycan}
+\item MuZero: a different orchestrator --- search over a learned model \cite{schrittwieser2020muzero}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{When composition wins --- and loses}
+\textbf{Wins:}
+\begin{itemize}
+\item \textbf{Data heterogeneity:} components train where their data lives
+\item \textbf{Observation rates differ:} options decide at boundaries, skills every step
+\item \textbf{Reusability:} add a skill $=$ add a description $+$ value function \cite{ahn2022saycan}
+\item \textbf{Debuggability:} unit-test each component; readable traces \cite{yao2023react}
+\end{itemize}
+
+\textbf{Loses:}
+\begin{itemize}
+\item \textbf{Compounding error:} $k$ stages, success $\sim p^k$; the end-to-end counter-argument \cite{levine2016end}
+\item \textbf{Interface brittleness:} retrain the producer, silently break the consumer
+\item \textbf{Credit assignment:} who was wrong? gradients don't cross discrete seams
+\end{itemize}
+
+Trade: learning-theoretic optimality $\leftrightarrow$ engineering scalability
+\end{frame}
+
+\begin{frame}{The interface problem}
+\begin{block}{What crosses the seam?}
+\begin{enumerate}
+\item \textbf{Embeddings:} max bandwidth, differentiable, unstable, silent failure
+\item \textbf{Typed APIs:} checked contracts, loud failure, someone designs them \cite{schick2023toolformer}
+\item \textbf{Natural language:} universal, readable, lossy, hallucination-prone \cite{ahn2022saycan}
+\end{enumerate}
+\end{block}
+Interface choice $=$ where gradient can flow
+\end{frame}
+
+\begin{frame}{Three design axes}
+\begin{itemize}
+\item \textbf{Latency:} router $\ll$ pipeline $<$ LLM-per-step; search has a budget \cite{schrittwieser2020muzero}
+\item \textbf{Trainability of joints:} gradients across seams? embeddings vs.\ discrete choices
+\item \textbf{Observability:} can you localize a 3\,a.m.\ failure?
+\end{itemize}
+
+The axes conflict: highest bandwidth $=$ least observable. Design $=$ negotiating the three.
+\end{frame}
+
+\begin{frame}{Toy demo (code/)}
+\begin{itemize}
+\item 4-expert mixture, learned router, clustered synthetic data
+\item vs.\ monolith with \emph{more} parameters (316 vs.\ 180) --- conservative
+\item Router learns cluster assignment (100\%, up to permutation)
+\item Composed system beats monolith on held-out loss (0.029 vs.\ 0.066)
+\item Kill the router (random routing) $\Rightarrow$ loss explodes to 10.2
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Takeaway}
+\emph{Composition buys reusability, heterogeneous-data compatibility, and debuggability at the price of compounding error, brittle interfaces, and cross-component credit assignment --- the design skill is placing each seam on the latency / trainability / observability surface.}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+\footnotesize
+\bibliographystyle{plain}
+\bibliography{bibliography}
+\end{frame}
+
+\end{document}

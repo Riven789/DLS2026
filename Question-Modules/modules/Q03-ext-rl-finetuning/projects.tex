@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q03 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Reward hacking demo:} train a tiny reward model on synthetic preferences with a known blind spot, then run PPO-style optimization against it; document the exploit the policy finds and how the KL anchor changes its severity.
+\item \textbf{DPO identity check:} implement the derivation numerically --- verify on a bandit toy that the DPO gradient equals the RLHF-objective gradient through the closed-form optimum, and characterize when finite samples break the equivalence.
+\item \textbf{GRPO stress test:} implement group-relative advantages on a curriculum of tasks with varying solve rates; plot advantage variance and update quality as the group becomes all-success or all-failure.
+\item \textbf{Length-bias audit:} take a public preference dataset; measure the correlation between response length and preference label; then test whether a DPO-trained small model inherits the bias.
+\end{enumerate}
+\end{document}

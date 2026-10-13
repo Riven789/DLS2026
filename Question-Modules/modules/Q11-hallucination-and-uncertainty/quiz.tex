@@ -1,0 +1,92 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q11 --- Comprehension check}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Why do models hallucinate, and can they know when they are unsure?}
+
+Large language models are trained to predict the next token under a maximum-likelihood objective. This training signal rewards \emph{fluency} and \emph{plausibility}, not \emph{factual grounding}: a model receives essentially the same loss reduction whether it produces a correct citation or a confidently fabricated one, provided the fabrication is linguistically well-formed. ``Hallucination'' is the term for outputs that are fluent and syntactically coherent but factually unsupported or wholly invented. This short module asks you to connect the mechanistic causes of hallucination to the empirical question of whether a model's internal states carry usable information about its own uncertainty.
+
+\paragraph{Question.} Explain \emph{why} next-token language models hallucinate, distinguishing at least two distinct mechanistic contributors. Then assess the claim that models ``can know when they are unsure.'' In your answer, (a) distinguish \emph{aleatoric} from \emph{epistemic} uncertainty, (b) describe at least two concrete methods by which a model's uncertainty or truthfulness can be estimated, and (c) state one principled limitation that prevents hallucination from being eliminated entirely.
+
+\paragraph{Answer.}
+
+\emph{Why hallucination happens.} Several mechanisms combine.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Objective mismatch.} The pretraining objective optimises next-token likelihood, which is a proxy for plausibility rather than truth. The model learns the statistical shape of correct answers (author names, dates, DOIs, API signatures) and will happily sample a token sequence that \emph{looks} like a valid answer even when no such fact exists in its parameters. There is no built-in penalty for confident error.
+  \item \textbf{Training-data and exposure bias.} Teacher forcing trains the model only on ground-truth prefixes, so at inference time it must condition on its own (possibly erroneous) earlier tokens, and errors compound auto-regressively \citep{bengio2015scheduled}. The corpus itself also contains falsehoods, contradictions, and underspecified queries whose answers are not determined by the data.
+  \item \textbf{Alignment and calibration pressure.} Reinforcement learning from human feedback and related fine-tuning can degrade calibration and encourage sycophantic, confident-sounding completions; \citet{openai2023gpt4} report that RLHF reduced the calibration of GPT-4 relative to the pretrained base model.
+  \item \textbf{The long tail.} For rare entities and facts seen few times (or never), the model has no reliable signal and interpolates, producing plausible-but-wrong content. Comprehensive surveys catalogue these factuality and faithfulness failure modes \citep{ji2023survey}.
+\end{enumerate}
+
+\emph{(a) Two kinds of uncertainty.} \textbf{Aleatoric} uncertainty is irreducible stochasticity inherent to the task (e.g., a genuinely ambiguous or underspecified question, or a prediction target that is intrinsically random). \textbf{Epistemic} uncertainty reflects the model's lack of knowledge---reducible in principle by more data, larger capacity, or retrieval \citep{kendall2017uncertainties}. Hallucination on rare facts is predominantly an epistemic failure; disagreement among equally valid answers is aleatoric.
+
+\emph{(b) Can a model know it is unsure?} To a useful but imperfect degree, yes. Several signals correlate with correctness:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Token-level probability / calibration.} Pretrained LMs are often surprisingly well calibrated on multiple-choice tasks, so the probability mass assigned to an answer carries signal \citep{openai2023gpt4}. Softmax confidence alone, however, is a weak proxy for factuality.
+  \item \textbf{Sampling consistency.} Sampling multiple answers and measuring their semantic agreement estimates uncertainty: high divergence indicates the model is ``making it up.'' \emph{Semantic entropy} clusters samples by meaning before measuring entropy and detects confabulations more reliably than lexical variance \citep{kuhn2023semantic,farquhar2024detecting}.
+  \item \textbf{Self-evaluation / verbalised confidence.} Models can be asked to judge whether their own answer is correct or to emit a probability; \citet{kadavath2022know} show that models have nontrivial ability to predict ``P(True)'' for their outputs, indicating internal states encode some self-knowledge.
+  \item \textbf{Grounding by retrieval.} Conditioning generation on retrieved evidence reduces epistemic uncertainty and attributable error \citep{lewis2020retrieval}.
+\end{itemize}
+
+\emph{(c) A principled limitation.} Uncertainty signals are only partial. Models remain miscalibrated after alignment, and consistency-based methods fail when a model is \emph{confidently and systematically wrong} (a stable but false belief produces low semantic entropy). More fundamentally, aleatoric uncertainty and the open-world nature of factual queries mean that no amount of in-weights calibration can resolve questions whose answers are not determined by the model's knowledge; grounding and abstention mitigate but cannot eliminate hallucination.
+
+\paragraph{Summary.} Hallucination arises because training optimises plausibility, not truth, compounded by exposure bias, a long-tailed world, and calibration-eroding fine-tuning. Models possess \emph{some} access to their own uncertainty---through calibrated probabilities, sampling consistency, and self-evaluation---but this access is noisy, especially for confidently held falsehoods, so abstention and retrieval-grounding are necessary complements rather than a complete solution.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem[Bengio et al.(2015)]{bengio2015scheduled}
+S.~Bengio, O.~Vinyals, N.~Jaitly, and N.~Shazeer.
+\newblock Scheduled sampling for sequence prediction with recurrent neural networks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2015.
+
+\bibitem[Farquhar et al.(2024)]{farquhar2024detecting}
+S.~Farquhar, J.~Kossen, L.~Kuhn, and Y.~Gal.
+\newblock Detecting hallucinations in large language models using semantic entropy.
+\newblock \emph{Nature}, 630:625--630, 2024.
+
+\bibitem[Ji et al.(2023)]{ji2023survey}
+Z.~Ji, N.~Lee, R.~Frieske, T.~Yu, D.~Su, Y.~Xu, E.~Ishii, Y.~J. Bang, A.~Madotto, and P.~Fung.
+\newblock Survey of hallucination in natural language generation.
+\newblock \emph{ACM Computing Surveys}, 55(12):1--38, 2023.
+
+\bibitem[Kadavath et al.(2022)]{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, et al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Kendall and Gal(2017)]{kendall2017uncertainties}
+A.~Kendall and Y.~Gal.
+\newblock What uncertainties do we need in Bayesian deep learning for computer vision?
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2017.
+
+\bibitem[Kuhn et al.(2023)]{kuhn2023semantic}
+L.~Kuhn, Y.~Gal, and S.~Farquhar.
+\newblock Semantic uncertainty: Linguistic invariances for uncertainty estimation in natural language generation.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem[Lewis et al.(2020)]{lewis2020retrieval}
+P.~Lewis, E.~Perez, A.~Piktus, et al.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem[OpenAI(2023)]{openai2023gpt4}
+OpenAI.
+\newblock {GPT-4} technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}, 2023.
+
+\end{thebibliography}
+
+\end{document}

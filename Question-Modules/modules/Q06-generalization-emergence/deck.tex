@@ -1,0 +1,12 @@
+\documentclass[aspectratio=169,10pt]{beamer}\usetheme{metropolis}
+\title{Q06: Generalization, Memorization, and Emergence}\subtitle{Turn competing explanations into tests}\author{DLS 2026}\date{October 2026}
+\begin{document}\maketitle
+\begin{frame}{The question}\begin{block}{Q06}What are models computing? Generalization vs. memorization? How do capabilities emerge with scale?\end{block}\end{frame}
+\begin{frame}{Generalization needs a target distribution}\begin{itemize}\item Random held-out examples\item New wording / format\item New combinations of known skills\item New domain or causal regime\end{itemize}\alert{These are different claims, not interchangeable test sets.}\end{frame}
+\begin{frame}{Memorization and generalization can coexist}\begin{itemize}\item Retaining examples is not automatically useless.\item A model can reuse fragments and still transfer.\item Benchmark shortcuts can look like competence.\end{itemize}\vfill The question is: what changes under a split designed to break the shortcut?\end{frame}
+\begin{frame}{What is being computed?}\begin{itemize}\item The direct output is a conditional distribution.\item Internal representations may encode reusable regularities.\item Behavior, intervention, and mechanistic evidence support different strengths of claim.\end{itemize}\end{frame}
+\begin{frame}{Few-shot behavior}\begin{itemize}\item Prompt examples change outputs without changing weights.\item Success can reflect a useful context-sensitive rule---or a familiar template.\item Hold out compositions and paraphrases to distinguish them.\end{itemize}\vfill\small Brown et al. (2020)\end{frame}
+\begin{frame}{Emergence: claim carefully}\begin{itemize}\item Some benchmarks show threshold-like scale curves.\item A threshold can reflect a new computation, a metric, a prompt, or a mixture.\item Plot continuous metrics and disclose protocol/variance.\end{itemize}\vfill\small Wei et al. (2022); Schaeffer et al. (2023)\end{frame}
+\begin{frame}{Toy held-out-combination test}\begin{itemize}\item Train: most color--shape pairs.\item Test: withheld diagonal pairs.\item Lookup baseline fails unseen pairs.\item Rule solver succeeds if it captures the specified relation.\end{itemize}\alert{This isolates one notion of compositional generalization.}\end{frame}
+\begin{frame}{Takeaway}\begin{block}{Evaluation principle}Name the target distribution and construct cases on which your intended explanation and its shortcut predict different outcomes.\end{block}\end{frame}
+\end{document}

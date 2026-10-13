@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q05: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Coverage curves (small, 2--3 days).} On a verifiable benchmark (e.g.\ GSM8K), measure accuracy vs.\ $n$ for best-of-$n$ with and without a verifier; fit the diminishing-returns curve and locate the cost-optimal $n$.
+\item \textbf{Overthinking study (medium, 3--5 days).} Sweep forced reasoning length on an easy and a hard task set; show the inverted-U and identify where extra length starts to hurt.
+\item \textbf{Adaptive compute (larger, 1--2 weeks).} Build a difficulty estimator that allocates more samples/longer traces only to hard queries; compare total compute vs.\ fixed-budget baselines at matched accuracy.
+\end{enumerate}
+\end{document}

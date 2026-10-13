@@ -1,0 +1,61 @@
+{
+  "module": "Q10-jagged-frontier",
+  "title": "Q10: The Jagged Frontier",
+  "subtitle": "Why 'simple' is a human notion the model never learned",
+  "author": "DLS 2026 — Kukla",
+  "narration_voice": "edge-tts",
+  "resolution": "1080p60",
+  "notes": "Companion video V2 spec per paradise 2026-10-10. Each segment carries a 'visual' field: 'slide' = PIL text+bullets (existing working path), 'manim' = named Manim scene class to render + mux. One motion-worthy concept core (tokenization fragmentation) is a Manim scene; prose/bullets stay PIL slides. Narration drives segment timing.",
+  "segments": [
+    {
+      "id": "title",
+      "visual": "slide",
+      "slide": {"kind": "title", "title": "The Jagged Frontier", "subtitle": "Why models ace relativity but miscount letters in 'strawberry'"},
+      "narration": "Large language models can explain general relativity, then turn around and miscount the letters in the word strawberry. This module is about why that happens — and why it is predictable, not random."
+    },
+    {
+      "id": "the-puzzle",
+      "visual": "slide",
+      "slide": {"kind": "bullets", "title": "The puzzle", "bullets": ["Student question #18: why solve complex problems yet make simple mistakes?", "Explains relativity, then miscounts 'strawberry'", "This is a shape of competence, not a bug to patch away"]},
+      "narration": "Here is the puzzle a student raised. The same system that handles complex reasoning fails at tasks a child finds trivial. The key insight: this uneven shape of competence tells us something real about how these models work."
+    },
+    {
+      "id": "human-vs-model",
+      "visual": "manim",
+      "manim_scene": "JaggedFrontierScene",
+      "manim_note": "Animated contrast: a smooth human competence curve (hard implies easy follows) vs a jagged model curve with sharp unpredictable spikes/dips across task-difficulty axis. Highlight that 'hard' and 'easy' are human axis labels the model never optimized for. Course palette; curve draws left-to-right with run_time ~6s, then jagged overlay reveals.",
+      "narration": "For humans, competence is correlated: if you can do the hard version, the easy version follows. For models it is a jagged frontier — sharp, unpredictable variation across tasks. The reason is that hard and easy are human notions the model never learned."
+    },
+    {
+      "id": "root-cause-1-objective",
+      "visual": "slide",
+      "slide": {"kind": "bullets", "title": "Root cause 1: the training objective", "bullets": ["Trained to predict the next token, not to be uniformly competent", "Capability tracks training frequency, not logical difficulty", "Relativity prose is abundant; exact long arithmetic is rare"]},
+      "narration": "First root cause: the training objective. A model is trained to predict the next token, not to be uniformly good at everything. So its capability tracks how often a pattern appeared in training, not how logically hard it is. Relativity prose is everywhere online; exact long arithmetic is comparatively rare."
+    },
+    {
+      "id": "root-cause-2-tokenization",
+      "visual": "manim",
+      "manim_scene": "TokenizationScene",
+      "manim_note": "Core motion diagram. Show the word 'strawberry' as contiguous letters, then animate the BPE split into sub-word token boxes (e.g. 'straw' | 'berry' or real tokenizer chunks) sliding apart. Then pose 'count the r's' and show the letter-level structure is gone inside the opaque token boxes. Opacity-layer the letters fading behind the token boxes. run_time table: letters 2s, split 3s, query overlay 2s, letters-gone reveal 3s.",
+      "narration": "Second root cause: tokenization. The model never sees individual letters. It sees sub-word tokens — chunks like straw and berry. Counting the r's in strawberry requires letter-level structure that simply is not represented inside those token boxes. The same fragmentation breaks positional arithmetic on long numbers."
+    },
+    {
+      "id": "root-cause-3-no-checking",
+      "visual": "slide",
+      "slide": {"kind": "bullets", "title": "Root cause 3: one forward pass", "bullets": ["One forward pass — no scratchpad, no built-in verification", "Humans re-check; a base model doesn't unless prompted or given a tool", "Often fixed instantly by 'think step by step'"]},
+      "narration": "Third root cause: a base model answers in a single forward pass with no scratchpad and no built-in verification. Humans re-check their work; the model does not, unless you prompt it to or give it a tool. That is why the same model often fixes the error the instant you say: think step by step."
+    },
+    {
+      "id": "predict-jaggedness",
+      "visual": "slide",
+      "slide": {"kind": "bullets", "title": "Predicting the jaggedness", "bullets": ["Strong where: well-represented, error-tolerant, pattern-like", "Weak where: exact symbols, long chains, sub-token info, rare knowledge", "Fix: pair brittle regimes with reasoning, tools, and verifiers"]},
+      "narration": "Putting it together gives a predictive heuristic. Models are strong where tasks are well-represented, error-tolerant, and pattern-like; weak where they need exact symbols, long reasoning chains, sub-token information, or rare knowledge. The practical fix is to pair the brittle regimes with explicit reasoning, external tools, and verifiers."
+    },
+    {
+      "id": "summary",
+      "visual": "slide",
+      "slide": {"kind": "title", "title": "Takeaway", "subtitle": "The frontier is jagged by construction — design around it, don't be surprised by it"},
+      "narration": "The takeaway: the capability frontier is jagged by construction, a direct consequence of the objective, tokenization, and single-pass inference. Once you expect it, you can design around it instead of being surprised by it."
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q20: LLM Internals vs.\ the Rest of Deep Learning}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``How much of an LLM's internals are shared with other deep learning models?''
+\item Why it matters: decides what knowledge transfers
+\item Answer preview: \textbf{the skeleton is shared; the mixer, objective, and interface are new}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The shared skeleton (everything deep)}
+\begin{enumerate}
+\item Differentiable parametric function: layers of linear + nonlinearity
+\item A scalar loss
+\item SGD + backpropagation (reverse-mode autodiff)
+\item Tensor hardware: it is all matmuls
+\end{enumerate}
+\pause
+\vspace{1em}
+$\Rightarrow$ loss curves, LR schedules, init, norm, regularization intuitions all carry over
+\end{frame}
+
+\begin{frame}{Component lineage}
+\begin{table}
+\begin{tabular}{ll}
+\textbf{Component} & \textbf{Origin} \\
+SGD + backprop & 1980s--90s \\
+Embeddings & word2vec (2013) \\
+Attention & seq2seq (2014--15) \\
+Residual stream & ResNet (2015) \\
+Parallel mixing (no recurrence) & \textbf{Transformer (2017)} \\
+Next-token loss at scale & \textbf{LLM era} \\
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Four real differences}
+\begin{itemize}
+\item \textbf{Parameters:} dense huge matrices (+ MoE sparsity) vs.\ small shared filters
+\item \textbf{Loss:} self-supervised next-token vs.\ labeled task objectives
+\item \textbf{Interface:} autoregressive generation loop vs.\ single forward pass
+\item \textbf{Post-training:} SFT $\to$ preference opt (DPO/RLHF) $\to$ RLVR stack
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Transfer mistakes to avoid}
+\begin{itemize}
+\item Attention weights $\neq$ explanations (vision feature maps mislead here)
+\item Vision-style fine-tuning intuition $\neq$ prompting / ICL / LoRA economics
+\item ``It's just a big CNN'' $\neq$ correct either: the mixer and objective matter
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The one-sentence map}
+\emph{Shared skeleton (modules + SGD + backprop + GPUs); new mixer (attention); new objective (next-token at scale); new interface (autoregression); new post-training stack.}
+\vspace{1em}
+\pause
+When a new architecture appears (Mamba, diffusion LMs): check the map --- the skeleton is the stable part of the field.
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Goodfellow et al., \emph{Deep Learning}, chs.\ 6--8 (the skeleton)
+\item Vaswani et al.\ 2017 (the mixer change)
+\item Ouyang et al.\ 2022; Rafailov et al.\ 2023 (the post-training stack)
+\end{itemize}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,47 @@
+% preamble.sty — shared article preamble for AI Course 2026 modules
+% Provides the \authorsig and \moduletitle macros, the keybox callout
+% environment, and standard packages. Reconstructed 2026-10-10 during the
+% review pass: the Q32 .tex files \usepackage{preamble} but this file had
+% never been committed, so note/discussion/projects/quiz could not be
+% rebuilt from source. The committed PDFs were stale local artifacts.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{preamble}[2026/10/10 AI Course 2026 module preamble]
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+% Course palette (mirrored in deck.tex for Beamer)
+\definecolor{Ink}{HTML}{1B2A4A}
+\definecolor{Accent}{HTML}{8C4F2B}
+
+% \authorsig{NAME} — records the module author signature
+\newcommand{\@authorsig}{}
+\newcommand{\authorsig}[1]{\renewcommand{\@authorsig}{#1}}
+
+% \moduletitle{ID}{Question} — renders the module title block
+\newcommand{\moduletitle}[2]{%
+  {\color{Ink}\noindent\textbf{\Large #1}\par\medskip}%
+  {\noindent\large #2\par}%
+  \medskip\noindent{\color{Accent}\rule{\linewidth}{1pt}}\par
+  \ifx\@authorsig\empty\else
+    {\footnotesize\hfill\textit{Module author: \@authorsig}\quad DLS 2026\par}%
+  \fi
+  \medskip
+}
+
+% keybox[Optional title] — highlighted callout box used in notes/quizzes
+\newtcolorbox{keybox}[1][]{colback=Ink!5,colframe=Accent,
+  fonttitle=\bfseries,title={#1},boxrule=0.6pt,arc=2pt,
+  left=4pt,right=4pt,top=3pt,bottom=3pt}

@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q30: Discussion Questions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item TorchDynamo inserts a ``graph break'' when it hits untraceable Python. What kinds of code cause graph breaks, and why is graceful fallback better than refusing to compile?
+\item AOTAutograd captures the backward graph ahead of time. What optimizations become possible once the compiler can see forward and backward together?
+\item Activation memory, not parameter memory, usually dominates training. Walk through why, for a deep network with a large batch.
+\item Gradient checkpointing trades compute for memory. How would you choose \emph{which} layers to checkpoint to get the best trade?
+\item Functional AD (JAX-style) is elegant and composable but can be memory-hungry if naive. Is the right fix better compilers or better programmer discipline? Argue.
+\end{enumerate}
+\end{document}

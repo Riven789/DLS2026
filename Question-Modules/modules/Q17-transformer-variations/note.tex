@@ -1,0 +1,46 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem,amsmath}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q17: How Do Modern Models Vary the Transformer, and What Are the Alternatives?}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will decompose a transformer into design choices, relate those choices to context, memory, and throughput costs, distinguish sparse activation from sparse attention, and make a bounded comparison between transformer variants and state-space alternatives.
+
+\section{A family name is not a specification}
+``Transformer'' names a broad architecture family rather than a single recipe. The original design alternates attention, feed-forward transformation, residual connections, and normalization \cite{vaswani2017attention}. A modern language model can retain this broad pattern while changing the attention heads, positional representation, normalization placement, activation, feed-forward width, expert routing, layer pattern, training objective, and inference cache policy. Consequently, two systems can both be called transformers while having very different training and serving behavior.
+
+A useful analysis asks which component is being varied and which quantity is constrained. Is the goal lower training FLOPs, lower memory, faster decoding, longer usable context, greater parameter capacity, or a different inductive bias? One modification can improve one bottleneck while worsening another. A longer context window, for instance, may increase cache memory or leave retrieval reliability unresolved.
+
+\section{Attention and the decoding bottleneck}
+In autoregressive decoding, each new token needs access to prior key/value representations. Multi-query attention shares key/value heads across query heads, reducing key/value cache traffic; grouped-query attention is an intermediate compromise. The original multi-query proposal motivates the systems issue directly: memory bandwidth and cache size can limit generation even when arithmetic throughput is available \cite{shazeer2019fast}. These variants change the parameterization and cache layout, not the basic idea of content-dependent attention.
+
+Positional representation is another variation. Rotary position embedding rotates query and key features according to position, encoding relative position information in the attention calculation \cite{su2021roformer}. Context-extension methods may adapt positional handling, training mixtures, and attention patterns. A claim that a system supports a very long window should therefore be tested with evidence placed at different distances, distractors, and paraphrases rather than inferred from a configuration number.
+
+\section{Dense layers, sparse experts, and sparse attention}
+Mixture-of-experts (MoE) architectures route a token to one or a few feed-forward experts. Switch Transformer uses sparse expert activation to scale capacity while activating a limited path per token \cite{fedus2022switch}. This is distinct from sparse attention, which limits which token positions attend to which others. It is also distinct from quantization, which changes numerical representation, and from batching, which changes serving execution.
+
+The distinction matters for honest cost claims. Total parameters affect storage; active experts affect per-token computation; routing and inter-device communication affect throughput; attention/cache design affects context cost. There is no single ``model size'' number that settles every comparison.
+
+\section{Alternatives: state-space and recurrent sequence models}
+State-space sequence models update a learned state as they scan a sequence, offering a different route to linear-time sequence processing. Mamba introduces selective state spaces whose behavior depends on the input \cite{gu2023mamba}. This can be attractive when dense attention's quadratic interaction pattern is costly. It does not follow that every task requiring selective access to a distant detail is solved equally well by a compressed state.
+
+The right comparison is empirical and task-specific. Match token budget, parameter/active-compute budget, data, precision, hardware, and decoding policy. Then evaluate ordinary accuracy, long-range retrieval, compositional transfer, latency, memory, and failure modes. A result on one sequence benchmark does not establish a universal replacement for transformers at frontier scale.
+
+\section{Worked design diagnosis}
+Imagine a deployment that must answer questions about a 100,000-token technical document. If memory is the bottleneck, grouped-query attention, quantization, or retrieval may help. If the answer requires comparing many distant passages, a state-space recurrence may be efficient but needs direct evaluation of selective recall. If serving cost is dominant, MoE may lower active computation but add routing and communication costs. The lesson is not to name one winner; it is to translate a product requirement into measurable architectural hypotheses.
+
+\section{Takeaway}
+Modern transformers vary along several independent axes. Attention-head/cache design addresses decoding memory; positional treatment addresses sequence location; MoE addresses conditional feed-forward capacity; and alternatives such as state-space models offer a different sequence mechanism. Compare them under a declared workload and resource budget rather than treating labels as verdicts.
+\bibliographystyle{plain}\bibliography{bibliography}
+
+\section*{Companion videos: decoder-only transformers}
+A curated progression --- \emph{visual intuition $\rightarrow$ decoder architecture $\rightarrow$ working implementation}. All links verified live.
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{3Blue1Brown --- Transformers, the tech behind LLMs} (27:14). Visual intuition: tokens to embeddings, through transformer layers, to next-token probabilities; strong on embedding geometry, the output projection, and softmax with temperature. \url{https://www.youtube.com/watch?v=wjZofJX0v4M}
+  \item \textbf{StatQuest (Josh Starmer) --- Decoder-Only Transformers, Clearly Explained} (36:44). Patient, step-by-step treatment of the decoder-only architecture used for autoregressive generation. \url{https://www.youtube.com/watch?v=bQ5BoolX9Ag}
+  \item \textbf{Andrej Karpathy --- Let's build GPT: from scratch, in code, spelled out} (1:56:20). Turns understanding into implementation: a working GPT-style model in PyTorch, architecture connected to code and training (assumes Python/tensors/PyTorch). \url{https://www.youtube.com/watch?v=kCc8FmEb1nY}
+\end{enumerate}
+For a technical audience, Karpathy is the single strongest recommendation; for an undergraduate sequence, the three together form a useful progression.
+
+\end{document}

@@ -1,0 +1,41 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem,amsmath}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q08: Will Scaling Saturate or Cause Forgetting? Can We Predict More-Parameter Effects Before Training?}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will interpret a scaling law as an empirical conditional model, distinguish parameter growth from data/compute allocation, explain why ``forgetting'' has several meanings, and state what prediction from scaling curves can and cannot justify.
+
+\section{What a scaling law is}
+A scaling law summarizes an observed relation between a measured loss and resources such as parameter count $N$, training tokens $D$, or compute $C$. A simplified form is $L(N)\approx L_\infty+aN^{-\alpha}$: as $N$ grows, loss approaches an asymptote in the studied regime. This is useful because it converts expensive experiments into a forecast problem. It is not a physical law that applies unchanged to every architecture, dataset, objective, or downstream metric.
+
+Kaplan et al. reported regular power-law relations for language-model loss over substantial ranges \cite{kaplan2020scaling}. Hoffmann et al. showed that, under a fixed training-compute budget, model and data sizes must be allocated together; a larger model trained on too few tokens is not automatically compute-optimal \cite{hoffmann2022training}. Thus ``add parameters'' is underspecified. Ask: with how much data, for how many updates, under what architecture and objective?
+
+\section{Prediction before training}
+A well-designed scaling study can forecast average validation loss within an interpolation regime. To do this responsibly, train several smaller runs under the same recipe, hold out at least one scale for checking, fit uncertainty intervals, and declare the target metric in advance. Extrapolation becomes fragile when the target crosses a data-quality boundary, changes architecture, introduces a new post-training stage, or asks about a discontinuous downstream benchmark rather than the loss that was fitted.
+
+A lower next-token loss is not a guarantee of a particular capability, safety property, or economic value. It is one aggregate measure. A course experiment should plot validation loss and a separate downstream task metric; agreement or disagreement between them is itself evidence.
+
+\section{Saturation is not one event}
+Saturation can mean diminishing improvement in pre-training loss, a benchmark ceiling, a data-quality limit, an inference-time bottleneck, or a deployment budget constraint. These are different mechanisms and require different interventions. A benchmark may saturate because it is too easy or contaminated even while other measures improve. Conversely, a useful task can plateau because the model lacks data or tools relevant to that task, not because all scaling has ended.
+
+The included code fits a deliberately synthetic power law and compares interpolation with an extrapolation after a regime shift. It demonstrates a methodological warning: an excellent fit inside one regime can make a poor forecast after the generating conditions change. It is not evidence for a particular frontier-model forecast.
+
+\section{Worked forecast protocol}
+Suppose a lab has a fixed compute budget and must choose between a larger model and more training tokens. First define a primary validation metric and a separate downstream task metric. Then run matched small-scale experiments, holding tokenizer, data-cleaning rules, optimizer schedule, and stopping criterion fixed. Reserve one scale point before fitting. A useful forecast predicts that held-out point before its result is inspected; otherwise it has only summarized observations already used to choose the curve.
+
+Uncertainty has at least two sources. Statistical uncertainty comes from finite training/evaluation samples and random seeds. Structural uncertainty comes from choices the fit did not vary: architecture, data mixture, objective, or post-training. A narrow regression interval does not remove structural uncertainty. Report residuals, measured resource ranges, seed variation where feasible, and the untested assumptions behind an extrapolation.
+
+\section{A decision table, not an oracle}
+A scaling fit is valuable when it changes a concrete decision. If the predicted loss gain is smaller than forecast uncertainty or cannot justify added inference cost, a team may improve data quality, add retrieval or tools, or stop. If a downstream task is the actual goal, reserve a held-out task budget and measure it rather than substituting loss for the desired outcome. The curve is then one input to engineering judgment alongside latency, memory, reliability, environmental cost, and opportunity cost.
+
+\section{What does ``forgetting'' mean?}
+In continual learning, catastrophic forgetting means performance on an earlier task declines after training on a later task. During ordinary pre-training, individual examples can move in and out of a model's learned set; example-forgetting studies measure this at the example level \cite{toneva2019empirical}. A third concern is that larger models may memorize rare strings or training data. Memorization and generalization can coexist, and their incidence depends on duplication, data, model, and evaluation; they should not be collapsed into a claim that parameters cause a human-like loss of memory \cite{biderman2023emergent}.
+
+To test a forgetting claim, fix a baseline task suite, continue training under a documented data shift, and measure before/after performance with uncertainty. To test memorization, use privacy-aware canaries or controlled duplicates rather than guessing from model size alone.
+
+\section{Takeaway}
+Scaling laws are useful empirical budgeting tools. They can support forecasts within a documented regime, especially for the measured loss. They do not certify downstream capability, prevent regime shifts, or answer vague claims about memory. Specify the resource allocation, metric, range, and uncertainty before trusting the curve.
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

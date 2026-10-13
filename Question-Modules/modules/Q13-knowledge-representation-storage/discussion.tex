@@ -1,0 +1,89 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q13 --- Discussion}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing}
+
+The student question --- \emph{``How do models represent and store knowledge, and use it to answer?''} --- cuts across several active research threads in mechanistic interpretability and knowledge editing. A useful first-order picture is that factual associations are stored, in substantial part, in the feed-forward (MLP) sublayers of transformers, which behave like key--value memories that can be probed and edited~\citep{geva2021kv,meng2022rome}. Yet this picture is incomplete: knowledge is also distributed, encoded in attention routing, superposed across polysemantic directions, and in modern systems increasingly supplemented by non-parametric retrieval~\citep{lewis2020rag}. The questions below are deliberately open and are meant to structure our seminar discussion rather than to admit tidy answers.
+
+\begin{enumerate}[leftmargin=*,label=\textbf{Q\arabic*.}]
+
+\item \textbf{Localization versus distribution.} The ROME line of work suggests that specific facts can be traced to a small set of mid-layer MLP parameters via causal tracing~\citep{meng2022rome}, and that editing those parameters updates the stored association. But follow-up critiques argue that successful localization-based editing does not imply that knowledge is truly \emph{stored} at the edited site, and that editing success and localization can dissociate~\citep{hase2023does}. \emph{To what extent is a ``fact'' a localized object in weight space at all, versus an emergent property of distributed computation?} What experimental signatures would distinguish genuine storage from mere intervention sensitivity?
+
+\item \textbf{The representational substrate: features, directions, and superposition.} If concepts correspond to directions in activation space, the model may pack many more features than it has neurons via \emph{superposition}, trading interference for capacity~\citep{elhage2022superposition}. Sparse autoencoders have recently been used to decompose activations into more monosemantic, interpretable features~\citep{bricken2023monosemanticity}. \emph{Does ``knowledge'' live more naturally at the level of these recovered features than at the level of neurons or weights?} How should we reconcile a feature-level account with the parameter-level account from Q1, and what does superposition imply for the reliability of knowledge editing?
+
+\item \textbf{From storage to retrieval: the circuit that answers.} Storing an association is distinct from \emph{using} it to produce an answer. Work on circuit analysis --- e.g., induction heads that implement in-context copying~\citep{olsson2022induction} and the tracing of \emph{where} factual information is moved and surfaced at the final token~\citep{geva2023dissecting} --- suggests attention heads route subject information to the position where the prediction is read out. \emph{What is the division of labor between MLP ``lookup'' and attention ``routing'' during factual recall, and does this division change with scale, fine-tuning, or chain-of-thought prompting?}
+
+\item \textbf{Parametric memory versus retrieval augmentation.} Retrieval-augmented generation externalizes knowledge into a non-parametric store that is queried at inference time~\citep{lewis2020rag,borgeaud2022retro}. This offers updatability and provenance, but raises the question of how retrieved context interacts with --- and sometimes contradicts --- parametric beliefs. \emph{When internal parametric knowledge and retrieved evidence conflict, what governs which one the model trusts, and can we build mechanistic tests for this arbitration?} What are the trade-offs between editing weights (Q1) and editing the corpus the model reads?
+
+\item \textbf{Faithfulness: does the model ``know'' what it uses?} Even when a model answers correctly, its explanations or stated reasoning may not reflect the computation that produced the answer; chain-of-thought rationales can be unfaithful and post-hoc~\citep{turpin2023language}. \emph{How do we verify that an interpretability account of knowledge use is faithful to the underlying mechanism rather than a plausible narrative we impose?} What standards of causal evidence (ablation, patching, counterfactual editing) should the field adopt before claiming that it has explained how a model ``knows'' and ``answers''?
+
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem{geva2021kv}
+M.~Geva, R.~Schuster, J.~Berant, and O.~Levy.
+\newblock Transformer feed-forward layers are key-value memories.
+\newblock In \emph{Proceedings of EMNLP}, 2021.
+
+\bibitem{meng2022rome}
+K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem{lewis2020rag}
+P.~Lewis, E.~Perez, A.~Piktus, F.~Petroni, V.~Karpukhin, N.~Goyal, H.~K\"uttler, M.~Lewis, W.~Yih, T.~Rockt\"aschel, S.~Riedel, and D.~Kiela.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem{hase2023does}
+P.~Hase, M.~Bansal, B.~Kim, and A.~Ghandeharioun.
+\newblock Does localization inform editing? Surprising differences in causality-based localization vs. knowledge editing in language models.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem{elhage2022superposition}
+N.~Elhage, T.~Hume, C.~Olsson, N.~Schiefer, T.~Henighan, S.~Kravec, Z.~Hatfield-Dodds, R.~Lasenby, D.~Drain, C.~Chen, R.~Grosse, S.~McCandlish, J.~Kaplan, D.~Amodei, M.~Wattenberg, and C.~Olah.
+\newblock Toy models of superposition.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+
+\bibitem{bricken2023monosemanticity}
+T.~Bricken, A.~Templeton, J.~Batson, B.~Chen, A.~Jermyn, T.~Conerly, N.~Turner, C.~Anil, C.~Denison, A.~Askell, R.~Lasenby, Y.~Wu, S.~Kravec, N.~Schiefer, T.~Maxwell, N.~Joseph, Z.~Hatfield-Dodds, A.~Tamkin, K.~Nguyen, B.~McLean, J.~E. Burke, T.~Hume, S.~Carter, T.~Henighan, and C.~Olah.
+\newblock Towards monosemanticity: Decomposing language models with dictionary learning.
+\newblock \emph{Transformer Circuits Thread}, 2023.
+
+\bibitem{olsson2022induction}
+C.~Olsson, N.~Elhage, N.~Nanda, N.~Joseph, N.~DasSarma, T.~Henighan, B.~Mann, A.~Askell, Y.~Bai, A.~Chen, T.~Conerly, D.~Drain, D.~Ganguli, Z.~Hatfield-Dodds, D.~Hernandez, S.~Johnston, A.~Jones, J.~Kernion, L.~Lovitt, K.~Ndousse, D.~Amodei, T.~Brown, J.~Clark, J.~Kaplan, S.~McCandlish, and C.~Olah.
+\newblock In-context learning and induction heads.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+
+\bibitem{geva2023dissecting}
+M.~Geva, J.~Bastings, K.~Filippova, and A.~Globerson.
+\newblock Dissecting recall of factual associations in auto-regressive language models.
+\newblock In \emph{Proceedings of EMNLP}, 2023.
+
+\bibitem{borgeaud2022retro}
+S.~Borgeaud, A.~Mensch, J.~Hoffmann, T.~Cai, E.~Rutherford, K.~Millican, G.~van den Driessche, J.~Lespiau, B.~Damoc, A.~Clark, D.~de~Las~Casas, A.~Guy, J.~Menick, R.~Ring, T.~Hennigan, S.~Huang, L.~Maggiore, C.~Jones, A.~Cassirer, A.~Brock, M.~Paganini, G.~Irving, O.~Vinyals, S.~Osindero, K.~Simonyan, J.~W. Rae, E.~Elsen, and L.~Sifre.
+\newblock Improving language models by retrieving from trillions of tokens.
+\newblock In \emph{Proceedings of the 39th International Conference on Machine Learning (ICML)}, 2022.
+
+\bibitem{turpin2023language}
+M.~Turpin, J.~Michael, E.~Perez, and S.~R. Bowman.
+\newblock Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\end{thebibliography}
+
+\end{document}

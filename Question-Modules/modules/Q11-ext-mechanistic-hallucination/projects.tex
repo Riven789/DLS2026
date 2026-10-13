@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q11 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Frequency--accuracy replication:} extend the module's NumPy toy from a one-shot smoothed count model to a trained model (logistic regression or tiny Transformer on the same Zipf world), and test whether the frequency--accuracy staircase and the argmax-vs-reliability boundary gap survive learning. Report both boundaries as functions of smoothing/architecture.
+\item \textbf{Monofact audit of a real corpus:} take a public pre-training snapshot (e.g., a C4 or OSCAR subset), define a fact schema (person--born--in, paper--published--in), and estimate the monofact rate and missing-fact mass that Kalai--Vempala's bound would predict for that corpus. Compare the predicted hallucination floor to published hallucination rates on citation-generation tasks.
+\item \textbf{Retrieval-hurts replication:} implement adaptive retrieval on an open QA dataset (PopQA or EntityQuestions): measure the popularity threshold below which retrieval helps and above which it hurts, for two models of different scale. Test whether the threshold moves with scale as Mallen et al.\ imply.
+\item \textbf{Taxonomy-aware evaluator:} build a small labeled set of model errors (50 fabrications, 50 misattributions, 50 faithful slips) from any open-source assistant on biography/citation tasks; write classifier prompts that separate the three classes; measure per-class recall of the classifier and report which class standard benchmarks (TruthfulQA-style, HaluEval-style) miss most.
+\end{enumerate}
+\end{document}

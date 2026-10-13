@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q21 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item MoE avoids the interface problem by training router and experts jointly in one loss --- but that forces all experts to share one architecture, data stream, and objective. Is there a principled middle ground between ``one giant differentiable program'' and ``frozen components behind a learned router,'' or is every intermediate point just a worse version of one extreme?
+\item SayCan multiplies an LLM's estimate that a skill is \emph{useful} by a learned value function's estimate that it is \emph{possible} \cite{ahn2022saycan}. When the two estimates disagree, which should win --- and can you name a concrete task where each ordering is the right one?
+\item Compounding error argues for end-to-end training \cite{levine2016end}; debuggability argues for pipelines. Autonomous-driving stacks have cycled between these positions for a decade. What evidence would actually settle the argument for a given domain --- and is it the same evidence for a 100-robot fleet and a one-off research demo?
+\item The interface trichotomy (embeddings / typed APIs / natural language) frames language as the lowest-bandwidth, most universal option. As LLMs get cheaper and faster, does the bandwidth penalty of language shrink, or does it stay fundamental because text is inherently lossy for continuous control signals?
+\item Options formalize hierarchy with a clean semi-MDP interface \cite{sutton1999options}, yet modern LLM agents compose skills with no such formalism --- just prompts and tool schemas. What exactly did the options framework buy that prompt-based orchestration lost, and is any of it recoverable without giving up the flexibility?
+\end{enumerate}
+\end{document}

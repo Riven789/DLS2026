@@ -1,0 +1,48 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q15: Context, Retrieval, and Memory}
+\subtitle{Windows, RAG, and the volatility of context}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#13, \#15)}
+How do context windows, retrieval, and conversation memory work, and how do we avoid hallucination without
+deleting context?
+\end{block}
+\end{frame}
+\begin{frame}{The context window + its cost}
+\begin{itemize}
+\item All the model ``knows now'' must fit in $n$ tokens.
+\item Attention compute is $O(n^2)$; \textbf{KV cache} grows linearly in $n$.
+\item ``Just make it bigger'' is \emph{not} free.
+\end{itemize}
+\end{frame}
+\begin{frame}{Retrieval-augmented generation}
+embed docs $\to$ index $\to$ embed query $\to$ top-$k$ $\to$ put in context.
+\begin{itemize}
+\item Draw on a corpus far larger than any window.
+\item Pay attention cost only on retrieved chunks.
+\item \textbf{Cite grounded sources} $\Rightarrow$ less hallucination.
+\end{itemize}
+\end{frame}
+\begin{frame}{Long context vs.\ retrieval}
+\begin{itemize}
+\item \textbf{Long context}: coherent whole, reason jointly (contract, code file).
+\item \textbf{Retrieval}: vast, sparse, fresh, or must-attribute knowledge.
+\item Common pattern: retrieve to narrow, then long-window reason.
+\end{itemize}
+\end{frame}
+\begin{frame}{Why context is not memory}
+\begin{itemize}
+\item Context = \textbf{volatile} working memory; gone when chat ends / scrolls out.
+\item Never written back to weights (Q14's long-term store).
+\item Agent memory: persist to a store, summarize, \emph{re-inject} selectively.
+\end{itemize}
+\alert{``Don't delete context'' = what to persist/summarize/retrieve, not infinite windows.}
+\end{frame}
+
+\end{document}

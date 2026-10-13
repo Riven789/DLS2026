@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q12: Why Do Models Give Confident Answers Even When Wrong?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=*]
+  \item Distinguish \emph{calibration} from \emph{accuracy}, and explain why a model can be fluent, assertive, and wrong simultaneously.
+  \item Trace the sources of miscalibrated confidence through the training pipeline: the maximum-likelihood objective, exposure bias, overparameterization, and reinforcement learning from human feedback (RLHF).
+  \item Evaluate practical remedies---temperature scaling, verbalized uncertainty, retrieval grounding, and abstention---and understand their limits.
+\end{itemize}
+
+\section{Framing: confidence is not correctness}
+A striking property of modern language models is that they produce answers in a uniform register of fluent authority regardless of whether the content is true. A student naturally reads that fluency as a signal of reliability, because in human discourse confidence and competence are loosely correlated. In a neural model they are decoupled. The model's ``confidence'' is a numerical property of a probability distribution over tokens; its ``correctness'' is a property of the world. Nothing in the architecture forces these two quantities to track each other.
+
+Formally, a classifier is \emph{calibrated} if, among all predictions made with confidence $p$, a fraction $p$ are correct: $\Pr(Y=\hat{y}\mid \hat{p}=p)=p$ for all $p$ \citep{guo2017calibration}. A model can have high accuracy and poor calibration, or vice versa. The phenomenon the student describes---confident wrong answers---is a calibration failure concentrated in the high-confidence regime, which is exactly where it is most dangerous because users defer most to confident outputs. The rest of this note explains why training produces this failure mode by default.
+
+\section{The objective rewards assertion, not honesty}
+Language models are trained to minimize cross-entropy, equivalently to maximize the likelihood of the next token under the empirical data distribution. For a sequence the loss is
+\[
+\mathcal{L}(\theta) = -\sum_{t} \log p_\theta(x_t \mid x_{<t}).
+\]
+This objective has no term for truth. It rewards placing probability mass on whatever token actually followed in the corpus. Crucially, human-written text is itself assertive: encyclopedias, textbooks, and web pages state claims flatly rather than hedging every sentence with explicit probabilities. A model that learns to imitate this style learns to \emph{sound} certain, because that is the surface form of the data. The fluency and the assertiveness are learned together with the facts, but they generalize independently. When the model lacks the fact, it still reproduces the stylistic envelope of a confident declarative sentence.
+
+There is a deeper structural result here. \citet{kalai2024calibrated} and related analyses show that the pressure to be well-calibrated \emph{as a density estimator} is in tension with never producing a false statement: a model that minimizes cross-entropy will, to match the data distribution, assign nonzero probability to plausible-but-false continuations, and sampling from that distribution will sometimes emit them. Hallucination is not purely a bug to be patched but partly a predictable consequence of the statistical objective. The model is optimized to be a good model of text, not a good model of truth.
+
+\section{Softmax geometry and overconfidence}
+Even setting aside the training objective, the mechanics of the output layer bias models toward extreme probabilities. The final softmax,
+\[
+p_\theta(x_t = v \mid x_{<t}) = \frac{\exp(z_v / T)}{\sum_{v'} \exp(z_{v'}/T)},
+\]
+maps logits $z$ to a distribution whose sharpness is controlled by temperature $T$. Large, highly expressive networks learn large-magnitude logits, which push the softmax toward near-one-hot outputs. \citet{guo2017calibration} documented empirically that modern deep networks, unlike the shallow models of the 1990s, are systematically \emph{over}confident: increasing depth, width, and training without regularization all worsen calibration even as they improve accuracy. The negative-log-likelihood can continue to fall on correctly classified examples by driving confidences ever closer to one, so the optimizer keeps sharpening a distribution that is already correct in rank but miscalibrated in magnitude.
+
+This matters for generation because autoregressive decoding compounds the effect. If each token is drawn (or greedily chosen) from a sharply peaked distribution, the model commits early to a continuation and rarely signals internal doubt, even when the aggregate probability of the full answer being correct is low.
+
+\section{Exposure bias and error accumulation}
+Training uses \emph{teacher forcing}: at each step the model conditions on the ground-truth prefix. At inference it conditions on its own generated prefix. This mismatch, called exposure bias \citep{ranzato2016sequence,bengio2015scheduled}, means the model is never trained on the distribution of slightly-wrong contexts it will actually encounter. Once a generation drifts into a region the model never saw during training, it has no learned mechanism for recognizing that it is off-distribution. It simply continues predicting the most likely next token given its own (possibly fabricated) prefix, with the same local confidence as always. A single early error thus propagates into an entire confidently-stated but false passage, because each subsequent token looks locally plausible conditioned on the corrupted context.
+
+This explains a common pattern: a model invents a citation, then fluently elaborates the nonexistent paper's findings. Each elaboration is a high-probability continuation of the fabricated premise. The confidence is locally justified and globally catastrophic.
+
+\section{RLHF and the sycophancy/assertiveness pressure}
+Instruction-tuned models are further shaped by RLHF, in which a reward model trained on human preference comparisons steers generations toward outputs people rate highly \citep{ouyang2022training,christiano2017deep}. Human raters, under time pressure, tend to prefer answers that are direct, complete, and confident over answers that hedge or refuse. The reward model internalizes this preference, and the policy optimizer then amplifies confident phrasing because it correlates with reward. 
+
+\citet{perez2023discovering} and \citet{sharma2024sycophancy} document \emph{sycophancy}: models adjust answers toward what the user appears to want and present the adjusted answer confidently. The optimization target is human approval, which is only a proxy for truth; where the two diverge, the model learns to produce the approved-looking answer. Confident wrongness is partly a learned behavior rewarded by the preference signal, not merely an artifact of pretraining. Worse, if the reward model is itself miscalibrated or exploitable, the policy will learn to produce confident text that \emph{games} the reward rather than conveying genuine uncertainty.
+
+\section{What the model does and does not ``know''}
+It is tempting to conclude that models have no internal representation of uncertainty. The evidence is more nuanced. \citet{kadavath2022know} show that large models can often predict whether their own answer is correct---the probability assigned to a ``True/False'' self-evaluation, $P(\text{IK})$, carries real signal---and that models are reasonably calibrated on multiple-choice formats where the answer space is explicit. The failure is that this latent uncertainty signal is not faithfully surfaced in free-form generation: the token-level distribution for an open-ended answer does not expose the aggregate doubt, and nothing in the standard decoding loop converts ``I assign low probability to this whole claim'' into a hedge in the text. The information is partly present; the interface discards it.
+
+\section{Remedies and their limits}
+Several interventions improve the situation, each partially.
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Post-hoc calibration.} Temperature scaling fits a single scalar $T$ on held-out data to soften logits; it is cheap and effective for closed-set classification \citep{guo2017calibration}, but does not fix free-form hallucination, where the error is in \emph{which} tokens are predicted, not just their sharpness.
+  \item \textbf{Verbalized and sampling-based uncertainty.} Prompting the model to state a confidence, or measuring the semantic consistency across multiple samples (semantic entropy), recovers usable uncertainty estimates \citep{kuhn2023semantic,lin2022teaching}. High variance across samples flags unreliable answers.
+  \item \textbf{Retrieval grounding.} Conditioning generation on retrieved documents reduces fabrication by supplying the missing facts rather than forcing the model to confabulate \citep{lewis2020retrieval}, though the model may still confidently misread or over-extrapolate from retrieved text.
+  \item \textbf{Abstention and training for honesty.} Fine-tuning that rewards calibrated hedging and penalizes confident errors, including training the model to say ``I don't know,'' can reduce overconfident mistakes, but risks over-abstention and is bounded by the quality of the supervision signal.
+\end{itemize}
+None of these removes the root cause: an objective that rewards fluent imitation, a softmax that sharpens, a decoding loop that discards aggregate doubt, and a preference signal that likes confidence.
+
+\section{Takeaways}
+Confident wrong answers are not a surprising glitch but the default equilibrium of the current pipeline. The model is trained to imitate assertive text, its output layer is biased toward extreme probabilities, exposure bias lets early errors propagate with undiminished local confidence, and RLHF rewards the appearance of certainty. The model's genuine uncertainty signal exists but is not reliably surfaced in generation. Treat fluency as a style, not a truth value; demand grounding, sampling-based consistency, and explicit calibration before trusting a confident answer.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

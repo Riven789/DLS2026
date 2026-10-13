@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q13 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Superposition capacity curve:} extend the module's NumPy demo --- sweep $N$ features and sparsity levels at fixed $d$, plot the phase boundary where readout fails, and fit an empirical capacity law; compare against the Johnson--Lindenstrauss near-orthogonality bound. Report where the toy model agrees and disagrees with Elhage et al.'s phase-change observations.
+\item \textbf{Probe-vs-use audit:} take a small open model (GPT-2 small or Pythia-1B) and a set of factual relations; train linear probes on mid-layer activations to predict the object token. Then run causal interventions (activation patching of the probed direction) and quantify the gap between ``probeable'' and ``causally used'' knowledge.
+\item \textbf{Mini-ROME on a toy transformer:} train a 2--4 layer transformer on synthetic subject--relation--object triplets; implement causal tracing and a rank-one edit of the mid-MLP matrix; measure paraphrase generalization, neighbor-subject bleedover, and perplexity drift as a function of edit count. Compare single-edit ROME vs.\ a MEMIT-style batched spread over layers.
+\item \textbf{Weights vs.\ context conflict study:} for a set of facts the model knows parametrically, construct prompts whose context contradicts the weights (and vice versa); measure which channel wins as a function of context position, model scale, and fact popularity. Connect the observed behavior to Q12's calibration and confidence questions.
+\end{enumerate}
+\end{document}

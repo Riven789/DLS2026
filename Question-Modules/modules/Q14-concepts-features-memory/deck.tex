@@ -1,0 +1,47 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q14: Concepts, Features, and Memory}
+\subtitle{Directions, superposition, and where knowledge lives}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#27)}
+How are ``concepts'' maintained and generated? Do they live in features? How do models reason and keep
+memory?
+\end{block}
+\end{frame}
+\begin{frame}{Concepts = directions, not neurons}
+\begin{itemize}
+\item A concept $\approx$ a \textbf{direction} in activation space.
+\item One neuron participates in \emph{many} concepts.
+\item Linear representation hypothesis: features are directions; operations approx.\ linear.
+\end{itemize}
+\end{frame}
+\begin{frame}{Superposition}
+\begin{itemize}
+\item Networks pack \textbf{more features than dimensions}.
+\item Works when features are \emph{sparse} (few active at once).
+\item Explains \textbf{polysemantic neurons}.
+\item Sparse autoencoders disentangle them back into meaningful features.
+\end{itemize}
+\end{frame}
+\begin{frame}{Where knowledge lives: MLP layers}
+\begin{itemize}
+\item Feed-forward sublayers act as \textbf{key--value memories}.
+\item Causal tracing can localize --- and \emph{edit} --- a specific fact.
+\item Attention \emph{moves} info; MLPs \emph{store} it.
+\end{itemize}
+\end{frame}
+\begin{frame}{Two kinds of memory}
+\begin{itemize}
+\item \textbf{Weights}: long-term, learned in training, fixed at inference.
+\item \textbf{Context}: short-term working memory, gone when the chat ends.
+\end{itemize}
+\alert{A model doesn't ``remember'' past chats unless re-supplied / retrieved (Q15).}
+\end{frame}
+
+\end{document}

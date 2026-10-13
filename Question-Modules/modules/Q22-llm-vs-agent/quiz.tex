@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q22 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A colleague says: ``Claude Code is an agent because it uses a frontier LLM that was trained on agentic tasks --- the agent-ness is in the weights. If you swapped in a dumb rule-based policy, the whole thing would obviously stop being an agent.'' Identify the two claims, evaluate each, and state the correct layer-based description of what Claude Code is.
+
+\vspace{1em}
+\textbf{Answer:} Claim 1 (``agent-ness is in the weights'') is incorrect as stated. Agency is supplied by the loop design --- model + loop + tools + memory + stopping criterion --- not by the weights alone; the same weights behave as a chatbot, a workflow step, or an agent depending on the scaffold around them. Claim 2 (a rule-based policy would break the agent-ness) is also incorrect: the minimal-agent definition requires only that \emph{something} map context to next actions inside a loop with tools and a stopping rule. The module's code demo shows a $\sim$30-line rule-based policy driving a genuine agentic loop (tool dispatch, error recovery, termination) and solving a task that the same policy without the loop cannot. The correct description: Claude Code is an \textbf{agentic harness} --- a scaffold that manages tools, context, permissions, retries, and stopping --- wrapped around an LLM that makes local, step-by-step decisions. The composite system is an agent; the artifact named ``Claude Code'' is the harness; the agency is in the loop design, not the weights.
+\end{document}

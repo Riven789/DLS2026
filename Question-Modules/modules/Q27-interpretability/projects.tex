@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q27 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Toy superposition and SAE recovery:} implement the Elhage et al.\ toy model (sparse features, ReLU output) in NumPy; train a sparse autoencoder on its hidden activations and measure how feature recovery depends on sparsity and dictionary size. Identify the superposition phase change and report when the SAE's dictionary directions stop matching ground-truth features.
+\item \textbf{Difference-in-means probing with controls:} on a small open-weight model (e.g., a 1--2B chat model), extract activations for harmful vs.\ harmless instructions, train linear probes at several depths, and include Belinkov-style control tasks (e.g., shuffled labels) and a random-direction ablation baseline. Report at which layer the refusal direction is most causal (ablate, then measure behavior change), not merely most decodable.
+\item \textbf{Fine-tuning-shallowness experiment:} take a small aligned model and fine-tune it on $k \in \{0, 10, 100, 1000\}$ benign instruction-following examples; plot refusal rate and a capability benchmark against $k$. Test the ``shallow steering'' prediction of a fast drop in refusal with slow capability loss, and write up where the prediction fails.
+\item \textbf{Replicate directional-ablation vs.\ weight-edit equivalence:} following Arditi et al., implement both inference-time directional ablation and the rank-one weight orthogonalization $W \leftarrow W - \hat{r}\hat{r}^{\top} W$ on a small model, and verify empirically that they produce equivalent outputs. Then measure how both interventions affect a capability suite, and discuss what the equivalence does and does not prove about where refusal is implemented.
+\end{enumerate}
+\end{document}

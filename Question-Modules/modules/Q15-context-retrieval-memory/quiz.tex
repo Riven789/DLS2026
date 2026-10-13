@@ -1,0 +1,25 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q15: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A team wants their assistant to answer questions over a 10-million-token
+internal wiki that updates daily. They propose training the facts into the model's weights. Give the main
+drawback of that approach and the standard alternative, and state one reason the alternative also reduces
+hallucination.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} Baking a daily-updating 10M-token corpus into weights is impractical: it far exceeds
+any context window to train on at once, and the facts go stale immediately---every daily update would
+require retraining/fine-tuning. The standard alternative is \textbf{retrieval-augmented generation}: index
+the wiki as vectors and retrieve the relevant chunks per query into the context, so updates are just
+re-indexing (no retraining) and the corpus can be arbitrarily large. It also reduces hallucination because
+the answer is \emph{grounded} in the retrieved passages and can cite them, rather than relying on the
+model's parametric guess.}
+\end{document}

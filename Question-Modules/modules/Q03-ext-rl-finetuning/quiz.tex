@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q03 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} Explain in two or three sentences why ``train the model on more good responses'' (pure SFT at scale) cannot replace preference optimization --- and identify the one component of the RLHF loop that DPO eliminates entirely.
+
+\vspace{1em}
+\textbf{Answer:} SFT clones demonstrated behavior: it can only make the model more like the demonstrations, but quality is defined by \emph{comparisons between candidate responses}, which a per-sequence likelihood cannot express (there is no gradient that says ``less like $B$, more like $A$, by this margin''). Preference optimization turns that comparison into a directly optimized scalar objective. DPO eliminates the \emph{reward model} (and policy sampling during training): the Bradley--Terry preference model applied through the closed-form RLHF optimum yields a direct loss on the policy's own log-ratios.
+\end{document}

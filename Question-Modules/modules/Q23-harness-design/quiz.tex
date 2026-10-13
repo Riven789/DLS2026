@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q23 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} An agent repeatedly calls the same tool with identical arguments, gets an error each time, and eventually exhausts its turn budget. Your teammate says: ``The model is broken --- it keeps retrying a failing call.'' Give the three-way attribution analysis: what evidence would distinguish a model failure from an instruction failure from a harness failure here, and which single instrument from the module (logging, replay, or ablation) would you apply first?
+
+\vspace{1em}
+\textbf{Answer:} The behavior is a retry storm, and the module's default suspicion is harness cause, not model cause --- but the evidence must rule the layers in or out. \emph{Model failure} would show the model choosing an identical retry despite an error message that already contained the fix (check the logged context: was the needed information present?). \emph{Instruction failure} would show the prompt telling the model to ``keep trying until it works'' or never specifying a fallback (check the system prompt and task spec). \emph{Harness failure} would show an uninformative error surface (``error'' with no cause), or a timeout firing just before the slow tool succeeds, converting would-be successes into error+retry cycles (check raw tool results vs.\ what was injected, and per-call timing). Apply \textbf{logging first}: it is the cheapest instrument, it is a prerequisite for the other two, and here it immediately separates the hypotheses --- if the error text reaching the model carried no actionable information, the harness's error surface is the cause and the ``dumb model'' reading is an artifact of harness design.
+\end{document}

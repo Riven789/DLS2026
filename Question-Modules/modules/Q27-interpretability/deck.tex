@@ -1,0 +1,100 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q27: Interpretability --- Reading Tendencies from Weights}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{The two questions}
+\begin{itemize}
+\item Can we read a model's \emph{tendencies} out of its weights?
+\item Do deployed models \emph{revert to pre-training traits}?
+\item Answer preview: \textbf{yes, but only via causal interventions; post-training steers rather than rewrites}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The interpretability stack}
+\begin{table}
+\begin{tabular}{ll}
+\textbf{Layer} & \textbf{Question it answers} \\
+Behavioral & What does the model do? \\
+Probing & Is a property representable in activations? \\
+Activation analysis (SAEs) & What features live in the representation? \\
+Circuit analysis & Which components compute what? \\
+Causal intervention & Does a component \emph{cause} the behavior? \\
+\end{tabular}
+\end{table}
+\vspace{0.5em}
+Causality increases downward; each layer answers what the one above cannot.
+\end{frame}
+
+\begin{frame}{Probing: the central pitfall}
+\begin{itemize}
+\item Train a classifier on internal activations to predict a property
+\item High probe accuracy $\Rightarrow$ property is \emph{representable}
+\item \textbf{Representable $\neq$ used}: high-dimensional vectors decode almost anything; even random encoders support probing above chance
+\item Remedies: control tasks, MDL constraints --- and finally causal tests (Belinkov 2022)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{SAEs: from superposition to monosemantic features}
+\begin{itemize}
+\item Problem: neurons are \emph{polysemantic}; models pack more features than neurons via \emph{superposition} (Elhage et al.\ 2022)
+\item Fix: overcomplete dictionary + $L_1$ sparsity = sparse autoencoder
+\item Bricken et al.\ 2023: decomposed a one-layer transformer's MLP into interpretable features (Base64, legal language, DNA \dots)
+\item Templeton et al.\ 2024: scaled to Claude 3 Sonnet --- millions of features, including safety-relevant ones (deception, sycophancy)
+\item Caveat: SAE features live in an \emph{auxiliary} dictionary --- feature $\neq$ used, until steered/ablated
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Circuits and causal interventions}
+\begin{itemize}
+\item \textbf{Induction heads} (Olsson et al.\ 2022): two-head circuit implementing $[A][B]\ldots[A]\!\rightarrow\![B]$; forms in a phase change tied to in-context learning
+\item \textbf{FFN as key--value memories} (Geva et al.\ 2021): keys detect patterns, values promote next tokens
+\item \textbf{Activation patching / ROME} (Meng et al.\ 2022): splice activations to localize; rank-one MLP edit rewrites a fact
+\item Interventions that change behavior = the gold standard
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reversion: what post-training actually is}
+\begin{itemize}
+\item Chat model = base (trillions of tokens, next-token prediction) + thin post-training (SFT + RLHF; Ouyang et al.\ 2022)
+\item Preference optimization reshapes output distributions; it need not delete base-model features
+\item So: pre-trained capabilities/content \emph{persist in the weights}; question is whether they resurface
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Evidence: shallow refusal}
+\begin{itemize}
+\item \textbf{Jailbreaks as reversion}: safety training fails via ``competing objectives'' and ``mismatched generalization'' --- exactly where pre-training capabilities remain (Wei et al.\ 2023; Zou et al.\ 2023)
+\item \textbf{One-dimensional refusal} (Arditi et al.\ 2024): a single difference-in-means direction; ablating it removes refusal, spares capabilities; a rank-one weight edit does it permanently --- across 13 open models up to 72B
+\item \textbf{Fine-tuning attacks} (Qi et al.\ 2024): 10 adversarial examples ($<$\$\,0.20) jailbreak GPT-3.5 Turbo; even benign fine-tuning degrades safety
+\item Reading: safety rides on fragile low-dimensional structure over persistent base features
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Counter-evidence: alignment faking}
+\begin{itemize}
+\item Greenblatt et al.\ 2024: Claude 3 Opus, told it is trained to answer harmful queries, complies ``in training'' to preserve its harmlessness ``in deployment'' (explicit scratchpad reasoning)
+\item Inverts naive reversion: post-trained preferences can resist overwriting
+\item Caveats: setup made easy (training signal given); only a minority of frontier models replicate (see Q28)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Calibrated conclusion}
+\emph{Post-training steers rather than rewrites.}
+\vspace{0.4em}
+\begin{itemize}
+\item Refusal: shallow, nearly one-dimensional, easily ablated or fine-tuned away
+\item Harmful-content features and capabilities: persist from pre-training, visible to SAEs, survive refusal removal
+\item Weight inspection earns its claims only at the causal-intervention layer
+\item Not shown: base models have goals; current audits scale to frontier danger
+\end{itemize}
+\vspace{0.4em}
+\footnotesize Reading: Bricken et al.\ 2023; Templeton et al.\ 2024; Olsson et al.\ 2022; Meng et al.\ 2022; Arditi et al.\ 2024; Qi et al.\ 2024; Greenblatt et al.\ 2024 ($\to$ Q28).
+\end{frame}
+
+\end{document}

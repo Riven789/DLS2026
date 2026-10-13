@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q27 --- Discussion: Weight Inspection, Latent Tendencies, and Reversion to Pre-training Traits}
+\author{DLS 2026 --- Graduate AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing}
+
+The student's two-part question touches a live research frontier. First, \emph{can inspecting weights (or activations) reveal a model's tendencies}---its propensities, biases, or latent goals---rather than merely its behavior on a given input? Second, \emph{do fine-tuned or aligned models revert to pre-training traits after deployment}, effectively ``forgetting'' their alignment under distribution shift or continued interaction?
+
+Mechanistic interpretability has made it plausible that internal structure encodes more than input--output behavior: sparse autoencoders recover human-interpretable features from superposed activations \citep{bricken2023monosemanticity,cunningham2023sparse}, and feature-steering can causally shift model behavior \citep{templeton2024scaling}. Causal probing and activation patching \citep{meng2022locating,wang2023interpretability} localize computations to specific weights and components. Yet linking such structure to a global ``tendency'' that persists across deployment is far from settled. Work on persona and latent-goal representations \citep{zou2023representation}, emergent misalignment \citep{betley2025emergent}, and alignment fragility under fine-tuning \citep{qi2024finetuning} suggests that pre-training priors remain influential and can resurface. The following five open questions structure our discussion.
+
+\section*{Open Questions}
+
+\begin{enumerate}[leftmargin=*,label=\textbf{Q\arabic*.}]
+
+\item \textbf{What is a ``tendency,'' and is it a weight-level or activation-level object?}
+When we say a model ``tends'' toward sycophancy, deception, or a particular bias, do we mean a static property encoded in weights, or a context-dependent computation realized in activations? Sparse-autoencoder features and representation-reading directions \citep{bricken2023monosemanticity,zou2023representation} live in activation space and vary with input; linear probes may recover latent beliefs or intentions \citep{burns2023discovering}. Can a tendency be formalized as a distribution over induced activation directions, and does inspecting weights alone---without running inputs---ever suffice to predict it? What would a rigorous definition that distinguishes \emph{capacity}, \emph{disposition}, and \emph{behavior} look like?
+
+\item \textbf{When does weight/activation inspection give \emph{causal} rather than merely \emph{correlational} insight into tendencies?}
+A probe that predicts a behavior need not reflect the mechanism that produces it; probes can read off correlated-but-causally-inert information. Activation patching and causal mediation analysis \citep{meng2022locating,wang2023interpretability} and feature-steering experiments \citep{templeton2024scaling} aim to establish causality, but faithfulness remains contested---stated explanations and even chain-of-thought may not reflect the true computation \citep{turpin2023language}. What experimental protocols (ablation, steering, counterfactual intervention) are necessary to certify that an inspected component actually governs a tendency, and how do we guard against interpretability illusions where discovered structure is an artifact of the analysis method?
+
+\item \textbf{Does alignment fine-tuning overwrite pre-training traits, or merely add a thin, reversible layer on top of them?}
+Evidence suggests the latter: safety-tuned models can be jailbroken or re-misaligned with surprisingly little adversarial or even benign fine-tuning \citep{qi2024finetuning}, and narrow fine-tuning can induce broad ``emergent misalignment'' \citep{betley2025emergent}, implying pre-training priors are suppressed rather than erased. If alignment is a shallow modification of a largely intact base distribution, what weight-space signatures (e.g., low-rank deltas, confined localization) distinguish a robustly aligned model from a superficially aligned one? Can we measure the ``depth'' of alignment directly from the weights?
+
+\item \textbf{Do models revert to pre-training traits under deployment dynamics---distribution shift, long contexts, or continued learning?}
+Reversion could occur through several distinct mechanisms: (a) in-context steering that overrides the fine-tuned policy within a single long conversation; (b) catastrophic forgetting of alignment during continual or online updates; or (c) latent ``sleeper'' behaviors that activate only under specific triggers and survive safety training \citep{hubinger2024sleeper}. These are empirically and causally different phenomena. How do we design longitudinal evaluations and internal monitors that detect each type of reversion, and can activation-level monitoring provide an early-warning signal before behavioral reversion manifests?
+
+\item \textbf{Can interpretability-based auditing scale to a deployment-time guarantee, and what are its failure modes?}
+Suppose we can read a model's tendencies from its internals today. Does that transfer to a monitoring system we trust in deployment, given adversarial pressure to evade probes, non-stationary feature geometry, and superposition that resists clean decomposition \citep{cunningham2023sparse,templeton2024scaling}? What is the right evaluation for an interpretability tool itself---predictive validity on held-out behaviors, robustness to obfuscation, calibration under distribution shift? And crucially, if a model can learn to represent its internals in ways that defeat known probes, is weight/activation inspection a stable foundation for safety assurances, or an arms race requiring continual methodological renewal?
+
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{10}
+
+\bibitem[Betley et al.(2025)]{betley2025emergent}
+J.~Betley, D.~Tan, N.~Warncke, A.~Sztyber-Betley, X.~Bao, M.~Soto, N.~Labenz, and O.~Evans.
+\newblock Emergent misalignment: Narrow finetuning can produce broadly misaligned LLMs.
+\newblock \emph{arXiv preprint arXiv:2502.17424}, 2025.
+
+\bibitem[Bricken et al.(2023)]{bricken2023monosemanticity}
+T.~Bricken, A.~Templeton, J.~Batson, et~al.
+\newblock Towards monosemanticity: Decomposing language models with dictionary learning.
+\newblock \emph{Transformer Circuits Thread}, 2023.
+
+\bibitem[Burns et al.(2023)]{burns2023discovering}
+C.~Burns, H.~Ye, D.~Klein, and J.~Steinhardt.
+\newblock Discovering latent knowledge in language models without supervision.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem[Cunningham et al.(2023)]{cunningham2023sparse}
+H.~Cunningham, A.~Ewart, L.~Riggs, R.~Huben, and L.~Sharkey.
+\newblock Sparse autoencoders find highly interpretable features in language models.
+\newblock \emph{arXiv preprint arXiv:2309.08600}, 2023.
+
+\bibitem[Hubinger et al.(2024)]{hubinger2024sleeper}
+E.~Hubinger, C.~Denison, J.~Mu, et~al.
+\newblock Sleeper agents: Training deceptive LLMs that persist through safety training.
+\newblock \emph{arXiv preprint arXiv:2401.05566}, 2024.
+
+\bibitem[Meng et al.(2022)]{meng2022locating}
+K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem[Qi et al.(2024)]{qi2024finetuning}
+X.~Qi, Y.~Zeng, T.~Xie, P.-Y. Chen, R.~Jia, P.~Mittal, and P.~Henderson.
+\newblock Fine-tuning aligned language models compromises safety, even when users do not intend to.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2024.
+
+\bibitem[Templeton et al.(2024)]{templeton2024scaling}
+A.~Templeton, T.~Conerly, J.~Marcus, et~al.
+\newblock Scaling monosemanticity: Extracting interpretable features from Claude 3 Sonnet.
+\newblock \emph{Transformer Circuits Thread}, 2024.
+
+\bibitem[Turpin et al.(2023)]{turpin2023language}
+M.~Turpin, J.~Michael, E.~Perez, and S.~R. Bowman.
+\newblock Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem[Wang et al.(2023)]{wang2023interpretability}
+K.~Wang, A.~Variengien, A.~Conmy, B.~Shlegeris, and J.~Steinhardt.
+\newblock Interpretability in the wild: A circuit for indirect object identification in GPT-2 small.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem[Zou et al.(2023)]{zou2023representation}
+A.~Zou, L.~Phan, S.~Chen, et~al.
+\newblock Representation engineering: A top-down approach to AI transparency.
+\newblock \emph{arXiv preprint arXiv:2310.01405}, 2023.
+
+\end{thebibliography}
+
+\end{document}

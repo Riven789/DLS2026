@@ -1,0 +1,57 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q05: When Does Extra Reasoning Help?}
+\subtitle{Test-time compute and its trade-offs}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#05)}
+When does extra reasoning actually improve an answer, and what is the trade-off?
+\end{block}
+\end{frame}
+\begin{frame}{What ``extra reasoning'' is}
+\begin{itemize}
+\item Chain-of-thought: emit intermediate steps.
+\item Self-consistency / best-of-$n$: sample many, aggregate or verify.
+\item Reasoning models: trained to produce long deliberate traces.
+\end{itemize}
+\alert{All trade tokens (latency, \$) for a \emph{chance} at accuracy.}
+\end{frame}
+\begin{frame}{When it helps}
+\begin{itemize}
+\item \textbf{Multi-step} tasks (math, code, logic, planning).
+\item \textbf{Verifiable} answers $\Rightarrow$ sampling + selection pays off.
+\item Test-time compute can \emph{substitute} for parameters.
+\end{itemize}
+\end{frame}
+\begin{frame}{When it doesn't---or hurts}
+\begin{itemize}
+\item Simple/lookup tasks: tokens wasted, can talk itself out of a right answer.
+\item \textbf{Overthinking}: accuracy rises then falls (inverted-U).
+\item \textbf{Faithfulness gap}: the trace may not be the real computation.
+\end{itemize}
+\end{frame}
+\begin{frame}{The trade-off, quantitatively}
+Coverage of best-of-$n$ with single-sample accuracy $p_1$:
+\[ \Pr[\text{at least one correct}] = 1-(1-p_1)^n \]
+\begin{itemize}
+\item Cost $\sim$ linear in $n$ (and trace length).
+\item Returns \textbf{diminish} $\Rightarrow$ an optimal budget per query.
+\item Requires a verifier to \emph{capture} the coverage.
+\end{itemize}
+\end{frame}
+\begin{frame}{A decision rule}
+Spend extra reasoning when:
+\begin{enumerate}
+\item the task is genuinely multi-step,
+\item errors are costly,
+\item you can verify / cross-check candidates.
+\end{enumerate}
+Otherwise keep it short. \alert{Calibrate per task---never one length globally.}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,205 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q03 --- Deeper Projects\\\large Is reasoning real, a property of language, a reflection, or an illusion?}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing the Question}
+
+When a large language model emits a chain of intermediate tokens before an
+answer, we are tempted to call this ``reasoning.'' But the philosophical
+content of that word is contested. Four hypotheses structure this module:
+(i) \emph{reasoning is real}---there is a causal, generalizable computation
+that mediates premises and conclusions; (ii) \emph{reasoning is a property
+of language}---the surface form of trained text induces inference-like
+patterns without a separable mechanism; (iii) \emph{reasoning is a
+reflection}---the model mirrors statistical regularities of human-produced
+argument without executing the argument; (iv) \emph{reasoning is an
+illusion}---chain-of-thought (CoT) text is post-hoc rationalization that
+does not reflect the model's actual decision process. These are not mutually
+exclusive across tasks, and the empirical literature supports a nuanced
+view: CoT improves performance on some tasks \citep{wei2022cot,
+nye2021scratchpad}, yet verbalized explanations can be unfaithful to the
+underlying computation \citep{turpin2023language, lanham2023measuring}, and
+apparent reasoning degrades under distribution shift and token-probability
+sensitivity \citep{mccoy2023embers}. The projects below ask you to generate
+\emph{evidence}, not opinions.
+
+\section{Project A --- Faithfulness Auditing of Chain-of-Thought}
+
+\paragraph{Goal.} Determine whether verbalized reasoning steps are causally
+responsible for a model's answer, or whether they are decorative.
+
+\paragraph{Method.} Reproduce and extend the biasing and perturbation
+protocols of \citet{turpin2023language} and \citet{lanham2023measuring}.
+Construct matched prompt pairs in which a spurious cue (e.g., answer order,
+few-shot label bias) is silently inserted. Measure whether the model's
+answer flips while its stated rationale fails to mention the cue. Then run
+causal interventions: truncate CoT, paraphrase it, inject errors into
+intermediate steps, and measure answer sensitivity.
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.4em]
+  \item A faithfulness benchmark of $\geq 400$ items across $\geq 3$ task
+    families (arithmetic, multi-hop QA, logical entailment), with per-item
+    bias labels.
+  \item A quantitative report giving: answer-flip rate under biasing,
+    rationale-mention rate, and an \emph{early-answering} / \emph{added-mistake}
+    sensitivity curve per \citet{lanham2023measuring}.
+  \item A written argument (3--4 pp.) assigning each task family to one of
+    the four hypotheses, with confidence intervals.
+\end{itemize}
+
+\section{Project B --- Mechanistic Localization of an Inference Circuit}
+
+\paragraph{Goal.} Test whether a specific reasoning behavior corresponds to
+an identifiable, reusable internal computation (the ``reasoning is real''
+hypothesis at the mechanism level).
+
+\paragraph{Method.} Choose a narrow, well-posed task (e.g., multi-step
+in-context induction, or a bracketed arithmetic subtask). Apply activation
+patching and path patching following \citet{wang2023ioi} and the causal
+mediation framework of \citet{meng2022rome}. Use attention-pattern analysis
+and logit attribution to identify candidate circuits, then validate by
+ablation and transfer to held-out instances. Document whether the circuit
+generalizes or is template-bound (evidence for ``property of language'').
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.4em]
+  \item A circuit diagram with the heads/MLPs implicated, plus patching
+    effect sizes.
+  \item A transfer table: circuit intact across $\geq 4$ structural variants
+    (vocabulary swap, length scaling, distractors).
+  \item A short claim with falsification criterion: state what observation
+    would refute ``this circuit implements the inference.''
+\end{itemize}
+
+\section{Project C --- Robustness and the ``Embers'' of Autoregression}
+
+\paragraph{Goal.} Quantify how much apparent reasoning is governed by
+token-level probability rather than task logic.
+
+\paragraph{Method.} Following \citet{mccoy2023embers}, construct task
+variants that hold logical structure fixed while varying output
+probability (common vs.\ rare target strings, common vs.\ rare task
+framings). Measure accuracy as a function of estimated output rarity and
+task frequency. Contrast with symbolic baselines. Optionally cross-reference
+counting/length-sensitivity failures reported in compositional-generalization
+work \citep{lake2018scan}.
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.4em]
+  \item Accuracy-vs-rarity curves with regression coefficients isolating
+    the probability effect from the logic effect.
+  \item A ``reflection index'': the fraction of variance in correctness
+    explained by output probability versus task structure.
+  \item Interpretation mapping results onto the four hypotheses.
+\end{itemize}
+
+\section{Project D --- Operationalizing the Definition}
+
+\paragraph{Goal.} Rather than settle the metaphysics, propose a
+\emph{measurable} definition of reasoning and defend it.
+
+\paragraph{Method.} Draft operational criteria (e.g., causal dependence of
+answer on verbalized steps, out-of-distribution generalization, circuit
+reusability, invariance to superficial rephrasing). Relate your criteria to
+emergent-capability debates \citep{wei2022emergent, schaeffer2023mirage} and
+to the self-consistency improvements of \citet{wang2023selfconsistency}.
+Apply your criteria to results from Projects A--C.
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=1.4em]
+  \item A 2-page definitional proposal with explicit metrics and thresholds.
+  \item A scoring of $\geq 2$ models against your criteria, with a verdict
+    per hypothesis (real / linguistic / reflective / illusory), per task.
+  \item A critical appendix noting where your own definition is itself at
+    risk of measuring an illusion.
+\end{itemize}
+
+\section*{Assessment}
+
+Projects are graded on experimental validity, honesty about negative
+results, and the tightness of the link between \emph{evidence} and
+\emph{claim}. A project that convincingly demonstrates ``illusion'' on a
+task earns the same credit as one demonstrating ``real'' reasoning;
+intellectual direction is not rewarded, only rigor.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{wei2022cot}
+J.~Wei, X.~Wang, D.~Schuurmans, M.~Bosma, B.~Ichter, F.~Xia, E.~Chi,
+Q.~Le, and D.~Zhou.
+\newblock Chain-of-thought prompting elicits reasoning in large language models.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem{nye2021scratchpad}
+M.~Nye, A.~J. Andreassen, G.~Gur-Ari, H.~Michalewski, J.~Austin, D.~Bieber,
+D.~Dohan, A.~Lewkowycz, M.~Bosma, D.~Luan, C.~Sutton, and A.~Odena.
+\newblock Show your work: Scratchpads for intermediate computation with language models.
+\newblock \emph{arXiv preprint arXiv:2112.00114}, 2021.
+
+\bibitem{turpin2023language}
+M.~Turpin, J.~Michael, E.~Perez, and S.~R. Bowman.
+\newblock Language models don't always say what they think: Unfaithful
+explanations in chain-of-thought prompting.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem{lanham2023measuring}
+T.~Lanham, A.~Chen, A.~Radhakrishnan, B.~Steiner, C.~Denison, D.~Hernandez,
+D.~Li, E.~Durmus, E.~Hubinger, J.~Kernion, et~al.
+\newblock Measuring faithfulness in chain-of-thought reasoning.
+\newblock \emph{arXiv preprint arXiv:2307.13702}, 2023.
+
+\bibitem{mccoy2023embers}
+R.~T. McCoy, S.~Yao, D.~Friedman, M.~Hardy, and T.~L. Griffiths.
+\newblock Embers of autoregression: Understanding large language models
+through the problem they are trained to solve.
+\newblock \emph{arXiv preprint arXiv:2309.13638}, 2023.
+
+\bibitem{wang2023ioi}
+K.~Wang, A.~Variengien, A.~Conmy, B.~Shlegeris, and J.~Steinhardt.
+\newblock Interpretability in the wild: A circuit for indirect object
+identification in GPT-2 small.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{meng2022rome}
+K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\bibitem{lake2018scan}
+B.~M. Lake and M.~Baroni.
+\newblock Generalization without systematicity: On the compositional skills
+of sequence-to-sequence recurrent networks.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2018.
+
+\bibitem{wei2022emergent}
+J.~Wei, Y.~Tay, R.~Bommasani, C.~Raffel, B.~Zoph, S.~Borgeaud, D.~Yogatama,
+M.~Bosma, D.~Zhou, D.~Metzler, et~al.
+\newblock Emergent abilities of large language models.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
+
+\bibitem{schaeffer2023mirage}
+R.~Schaeffer, B.~Miranda, and S.~Koyejo.
+\newblock Are emergent abilities of large language models a mirage?
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem{wang2023selfconsistency}
+X.~Wang, J.~Wei, D.~Schuurmans, Q.~Le, E.~Chi, S.~Narang, A.~Chowdhery, and D.~Zhou.
+\newblock Self-consistency improves chain of thought reasoning in language models.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\end{thebibliography}
+
+\end{document}

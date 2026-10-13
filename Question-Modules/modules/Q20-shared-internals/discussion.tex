@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q20 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item The skeleton (SGD + backprop + tensor hardware) has been stable for a decade. What would it take for a genuinely non-skeleton architecture to compete --- and do state-space models or diffusion LMs qualify, or are they skeleton-loyal?
+\item ``Transfer of understanding'': which of your CNN-era intuitions have you personally seen fail on LLMs --- and which saved you?
+\item MoE sparsity reuses a 1990s gating idea at 2020s scale. What other ``old'' ideas do you expect to be recycled next, and why does recycling keep working?
+\item The post-training stack (SFT, DPO/RLHF, RLVR) has no analogue in vision models. Is that a fundamental difference in kind, or an artifact of language being easier to verify than pixels?
+\item If LLM internals are mostly inherited parts, why did the ``scaling race'' favor Transformers specifically? What property of the architecture made it the winner, and could that property have been identified in 2017?
+\end{enumerate}
+\end{document}

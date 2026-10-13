@@ -1,0 +1,91 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q14: How Are ``Concepts'' Represented---Do They Live in Features?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item Explain how neural networks represent ``concepts'' in activation space.
+\item Define superposition and why it complicates one-neuron-one-concept intuitions.
+\item Distinguish a model's weights (long-term knowledge) from its context (working memory).
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion video:}\begin{itemize}\setlength\itemsep{0pt}\item \emph{Reading AI's Mind - Mechanistic Interpretability Explained} --- bycloud (9:21). \url{https://www.youtube.com/watch?v=Mhp8vpOksWw}\end{itemize}\end{quote}
+
+\section{The question}
+Student response \#27 asks how ``concepts'' are maintained and generated, whether they live in features,
+and how models reason and keep memory. The modern answer from interpretability research is specific:
+concepts are \textbf{directions in activation space}, often many more of them than there are neurons, and
+``memory'' is really two different things that students should not conflate---weights and context.
+
+\section{Concepts as directions, not neurons}
+Early intuition hoped each neuron encoded one human-meaningful concept. Reality is messier and more
+elegant: a concept typically corresponds to a \emph{direction} (a linear combination of neuron
+activations), and a single neuron participates in many concepts \citep{olah2020zoom}. This
+\textbf{linear representation hypothesis}---that features are directions and that meaningful operations are
+approximately linear in that space---is supported by findings like vector arithmetic on word embeddings and
+by probes that linearly decode attributes from hidden states. Reasoning, on this view, is the model moving
+and combining these feature directions across layers via attention and the MLP.
+
+\section{Superposition: more features than neurons}
+Why not just read off neurons? Because networks pack \emph{more features than they have dimensions}, a
+phenomenon called \textbf{superposition} \citep{elhage2022superposition}. When features are sparse (only a
+few active at once), a layer can represent many of them as nearly-orthogonal directions in a lower-
+dimensional space, tolerating small interference. Superposition explains \textbf{polysemantic neurons}
+(single units that fire for unrelated inputs) and is the central obstacle to naive interpretability. The
+response---\textbf{sparse autoencoders}---learns an overcomplete, sparse dictionary that disentangles the
+superposed features back into individually meaningful ones \citep{bricken2023monosemanticity}, a major
+recent step in reading concepts out of a model (developed further in the interpretability module Q27).
+
+\section{Where knowledge is stored: the MLP layers}
+Factual, associative knowledge lives disproportionately in the \textbf{MLP (feed-forward) sublayers},
+which behave like key--value memories: a key pattern in the residual stream retrieves an associated value
+written back into it \citep{geva2021kv}. Causal-tracing work can localize \emph{where} a specific fact is
+stored and even edit it \citep{meng2022rome}. Attention, by contrast, is mainly about \emph{moving}
+information between positions; the MLPs are where much of the ``what the model knows'' resides.
+
+\section{A worked intuition: the king--queen direction}
+The classic demonstration that concepts are directions is word-vector arithmetic: in a well-trained
+embedding space, the vector for ``king'' minus ``man'' plus ``woman'' lands near ``queen.'' The feature
+``royalty'' and the feature ``gender'' behave like (approximately) independent directions you can add and
+subtract. Modern mechanistic work finds the same structure deeper in the network: a ``this text is in
+French'' direction, a ``sentiment is positive'' direction, a ``the subject is plural'' direction---each
+recoverable by a linear probe, each manipulable by adding a scaled vector to the residual stream to
+\emph{steer} the model's behavior. This is why the linear-representation picture is more than a metaphor:
+it makes testable predictions (probes should decode the attribute; adding the direction should change the
+output) that largely hold. It also clarifies ``how models reason'': reasoning is, in large part, the
+network reading some feature directions and writing others across layers, routed by attention.
+
+\section{When the clean picture bends}
+Honesty requires noting the limits. Not every feature is cleanly linear or cleanly separable; superposition
+means directions interfere, and some features appear to be represented in more complex, possibly nonlinear
+ways that current tools capture poorly. Sparse autoencoders recover many interpretable features but not all,
+and which dictionary you learn depends on hyperparameters. So ``concepts are directions'' is the best
+current working model---powerful, predictive, and actively used for steering and interpretability---rather
+than a complete theory. Students should hold it as a strong, useful approximation, not dogma.
+
+\section{Two kinds of memory}
+Finally, the word ``memory'' hides a crucial split. \textbf{Weights} are long-term memory: learned during
+training, fixed at inference, holding the concepts and facts above. \textbf{Context} (the tokens in the
+window) is short-term working memory: available now, gone when the conversation ends, not written back into
+weights. A model does not ``remember'' yesterday's chat unless that text is re-supplied in context or
+retrieved (module Q15). Confusing the two is the source of many misconceptions---why context is not memory
+is the subject of the next module.
+
+\section{Summary}
+Concepts are directions in activation space, not single neurons; superposition lets a network hold more
+features than dimensions, and sparse autoencoders can disentangle them. Factual knowledge is concentrated
+in MLP key--value memories and can be localized and edited. ``Memory'' splits into weights (long-term,
+trained) and context (short-term, working)---a distinction module Q15 builds on.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

@@ -1,0 +1,122 @@
+{
+ "module": "Q01",
+ "title": "From Next-Token Prediction to Capabilities",
+ "slides": [
+  {
+   "idx": 0,
+   "title": "The question",
+   "narration_seconds": 30.29,
+   "segment_seconds": 31.09
+  },
+  {
+   "idx": 1,
+   "title": "What the training objective actually is",
+   "narration_seconds": 31.66,
+   "segment_seconds": 32.46
+  },
+  {
+   "idx": 2,
+   "title": "Tokens, not words",
+   "narration_seconds": 26.21,
+   "segment_seconds": 27.01
+  },
+  {
+   "idx": 3,
+   "title": "Prediction is compression",
+   "narration_seconds": 37.75,
+   "segment_seconds": 38.55
+  },
+  {
+   "idx": 4,
+   "title": "Why compression forces internal models",
+   "narration_seconds": 36.53,
+   "segment_seconds": 37.33
+  },
+  {
+   "idx": 5,
+   "title": "In-context learning",
+   "narration_seconds": 33.38,
+   "segment_seconds": 34.18
+  },
+  {
+   "idx": 6,
+   "title": "Why in-context learning is possible at all",
+   "narration_seconds": 30.7,
+   "segment_seconds": 31.5
+  },
+  {
+   "idx": 7,
+   "title": "Instruction following from next-token prediction",
+   "narration_seconds": 34.1,
+   "segment_seconds": 34.9
+  },
+  {
+   "idx": 8,
+   "title": "Coding from next-token prediction",
+   "narration_seconds": 36.31,
+   "segment_seconds": 37.11
+  },
+  {
+   "idx": 9,
+   "title": "Why scale changes the picture",
+   "narration_seconds": 35.86,
+   "segment_seconds": 36.66
+  },
+  {
+   "idx": 10,
+   "title": "Generalization versus memorization",
+   "narration_seconds": 32.5,
+   "segment_seconds": 33.3
+  },
+  {
+   "idx": 11,
+   "title": "The counterpoint: what prediction does not explain",
+   "narration_seconds": 35.14,
+   "segment_seconds": 35.94
+  },
+  {
+   "idx": 12,
+   "title": "What we can measure: perplexity and bits per token",
+   "narration_seconds": 29.02,
+   "segment_seconds": 29.82
+  },
+  {
+   "idx": 13,
+   "title": "A worked micro-example",
+   "narration_seconds": 32.54,
+   "segment_seconds": 33.34
+  },
+  {
+   "idx": 14,
+   "title": "Post-training in one picture",
+   "narration_seconds": 33.62,
+   "segment_seconds": 34.42
+  },
+  {
+   "idx": 15,
+   "title": "Is it intelligence? the honest boundary",
+   "narration_seconds": 30.58,
+   "segment_seconds": 31.38
+  },
+  {
+   "idx": 16,
+   "title": "Open questions at the frontier",
+   "narration_seconds": 33.1,
+   "segment_seconds": 33.9
+  },
+  {
+   "idx": 17,
+   "title": "How to read this topic's literature",
+   "narration_seconds": 34.7,
+   "segment_seconds": 35.5
+  },
+  {
+   "idx": 18,
+   "title": "Recap",
+   "narration_seconds": 32.54,
+   "segment_seconds": 33.34
+  }
+ ],
+ "total_seconds": 626.56,
+ "in_10_15_window": true
+}

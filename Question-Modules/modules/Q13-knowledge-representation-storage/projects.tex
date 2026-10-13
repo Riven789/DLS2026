@@ -1,0 +1,170 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q13 --- Deeper projects}
+\author{Deep Learning Systems 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing}
+These projects investigate \emph{how} large language models represent, store, and retrieve factual knowledge, and how that knowledge is converted into an answer. A useful mental model is the ``knowledge neuron'' / key--value memory view of feed-forward layers \citep{geva2021kv,geva2022promoting}, combined with causal localization methods such as causal tracing \citep{meng2022rome} and more recent critiques of the ``localize-then-edit'' assumption \citep{hase2023does}. The projects below ask you to reproduce, stress-test, and extend these ideas. Each project lists concrete deliverables; all code, logs, and a short write-up (max 6 pages) are required.
+
+\section{Project A: Localizing factual associations with causal tracing}
+\textbf{Goal.} Reproduce and critically evaluate causal tracing \citep{meng2022rome} on an open-weight model (e.g.\ GPT-2 XL or a 7B-class LLaMA-family model).
+
+\paragraph{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Build a probe set of subject--relation--object factual statements. You may reuse CounterFact/\textsc{zsRE}-style items \citep{meng2022rome,levy2017zeroshot}.
+  \item Implement the three-run tracing protocol: clean run, corrupted-subject run, and corrupted-with-restoration run; record the \emph{indirect effect} per (layer, token) site.
+  \item Produce causal-tracing heatmaps and identify the mid-layer MLP peak over subject tokens.
+  \item Critically test whether the localized site predicts where editing works, following \citet{hase2023does}: compare tracing peaks against where edits actually succeed.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Code + reproducible config; heatmaps for $\geq 20$ facts.
+  \item A plot of edit-success vs.\ tracing-peak layer, with discussion of any mismatch.
+  \item A 2-paragraph critique of what causal tracing does and does not establish.
+\end{itemize}
+
+\section{Project B: Knowledge editing and its side effects}
+\textbf{Goal.} Implement and compare at least two editing methods and measure locality, generalization, and ripple effects.
+
+\paragraph{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Implement a rank-one / closed-form MLP edit (ROME) \citep{meng2022rome} and a mass-editing or hypernetwork baseline (MEMIT \citep{meng2023memit} or MEND \citep{mitchell2022mend}).
+  \item Evaluate on efficacy, paraphrase generalization, and \emph{locality} (unrelated facts preserved).
+  \item Measure \emph{ripple effects}: whether logically entailed facts update consistently \citep{cohen2023evaluating}.
+  \item Report failure modes (over-generalization, catastrophic interference under sequential edits).
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Table comparing methods on efficacy / generalization / locality / ripple metrics.
+  \item A sequential-editing stability curve (performance vs.\ number of edits).
+  \item Discussion linking observed failures to the key--value memory view \citep{geva2021kv}.
+\end{itemize}
+
+\section{Project C: Probing representations and the geometry of facts}
+\textbf{Goal.} Investigate how knowledge is encoded in hidden states and whether it is linearly accessible.
+
+\paragraph{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Train linear probes to recover attributes (e.g.\ entity type, country) from hidden states across layers; report accuracy by layer.
+  \item Use the logit-lens / early-decoding idea to track when the answer token becomes dominant across layers \citep{nostalgebraist2020logitlens,geva2022promoting}.
+  \item Test the ``linear representation'' hypothesis for selected relations \citep{hernandez2024linearity}, estimating relation operators from hidden states.
+  \item Distinguish genuine knowledge from surface heuristics using controlled minimal pairs.
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Layer-wise probe accuracy plots and logit-lens trajectories for $\geq 10$ facts.
+  \item A short analysis of whether the studied relations are approximately linear.
+  \item Caveats on probing (correlation vs.\ causation; probe expressivity).
+\end{itemize}
+
+\section{Project D: Parametric vs.\ retrieved knowledge}
+\textbf{Goal.} Compare answering from parametric memory against retrieval-augmented generation (RAG), and study conflict resolution.
+
+\paragraph{Tasks.}
+\begin{enumerate}[leftmargin=*]
+  \item Build a small RAG pipeline (dense retriever + reader) \citep{lewis2020rag,karpukhin2020dpr}.
+  \item Measure closed-book vs.\ open-book accuracy on a factual QA set \citep{petroni2019lama}.
+  \item Create knowledge-conflict cases (retrieved passage contradicts parametric belief) and quantify when the model defers to context \citep{longpre2021entitybased}.
+  \item Analyze hallucination: do parametric gaps correlate with confident wrong answers?
+\end{enumerate}
+
+\paragraph{Deliverables.}
+\begin{itemize}[leftmargin=*]
+  \item Accuracy comparison (closed vs.\ open book) with confidence calibration plots.
+  \item A conflict-resolution table (defer-to-context rate by passage type).
+  \item Recommendations on when retrieval should override parametric knowledge.
+\end{itemize}
+
+\section*{Assessment}
+Projects are graded on reproducibility (30\%), correctness of implementation (30\%), depth of analysis and critique (30\%), and clarity of the write-up (10\%). Negative or null results are fully acceptable when rigorously argued.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{99}
+
+\bibitem{geva2021kv}
+M.~Geva, R.~Schuster, J.~Berant, and O.~Levy.
+\newblock Transformer feed-forward layers are key-value memories.
+\newblock In \emph{EMNLP}, 2021.
+
+\bibitem{geva2022promoting}
+M.~Geva, A.~Caciularu, K.~R. Wang, and Y.~Goldberg.
+\newblock Transformer feed-forward layers build predictions by promoting concepts in the vocabulary space.
+\newblock In \emph{EMNLP}, 2022.
+
+\bibitem{meng2022rome}
+K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+\newblock Locating and editing factual associations in GPT.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem{meng2023memit}
+K.~Meng, A.~S. Sharma, A.~Andonian, Y.~Belinkov, and D.~Bau.
+\newblock Mass-editing memory in a transformer.
+\newblock In \emph{ICLR}, 2023.
+
+\bibitem{mitchell2022mend}
+E.~Mitchell, C.~Lin, A.~Bosselut, C.~Finn, and C.~D. Manning.
+\newblock Fast model editing at scale.
+\newblock In \emph{ICLR}, 2022.
+
+\bibitem{hase2023does}
+P.~Hase, M.~Bansal, B.~Kim, and A.~Ghandeharioun.
+\newblock Does localization inform editing? Surprising differences in causality-based localization vs.\ knowledge editing in language models.
+\newblock In \emph{NeurIPS}, 2023.
+
+\bibitem{cohen2023evaluating}
+R.~Cohen, E.~Biran, O.~Yoran, A.~Globerson, and M.~Geva.
+\newblock Evaluating the ripple effects of knowledge editing in language models.
+\newblock \emph{Transactions of the Association for Computational Linguistics}, 12:283--298, 2024.
+
+\bibitem{hernandez2024linearity}
+E.~Hernandez, A.~S. Sharma, T.~Haklay, K.~Meng, M.~Wattenberg, J.~Andreas, Y.~Belinkov, and D.~Bau.
+\newblock Linearity of relation decoding in transformer language models.
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem{levy2017zeroshot}
+O.~Levy, M.~Seo, E.~Choi, and L.~Zettlemoyer.
+\newblock Zero-shot relation extraction via reading comprehension.
+\newblock In \emph{CoNLL}, 2017.
+
+\bibitem{nostalgebraist2020logitlens}
+nostalgebraist.
+\newblock Interpreting GPT: the logit lens.
+\newblock LessWrong, 2020.
+\newblock \url{https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens}.
+
+\bibitem{lewis2020rag}
+P.~Lewis, E.~Perez, A.~Piktus, et~al.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In \emph{NeurIPS}, 2020.
+
+\bibitem{karpukhin2020dpr}
+V.~Karpukhin, B.~O\u{g}uz, S.~Min, et~al.
+\newblock Dense passage retrieval for open-domain question answering.
+\newblock In \emph{EMNLP}, 2020.
+
+\bibitem{petroni2019lama}
+F.~Petroni, T.~Rockt\"aschel, P.~Lewis, et~al.
+\newblock Language models as knowledge bases?
+\newblock In \emph{EMNLP-IJCNLP}, 2019.
+
+\bibitem{longpre2021entitybased}
+S.~Longpre, K.~Perisetla, A.~Chen, N.~Ramesh, C.~DuBois, and S.~Singh.
+\newblock Entity-based knowledge conflicts in question answering.
+\newblock In \emph{EMNLP}, 2021.
+
+\end{thebibliography}
+
+\end{document}

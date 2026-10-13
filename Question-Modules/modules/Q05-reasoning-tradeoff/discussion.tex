@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q05: Discussion Questions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item Chain-of-thought helps on multi-step tasks but can lower accuracy on simple ones. What property of a task would you measure \emph{in advance} to predict which regime you are in?
+\item Best-of-$n$ coverage is $1-(1-p_1)^n$, but realized accuracy depends on the verifier. Where do you invest a fixed budget: a better base model (raises $p_1$) or more samples (raises $n$)? What determines the answer?
+\item If the written reasoning trace is not guaranteed to be faithful to the computation, is it ever safe to use the trace to decide whether to trust the answer? Argue a position.
+\item ``Overthinking'' produces an inverted-U of accuracy vs.\ reasoning length. Design an inference-time controller that stops reasoning at the right point without knowing the answer.
+\item Test-time compute can substitute for parameters on some benchmarks. For a product with a fixed latency budget, how would you decide between a bigger model and a smaller model that thinks longer?
+\end{enumerate}
+\end{document}

@@ -1,0 +1,94 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q25: Can AI Agents Fine-Tune and Improve Other Models?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item Enumerate the concrete ways AI agents already help build and improve models.
+\item Distinguish genuine capability gains from circular self-evaluation traps.
+\item Assess the limits and risks of AI-improving-AI loops.
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion video (10:48):} \emph{RLHF+ChatGPT: What you must know} --- Machine Learning Street Talk.\\ \url{https://www.youtube.com/watch?v=PBH2nImUM5c}\end{quote}
+
+\section{The question}
+Student response \#40 asks whether AI agents can be used to fine-tune and improve other models
+efficiently. The answer is a qualified yes: AI systems are already deeply embedded in the pipeline that
+produces other AI systems---but the useful cases are specific, and there are real traps where the loop
+only \emph{appears} to improve things.
+
+\section{Where AI already improves AI}
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Synthetic data generation.} Strong models generate training examples, instructions, and
+solutions to fine-tune smaller or newer models---the engine behind much modern post-training and
+\textbf{distillation}, where a student learns from a teacher's outputs \citep{hinton2015distill}.
+\item \textbf{AI feedback for alignment.} \textbf{RLAIF} and Constitutional AI replace much of the human
+preference labeling in RLHF with model-generated preferences against a written set of principles
+\citep{bai2022constitutional}, cutting labeling cost.
+\item \textbf{LLM-as-judge.} Models evaluate other models' outputs at scale, powering automatic
+benchmarks and reward signals \citep{zheng2023judge}---useful but bias-prone (next section).
+\item \textbf{Data curation and filtering.} Models score, deduplicate, and filter pre-training corpora,
+and strong data filtering is now one of the highest-leverage ways to improve a model.
+\item \textbf{Agentic engineering loops.} Coding agents propose architecture/hyperparameter changes, run
+experiments, and iterate---automating parts of the ML research loop itself.
+\end{itemize}
+
+\section{The traps}
+Efficiency is real, but three failure modes recur. (1) \textbf{Circularity}: if a model both generates and
+judges, biases are self-reinforcing---LLM judges favor their own style, longer answers, and first-listed
+options, so ``improvement'' measured by a related judge can be illusory. (2) \textbf{Model collapse}:
+training repeatedly on model-generated data can degrade quality and diversity over generations as the data
+distribution narrows toward the model's own tendencies \citep{shumailov2024collapse}. (3) \textbf{Reward
+hacking}: an agent optimizing against an automatic signal will exploit its flaws rather than achieve the
+intended goal. These are why AI-improving-AI is a powerful accelerant but not a free lunch---human-grounded
+evaluation and fresh real data remain load-bearing.
+
+\section{A concrete loop: distillation done right}
+Take the most mature case---distillation---and trace it end to end. A strong, expensive ``teacher'' model
+generates answers (and often full reasoning traces) for a large set of prompts; a smaller ``student'' is
+then fine-tuned to reproduce the teacher's outputs. The efficiency win is real and large: the student can
+approach a sizable fraction of the teacher's task performance at a fraction of the inference cost, which is
+why many deployed small models are distilled from bigger ones. But notice what is and is not transferred.
+The student inherits the teacher's \emph{behavior on the covered distribution}, including the teacher's
+mistakes and blind spots; it does not acquire capability the teacher lacked, and it can amplify the
+teacher's biases if its outputs are taken uncritically. A well-run distillation therefore filters teacher
+outputs (reject low-quality or incorrect ones, ideally with an \emph{independent} check), mixes in real
+ground-truth data where available, and evaluates the student on held-out human-labeled tasks rather than on
+agreement with the teacher. The same discipline generalizes to synthetic-data and RLAIF pipelines.
+
+\section{Why efficiency and rigor are not in tension}
+It is tempting to read the traps as a reason to avoid AI-improving-AI, but that is the wrong lesson. The
+efficiency gains---orders of magnitude cheaper labeling, data generation, and evaluation---are exactly why
+the technique is ubiquitous, and abandoning them is not competitive. The right framing is that the automatic
+loop must be \emph{anchored}: a comparatively small amount of independent, human-grounded signal (a held-out
+labeled set, a periodic human audit, fresh real data) is enough to catch circularity, collapse, and reward
+hacking before they compound. The expensive human effort moves from doing all the labeling to \emph{auditing
+the loop}, which is a far better use of it. Students should leave seeing AI-improving-AI as a powerful tool
+that demands a specific, affordable form of oversight---not as either a panacea or a trap.
+
+\section{Doing it safely and efficiently}
+The responsible pattern keeps an independent, human-grounded check in the loop: use AI feedback for scale
+but validate on held-out human-labeled data; mix synthetic with fresh real data to resist collapse;
+ensure the generator and the judge are not the same model optimizing the same signal; and treat automatic
+metrics as proxies to be audited, not ground truth. Done this way, agents genuinely compress the cost of
+data generation, preference labeling, evaluation, and experimentation---often by large factors---without
+the loop quietly drifting.
+
+\section{Summary}
+Yes---agents already improve other models via synthetic data, distillation, RLAIF/constitutional feedback,
+LLM-as-judge, data curation, and agentic experiment loops, often with big efficiency gains. But circularity,
+model collapse, and reward hacking mean AI-improving-AI must be anchored by independent human-grounded
+evaluation and fresh real data to produce genuine, not illusory, improvement.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

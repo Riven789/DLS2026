@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q27 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A safety team reports: ``We trained a linear probe on the model's layer-24 activations and it classifies harmful vs.\ harmless requests with 95\% accuracy. Also, when we fine-tuned the model on 10 adversarial examples, its refusal behavior disappeared. Therefore the model's harmful tendencies are deeply encoded and the alignment is shallow --- we should monitor layer 24 in deployment.''
+
+Identify the two distinct inferential errors in this reasoning, and state what a causal-intervention experiment would look like for each.
+
+\vspace{1em}
+\textbf{Answer:} (1) \emph{Probe fallacy / representable $\neq$ used}: 95\% probe accuracy shows harmfulness is \emph{decodable} from layer-24 activations, not that the model uses that representation to produce harmful behavior --- high-dimensional activations support accurate probes even for properties the model does not rely on (Belinkov 2022). The causal test: ablate or patch the probe direction (or the units it weights) and measure whether behavior actually changes; only a behavioral consequence licenses a claim about mechanism. (2) \emph{Conflating two conclusions}: the fine-tuning result (Qi et al.\ 2024) shows the \emph{refusal/safety steering} is shallow --- easily removed by little targeted data --- but it does \emph{not} show that harmful tendencies are ``deeply encoded''; persistence of harmful capability under refusal removal is consistent with pre-training features persisting, which is a separate claim requiring its own evidence (e.g., SAE features for harmful content surviving, Arditi et al.'s finding that ablating the refusal direction leaves capabilities intact). Monitoring layer 24 is additionally unjustified because the probe was never shown to be causal at that layer --- the right response is to localize with activation patching first, then monitor a causally validated direction.
+\end{document}

@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q12 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Popularity audit:} take an open model and PopQA-style questions; measure your own frequency--accuracy curve using a public n-gram or crawl-frequency proxy; compare your curve's inflection point with Kandpal et al.'s reported regime.
+\item \textbf{Adaptive retrieval policy:} implement entity-rarity-gated retrieval (rare $\to$ retrieve, popular $\to$ answer directly) and benchmark cost/accuracy against always/never retrieve on a QA set you construct.
+\item \textbf{Cutoff probe:} build a paired evaluation of pre- vs.\ post-cutoff facts and skills (e.g., library APIs that changed, events after the date); quantify the fact/skill asymmetry for a specific open model.
+\item \textbf{Abstention training:} fine-tune a small model with explicit ``I don't know'' targets on unanswerable questions and measure the trade-off between abstention rate and coverage on answerable ones.
+\end{enumerate}
+\end{document}

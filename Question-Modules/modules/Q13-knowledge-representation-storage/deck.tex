@@ -1,0 +1,159 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{How Models Represent, Store, and Retrieve Knowledge}
+\subtitle{Module Q13 --- DLS 2026}
+\author{Deep Learning Systems}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{The student's question, sharpened}
+  \emph{``How do models represent and store knowledge, and use it to answer?''}
+  \begin{itemize}
+    \item We separate three concerns:
+    \begin{enumerate}
+      \item \textbf{Representation}: how facts become geometry in activation/weight space.
+      \item \textbf{Storage}: which parameters hold what, and how retrieval happens.
+      \item \textbf{Use}: the forward-pass mechanics that turn a prompt into an answer.
+    \end{enumerate}
+    \item Key tension: knowledge is \emph{distributed} (spread over many weights) yet
+      often \emph{localizable} (editable at specific sites)~\cite{meng2022rome}.
+    \item We treat the transformer as a read--write system over a shared residual stream~\cite{elhage2021mathematical}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Representation: the distributional and linear view}
+  \begin{itemize}
+    \item \textbf{Distributional hypothesis}: meaning is inferred from co-occurrence;
+      embeddings place similar tokens near one another~\cite{mikolov2013efficient}.
+    \item \textbf{Linear structure}: relations appear as approximately constant offset
+      vectors (analogies), evidence that attributes are directions, not slots~\cite{mikolov2013linguistic}.
+    \item \textbf{Superposition}: a $d$-dimensional space stores more features than
+      dimensions by packing them in near-orthogonal directions~\cite{elhage2022superposition}.
+    \item Consequence: a single neuron is usually \emph{polysemantic}; the natural unit
+      of knowledge is a \emph{direction} in the residual stream, recoverable via sparse
+      dictionaries~\cite{bricken2023monosemanticity}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Storage: feed-forward layers as key--value memories}
+  \begin{itemize}
+    \item Each MLP block computes $\text{FFN}(x)=\sigma(x W_1)\,W_2$.
+    \item Interpret rows of $W_1$ as \textbf{keys} (patterns they fire on) and rows of
+      $W_2$ as \textbf{values} (what they write back)~\cite{geva2021kvmemories}.
+    \item Empirically, FFN layers act as a differentiable associative memory: a key
+      matches a context, its value injects a prediction into the residual stream.
+    \item Factual associations are concentrated in mid-layer FFNs at the final token of
+      the subject, enabling causal localization~\cite{meng2022rome}.
+    \item Hence ``storage'' $\approx$ a learned hash of context $\to$ output contribution.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Use: moving and combining information with attention}
+  \begin{itemize}
+    \item The residual stream is a communication bus; attention \emph{moves} information
+      between positions, FFNs \emph{process} it~\cite{elhage2021mathematical}.
+    \item \textbf{Induction heads} implement in-context copying/pattern completion and
+      correlate with the emergence of in-context learning~\cite{olsson2022incontext}.
+    \item A simple factual-recall circuit: attention gathers the subject representation
+      $\to$ mid-layer FFN keys match $\to$ value writes the object $\to$ unembedding reads
+      the answer logit.
+    \item \textbf{In-context knowledge} (from the prompt) and \textbf{parametric knowledge}
+      (from weights) compose in the same stream; conflicts are resolved by relative
+      magnitude of their contributions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Evidence it is localizable: probing and editing}
+  \begin{itemize}
+    \item \textbf{Causal tracing}: corrupt the subject, restore single hidden states, and
+      measure recovery to pinpoint where a fact lives~\cite{meng2022rome}.
+    \item \textbf{Rank-one editing (ROME)}: write a new value into the located FFN to change
+      a specific fact while leaving others intact~\cite{meng2022rome}.
+    \item \textbf{Mass editing (MEMIT)}: scale editing to thousands of facts across layers~\cite{meng2022memit}.
+    \item Caveat: edits can be brittle and leak---specificity and generalization trade off,
+      so ``localized'' does not mean ``cleanly isolated''.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{When parametric memory is not enough: retrieval augmentation}
+  \begin{itemize}
+    \item Parametric storage is finite, stale, and hard to attribute.
+    \item \textbf{RAG}: condition generation on documents fetched by a learned retriever,
+      decoupling knowledge from parameters~\cite{lewis2020rag}.
+    \item \textbf{Retrieval during pretraining} (RETRO) lets a smaller model match larger
+      ones by reading a trillion-token datastore~\cite{borgeaud2022retro}.
+    \item Benefits: updatable knowledge, source attribution, reduced hallucination on
+      long-tail facts; cost: retriever quality and context-length pressure.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Failure modes: why stored knowledge misleads}
+  \begin{itemize}
+    \item \textbf{Hallucination}: fluent output ungrounded in stored or retrieved facts;
+      a surveyed, systemic property of generation~\cite{ji2023hallucination}.
+    \item \textbf{Superposition interference}: packed features can fire spuriously,
+      producing confident errors~\cite{elhage2022superposition}.
+    \item \textbf{Stale parametric facts}: weights freeze the training snapshot; editing
+      and retrieval are the two remedies above.
+    \item \textbf{Attribution gap}: distributed storage makes it hard to say \emph{why}
+      a model answered---motivating interpretability tooling.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Synthesis and takeaways}
+  \begin{itemize}
+    \item \textbf{Represent}: knowledge is directions in a superposed activation space,
+      not discrete symbols~\cite{elhage2022superposition,bricken2023monosemanticity}.
+    \item \textbf{Store}: FFNs act as key--value memories; facts are distributed yet
+      partly localizable and editable~\cite{geva2021kvmemories,meng2022rome}.
+    \item \textbf{Use}: attention routes information, FFNs recall it, the unembedding reads
+      it out as logits~\cite{elhage2021mathematical,olsson2022incontext}.
+    \item \textbf{Engineer}: when parametric memory fails, retrieve
+      (RAG/RETRO) or edit (ROME/MEMIT)~\cite{lewis2020rag,borgeaud2022retro,meng2022memit}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+  \footnotesize
+  \begin{thebibliography}{99}
+    \bibitem{mikolov2013efficient} T.~Mikolov, K.~Chen, G.~Corrado, and J.~Dean.
+      Efficient Estimation of Word Representations in Vector Space. \emph{arXiv:1301.3781}, 2013.
+    \bibitem{mikolov2013linguistic} T.~Mikolov, W.~Yih, and G.~Zweig.
+      Linguistic Regularities in Continuous Space Word Representations. \emph{NAACL-HLT}, 2013.
+    \bibitem{elhage2021mathematical} N.~Elhage et al.
+      A Mathematical Framework for Transformer Circuits. \emph{Anthropic / Transformer Circuits Thread}, 2021.
+    \bibitem{elhage2022superposition} N.~Elhage et al.
+      Toy Models of Superposition. \emph{Transformer Circuits Thread}, 2022.
+    \bibitem{bricken2023monosemanticity} T.~Bricken et al.
+      Towards Monosemanticity: Decomposing Language Models With Dictionary Learning. \emph{Transformer Circuits Thread}, 2023.
+    \bibitem{geva2021kvmemories} M.~Geva, R.~Schuster, J.~Berant, and O.~Levy.
+      Transformer Feed-Forward Layers Are Key-Value Memories. \emph{EMNLP}, 2021.
+    \bibitem{meng2022rome} K.~Meng, D.~Bau, A.~Andonian, and Y.~Belinkov.
+      Locating and Editing Factual Associations in GPT. \emph{NeurIPS}, 2022.
+    \bibitem{meng2022memit} K.~Meng, A.~Sharma, A.~Andonian, Y.~Belinkov, and D.~Bau.
+      Mass-Editing Memory in a Transformer. \emph{ICLR}, 2023.
+    \bibitem{olsson2022incontext} C.~Olsson et al.
+      In-context Learning and Induction Heads. \emph{Transformer Circuits Thread}, 2022.
+    \bibitem{lewis2020rag} P.~Lewis et al.
+      Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. \emph{NeurIPS}, 2020.
+    \bibitem{borgeaud2022retro} S.~Borgeaud et al.
+      Improving Language Models by Retrieving from Trillions of Tokens. \emph{ICML}, 2022.
+    \bibitem{ji2023hallucination} Z.~Ji et al.
+      Survey of Hallucination in Natural Language Generation. \emph{ACM Computing Surveys}, 2023.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,24 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q10: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A strong model correctly derives a calculus result but says the word
+``banana'' has two a's. Give the most likely technical reason for the counting error, and name a change to
+the \emph{input or harness} (not the model weights) that would fix it.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} The model does not see individual letters---it processes sub-word \emph{tokens}, so
+``banana'' is one or a few tokens with no explicit per-letter inventory, and counting a specific letter
+requires structure the representation does not expose. Fixes that leave the weights untouched: reframe the
+input so the letters are individually visible (e.g.\ ask it to first spell the word out letter-by-letter,
+``b-a-n-a-n-a'', then count), or give it a tool (run a tiny code snippet / character counter). Either
+exposes the sub-token structure the raw tokenization hides. (``banana'' in fact has three a's---exactly
+the kind of slip the reframing prevents.)}
+\end{document}

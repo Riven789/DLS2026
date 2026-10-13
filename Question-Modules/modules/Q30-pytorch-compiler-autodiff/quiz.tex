@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q30: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} During training of a deep network you hit out-of-memory, but the \emph{model
+parameters} comfortably fit in GPU memory. What is most likely consuming the memory, and name a technique
+that reduces it by doing extra computation.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} The \textbf{activations}---the intermediate forward-pass tensors that reverse-mode
+autodiff must keep alive to compute gradients in the backward pass---are most likely consuming the memory.
+Activation memory scales with network depth and batch size and typically dominates parameter memory during
+training. \textbf{Gradient checkpointing (rematerialization)} reduces it: instead of storing all
+activations, you save only a subset and \emph{recompute} the others during the backward pass, trading a
+second partial forward (extra compute) for a large reduction in peak memory.}
+\end{document}

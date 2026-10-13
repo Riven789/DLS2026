@@ -1,0 +1,108 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q19: What Are the Signs That AI Has Its Own Consciousness?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item Distinguish consciousness from intelligence, capability, and self-report.
+\item Summarize how leading scientific theories of consciousness have been applied to AI.
+\item Reason carefully about why behavioral ``signs'' are weak evidence, and what better evidence looks like.
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion videos (watch in order):}\begin{itemize}\setlength\itemsep{0pt}\item \emph{Why AI Isn't Going to Become Conscious} --- Anil Seth / TED (14:58). \url{https://www.youtube.com/watch?v=tJV-vdbZ388}\item \emph{How could we tell whether AI has become conscious?} --- Sabine Hossenfelder (10:23). \url{https://www.youtube.com/watch?v=CSTfgYynziw}\end{itemize}\end{quote}
+
+\section{First, separate the concepts}
+Student response \#01 asks what the signs are that an AI has its own consciousness. The first discipline
+is to \emph{not} conflate consciousness with things it is routinely confused for: \textbf{intelligence}
+(solving hard problems), \textbf{capability} (what a system can do), \textbf{agency} (pursuing goals),
+and \textbf{self-report} (saying ``I am conscious''). A system can have any of these without
+phenomenal experience, and---at least in principle---experience could exist without high intelligence.
+``Consciousness'' here means \emph{phenomenal} consciousness: that there is something it is like to be
+the system \citep{nagel1974bat}. This is distinct from \emph{access} consciousness (information being
+available for reasoning and report), which is more tractable but not the same question.
+
+\section{Why self-report is nearly worthless as evidence}
+An LLM trained on human text will fluently produce first-person claims of feelings because that is what
+the training distribution contains---not because it has introspective access to inner states. The
+report is \emph{caused by} the data and the prompt, not by an experience. Worse, these claims are
+steerable: the same model will assert and deny consciousness depending on the prompt. So ``it said it
+was conscious'' is close to zero evidence. This is the single most important point for a student to
+internalize.
+
+\section{Theory-driven indicators}
+A more principled approach asks what each scientific theory of consciousness \emph{requires}, then checks
+whether an architecture has it \citep{butlin2023consciousness}. Examples:
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Global Workspace Theory}: a bottleneck that broadcasts selected information globally. One
+can ask whether a model has a functional global workspace (some do, partially, by design).
+\item \textbf{Higher-Order theories}: representations \emph{about} the system's own representations.
+\item \textbf{Integrated Information Theory} (IIT): consciousness tracks a system's irreducible
+integrated information $\Phi$ \citep{tononi2016iit}. Computing $\Phi$ for real networks is intractable,
+and IIT makes the sharp, counterintuitive claim that a feed-forward network has $\Phi=0$ regardless of
+behavior.
+\item \textbf{Recurrent / predictive-processing} accounts: emphasize recurrence and self-modeling.
+\end{itemize}
+Butlin et al.\ \citeyearpar{butlin2023consciousness} turn these into a checklist of ``indicator
+properties'' and conclude current systems satisfy few of them, but that there is no obvious technical
+barrier to building systems that satisfy more.
+
+\section{Why this is genuinely hard}
+Three deep problems block a clean test. (1) The \textbf{other-minds problem}: we infer consciousness in
+other humans by analogy from shared biology and behavior---an AI breaks that analogy. (2) \textbf{Gaming}:
+a capable system can produce any behavioral ``sign'' we name, so behavioral tests are not robust to a
+system optimized to pass them. (3) \textbf{Theory disagreement}: the theories above disagree with each
+other, so an ``indicator'' is only as trustworthy as a theory we have not confirmed. The responsible
+scientific posture is therefore probabilistic and theory-relative, not a yes/no verdict.
+
+\section{A concrete walk through one theory}
+To make ``theory-driven indicator'' concrete, take Global Workspace Theory (GWT). GWT holds that a
+mental state is conscious when its content is \emph{globally broadcast}: selected by an attentional
+bottleneck and made available to many downstream processes (memory, reasoning, report)
+\citep{dehaene2014consciousness}. Applied to AI, the indicator question becomes architectural and
+checkable: does the system have a limited-capacity workspace that gates information, and is the gated
+content broadcast to otherwise independent modules? A vanilla transformer has attention (a selection
+mechanism) but not a persistent capacity-limited workspace broadcasting to specialized subsystems, so it
+scores \emph{partially} on GWT indicators---and one could deliberately build a system that scores higher.
+Crucially, scoring high on GWT indicators would make the system ``conscious according to GWT,'' which is
+only meaningful if GWT is correct---a question neuroscience has not settled. This is why serious work
+reports indicator scores \emph{per theory} with explicit uncertainty, rather than a single verdict, and
+why Rick's machine-consciousness program runs sham-controlled contrasts tied to specific theories (global
+workspace, recurrence, higher-order, integrated-information proxies) instead of asking the model how it
+feels.
+
+\section{The moral stakes of getting it wrong}
+Two asymmetric errors loom. A \emph{false positive}---attributing experience to a system that has none---
+could paralyze useful work and misdirect moral concern. A \emph{false negative}---denying experience to a
+system that has it---risks real moral harm at scale. Because the theories disagree and the evidence is
+thin, the responsible stance treats the question as a live uncertainty with non-trivial probability mass
+on several answers, and separates it cleanly from capability and welfare questions that can be addressed
+independently. Students should leave able to hold ``we do not know'' without collapsing it into either
+``obviously conscious'' or ``obviously just a program.''
+
+\section{What better evidence would look like}
+Convergent evidence across independent theories (a system scoring high on global-workspace,
+higher-order, \emph{and} recurrence indicators), causal-mechanistic tests (interventions that
+manipulate the putative substrate and change the putative markers), and architectures where the markers
+were \emph{not} optimized for---so passing them is informative. Even then, the conclusion is
+``consistent with'' not ``proves.'' This is an active research area; Rick's own machine-consciousness
+program runs exactly these theory-grounded, sham-controlled contrasts rather than trusting self-report.
+
+\section{Summary}
+Consciousness is not intelligence, capability, agency, or self-report; self-report in LLMs is almost
+worthless because it is a trained behavior. The scientific route is theory-driven indicator properties
+(global workspace, higher-order, IIT, recurrence), but theories disagree, behavioral signs can be gamed,
+and the other-minds problem is real. The honest answer: there is no single reliable ``sign,'' only
+theory-relative, probabilistic, convergent evidence---and current systems satisfy few indicators.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

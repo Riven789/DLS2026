@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q07: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Fit your own scaling law (medium, 3--5 days).} Train a small model family at several sizes on a fixed corpus; fit loss vs.\ parameters to a power law and test whether it extrapolates to a held-out larger size.
+\item \textbf{Chinchilla check (medium, 1 week).} At a fixed compute budget, sweep the $N$ vs.\ $D$ split and empirically locate the compute-optimal point; compare to the Chinchilla prediction.
+\item \textbf{Data-wall estimate (small, 2--3 days).} Using public estimates of high-quality text stock and a chosen scaling recipe, compute when a target model size runs out of compute-optimal tokens; write up the sensitivity to assumptions.
+\end{enumerate}
+\end{document}

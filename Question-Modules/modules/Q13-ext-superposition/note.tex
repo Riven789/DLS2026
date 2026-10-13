@@ -1,0 +1,85 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q13: How Do Models Represent and Store Knowledge, and Use It to Answer?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module, a student should be able to (i) explain the key-value memory view of Transformer feed-forward layers, (ii) describe the causal-tracing evidence that mid-layer MLP modules mediate factual recall, (iii) state the linear representation hypothesis and the superposition account of polysemanticity, (iv) reason about locate-then-edit knowledge editing and its failure modes, and (v) distinguish knowledge stored in weights from knowledge supplied in context.
+
+\section{The question}
+A language model answers ``The Eiffel Tower is located in the city of\dots'' without any retrieval system, database, or explicit memory. Where does that fact live, in what format, and what computation retrieves it? This module surveys the best current answers. The honest summary up front: the evidence supports a \emph{probabilistic} picture --- facts are not stored in single neurons or single parameters, but there is convergent evidence, from several independent methods, that mid-layer feed-forward (MLP) modules are a major storage site, that recall is a partially attention-mediated lookup, and that the storage format is distributed over directions in activation space rather than aligned with individual neurons. All claims below are hedged; the field is young and the strongest results come from small- to mid-scale models (GPT-2 XL, GPT-J).
+
+\section{The storage site: FFN layers as key-value memories}
+Feed-forward (FFN) layers hold roughly two-thirds of a Transformer's parameters, yet received far less analysis than attention. Geva et al.\ \cite{geva2021transformer} gave the influential reframing: an FFN layer
+\begin{equation}
+\mathrm{FFN}(x) = f(x \, K^\top) V
+\end{equation}
+(where $K, V$ are the two weight matrices and $f$ the nonlinearity) is \emph{structurally} a key-value memory --- the same form as end-to-end memory networks \cite{sukhbaatar2015end}. Each row of $K$ acts as a key: it correlates with human-interpretable input patterns (n-grams, themes, positions in the discourse). When the input $x$ matches a pattern, the corresponding hidden unit activates, and the matching column of $V$ --- which induces a distribution over the output vocabulary --- is added to the residual stream. Key findings from their analysis of BERT, RoBERTa, and GPT-2:
+\begin{itemize}[noitemsep]
+  \item Lower-layer keys match shallow patterns (trigrams, positions); higher-layer keys match semantically broader themes.
+  \item Values complement keys: they raise the probability of tokens that plausibly \emph{follow} the key pattern.
+  \item A single FFN output is a \emph{composition} (weighted sum) of many memories, refined layer by layer through the residual stream.
+\end{itemize}
+The view is a lens, not a theorem: FFN layers were not trained as explicit memory networks, and no one-to-one correspondence between a key row and a discrete fact is claimed. But the framing makes testable predictions --- which the causal-tracing work below confirms in part.
+
+\section{The retrieval path: causal tracing and ROME}
+If FFN layers store associations, what is the evidence? Meng et al.\ \cite{meng2022locating} developed \emph{causal tracing}: corrupt the input with noise, then restore (freeze to clean values) one internal state at a time and measure which restorations repair the model's factual prediction. The intervention identifies states that \emph{causally mediate} the answer. Their findings on GPT-2 XL:
+\begin{enumerate}[noitemsep]
+  \item Factual recall localizes to \textbf{middle-layer MLP modules}, specifically while processing the \textbf{last token of the subject} (e.g., the final token of ``The Eiffel Tower'').
+  \item Late-layer \textbf{attention heads then move} (copy) the accumulated subject information to the final position where the object is predicted.
+  \item Storage and retrieval are thus \emph{separable}: MLPs at the ``early site'' recall the association; attention at the ``late site'' routes it to the output.
+\end{enumerate}
+To test the storage hypothesis, they introduced \textbf{ROME} (Rank-One Model Editing): treating the MLP's second-layer matrix as a linear associative memory, ROME solves for a rank-one update that maps a subject-derived key vector $k_*$ to a new value vector $v_*$ (encoding the new object) while minimally disturbing other stored associations (via a covariance-regularized closed form). ROME edits generalize across paraphrases yet stay specific to the edited subject --- evidence that the mid-MLP storage picture is roughly right. The results are model- and fact-type-specific: causal traces are cleanest for crisp entity--attribute facts in autoregressive models, and later work found the causal-mediator picture does not fully transfer to all architectures and fact classes. Treat localization as a strong tendency, not a law.
+
+\section{The format: linear representations and superposition}
+\paragraph{Linear representation hypothesis.} Features --- the meaningful properties a network tracks --- are represented as \emph{directions} in activation space, with magnitude encoding intensity \cite{elhage2021mathematical,elhage2022toy}. A model's activations are (approximately) a linear superposition of feature vectors, $x \approx \sum_i a_i f_i$. This is what makes probing work: if information is linearly decodable from hidden states, a simple linear ``diagnostic classifier'' trained on frozen activations can read it out \cite{hupkes2018visualisation,belinkov2019analysis}. But probing has a known caveat --- high probing accuracy shows information is \emph{accessible}, not that the model \emph{uses} it; control tasks and causal interventions are the needed complement \cite{belinkov2019analysis}.
+
+\paragraph{Superposition.} If features were one-per-neuron, a $d$-dimensional layer could hold at most $d$ features. Elhage et al.\ \cite{elhage2022toy} showed with toy models that networks routinely store \emph{more features than dimensions} by assigning them \emph{non-orthogonal, nearly-collapsed} directions, exploiting the fact that in high dimensions many random vectors are almost mutually orthogonal. The cost is \emph{interference}: reading out feature $i$ picks up spurious contributions from feature $j$ whenever they co-activate, and a nonlinearity (ReLU) is needed to filter the crosstalk. Three results from their toy models:
+\begin{itemize}[noitemsep]
+  \item Whether a feature is stored in superposition is governed by a \textbf{phase change} in feature sparsity and importance --- past a threshold, the network jumps from storing a feature to collapsing it.
+  \item Superposed features arrange into \textbf{geometric structures} (digons, triangles, higher-dimensional simplices and antipodal pairs), not random directions.
+  \item \textbf{Polysemanticity} --- one neuron responding to unrelated concepts --- is the visible consequence: with more features than neurons, individual neurons must participate in many feature directions.
+\end{itemize}
+Superposition is what makes knowledge storage compact \emph{and} what makes it hard to edit cleanly: a direction shared by many features cannot be changed without collateral effects. The demo in \texttt{code/superposition\_demo.py} makes the capacity/interference trade concrete in NumPy.
+
+\section{Knowledge editing: locate, then edit --- and its side effects}
+The storage picture suggests a maintenance strategy: locate where a fact lives, then patch it. ROME \cite{meng2022locating} edits one fact at a time; \textbf{MEMIT} \cite{meng2023memit} scales the idea, spreading a batch of edits across the range of mediating MLP layers, and reports thousands of simultaneous edits in GPT-J and GPT-NeoX while maintaining specificity and fluency. But editing has known side effects, which follow directly from the representation story:
+\begin{itemize}[noitemsep]
+  \item \textbf{Bleedover:} nearby subjects that share the edited key direction can inherit the new value --- the covariance regularizer mitigates but does not eliminate this.
+  \item \textbf{Degradation:} large or repeated updates drift the edited layer's behavior on unrelated text (fluency loss, perplexity increases).
+  \item \textbf{Brittleness:} edited associations are directional (``$s \to o$'' is stored separately from ``$o \to s$''), and multi-hop inferences that \emph{use} the fact may not follow it.
+  \item \textbf{Reliability:} later evaluations found that popular editors --- ROME and MEMIT included --- can fail to preserve logical implications of edits, change unrelated behaviors, and even introduce fresh hallucinations; the ``locate-then-edit'' picture is a useful first approximation, not a solved mechanism.
+\end{itemize}
+The open problem is honest: we do not yet have a way to surgically update one fact in a superposed, distributed store with guarantees.
+
+\section{Knowledge in weights vs.\ knowledge in context}
+Everything above concerns knowledge baked into \emph{parameters} during pre-training. Modern usage leans heavily on a second channel: knowledge supplied \emph{in context} --- documents pasted into the prompt, retrieved passages, conversation history. The distinction matters:
+\begin{itemize}[noitemsep]
+  \item \textbf{Capacity and update cost:} weights hold vast but static knowledge; updating requires editing or retraining. Context is tiny but instant: new information is ``known'' for the duration of the prompt.
+  \item \textbf{Mechanism:} in-weights recall runs through the MLP-lookup path above; in-context use runs through attention reading the provided tokens --- related to the induction-head machinery studied by Olsson et al.\ \cite{olsson2022context}.
+  \item \textbf{Failure modes:} in-weights knowledge fails by being absent, outdated, or distorted by superposition; in-context knowledge fails by retrieval errors, context overflow, and interference between passages.
+\end{itemize}
+Whether a model is ``a knowledge base'' \cite{petroni2019language} depends on the channel: parameteric knowledge behaves like a lossy, hard-to-update store; contextual knowledge behaves like a working memory with attention as the read mechanism. \emph{Forward-link:} Q12 (\emph{Why do models give confident answers even when wrong?}) examines the failure modes when these two channels conflict --- a model with stale in-weights knowledge can override correct context, and vice versa.
+
+\section{Summary}
+\begin{itemize}[noitemsep]
+  \item \textbf{Where:} mid-layer FFN/MLP modules are the best-supported storage site (key-value memory view; causal tracing), with attention routing information to the output.
+  \item \textbf{What format:} features as directions (linear representation hypothesis), packed beyond capacity via superposition; polysemantic neurons are the symptom.
+  \item \textbf{How to change it:} locate-then-edit (ROME/MEMIT) works as a first approximation but suffers bleedover, degradation, and brittleness --- an open problem.
+  \item \textbf{Which channel:} weights vs.\ context is the master distinction for reasoning about what a model ``knows'' at answer time.
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

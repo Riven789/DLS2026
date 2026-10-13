@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q26 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item InstructGPT's 1.3B model was preferred by humans over the 175B base model it was tuned from. If fine-tuning reshapes the response distribution rather than adding capability, where does the ``improvement'' live --- in the model, or in the match between the model's distribution and the raters' expectations? What would an experiment that separates these look like?
+\item LoRA constrains the update to rank $r$ and EWC penalizes movement of important weights, yet both are described as ``catastrophic forgetting mitigations.'' Are they protecting the same thing? Describe a task pair where you would expect the rank constraint to fail but an importance penalty to succeed.
+\item Ovadia et al.\ found RAG beats unsupervised fine-tuning for injecting both seen and unseen knowledge. Yet domain-adapted models (legal, medical, code) clearly exist and help. What are those pipelines actually buying --- knowledge, behavior, or vocabulary/tokenization fit --- and how would you tell empirically?
+\item The module argues naive online SGD destabilizes RLHF-trained models because it removes the KL anchor and compounds drift. Security and governance concerns aside, could an anchored online update (small-$r$ LoRA refreshed per stream, reference model pinned) be made safe enough for production? What failure mode would you monitor first?
+\item Given the rule ``retrieve for facts, tune for behavior,'' when is tuning for facts nonetheless the right call? Consider latency, context-window cost, retrieval failure modes at scale, and the fact that some knowledge is only expressible as a skill rather than a lookup.
+\end{enumerate}
+\end{document}

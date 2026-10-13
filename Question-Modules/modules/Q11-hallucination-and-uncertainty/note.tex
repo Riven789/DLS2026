@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q11: Why Models Hallucinate, and Whether They Can Know They Are Unsure}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=*]
+  \item Explain the statistical, data-driven, and training-objective mechanisms that cause large language models (LLMs) to produce confident but false statements (``hallucinations'').
+  \item Distinguish \emph{epistemic} from \emph{aleatoric} uncertainty and connect each to concrete failure modes and measurement techniques (calibration, selective prediction, semantic entropy).
+  \item Critically assess whether and how a model can \emph{know} it is uncertain, and what interventions (abstention, retrieval, verbalized confidence, fine-tuning) help.
+\end{itemize}
+
+\section{What we mean by ``hallucination''}
+In the LLM literature, a hallucination is text that is fluent and syntactically well-formed but factually unsupported---either inconsistent with the provided source (\emph{faithfulness} or intrinsic hallucination) or inconsistent with world knowledge (\emph{factuality} or extrinsic hallucination). The survey by \citet{ji2023survey} formalizes this distinction across natural language generation tasks, and \citet{maynez2020faithfulness} documented pervasive unfaithfulness even in abstractive summarization systems trained on curated data. The crucial feature for this module is that hallucinations are not random noise: they are the generically correct output of a system optimized to produce \emph{plausible continuations}, not \emph{true} ones. Understanding why they arise therefore requires examining the objective, the data, and the decoding procedure together.
+
+\section{Mechanism 1: next-token prediction rewards plausibility, not truth}
+An autoregressive LM is trained to maximize the likelihood of the next token given context, i.e.\ to approximate the conditional distribution $p(x_t \mid x_{<t})$ of human text. Nothing in this objective references the external truth of a proposition; it references how probable a continuation is \emph{given the training corpus}. When a prompt enters a region of input space where the true answer is sparsely or inconsistently represented, the model still emits the most probable-\emph{looking} completion, which may be a smooth interpolation of training fragments rather than a fact. This is the core intuition behind the recent OpenAI analysis by \citet{kalai2025hallucinate}, who argue that hallucinations are an expected consequence of the pretraining objective and are further \emph{reinforced} by evaluation benchmarks that reward guessing over abstaining. Because standard benchmarks score a blank or ``I don't know'' answer the same as a wrong answer (zero credit), the expected-score-maximizing strategy is to always produce a confident guess. The model learns the policy that its grader rewards.
+
+A second structural point: language models are density estimators over sequences, and the calibration results of \citet{guo2017calibration} for deep classifiers generalize---the alignment between a model's token probabilities and empirical correctness is not guaranteed and tends to degrade after certain fine-tuning steps. A confidently sampled token sequence is not an epistemic warrant.
+
+\section{Mechanism 2: data pressures---long tails, staleness, and false premises}
+Pretraining corpora are heavy-tailed: a vast number of entities, dates, and relations appear only a handful of times. For such long-tail facts the model has insufficient signal to memorize the correct association, so it reconstructs a statistically typical but possibly wrong value (e.g.\ plausible-sounding citations, invented DOIs). Corpora are also \emph{stale}: knowledge acquired at a training cutoff cannot track the evolving world, so a model will confidently assert outdated facts. Finally, prompts frequently contain \emph{false presuppositions}. The TruthfulQA benchmark of \citet{lin2022truthfulqa} shows that models often reproduce popular human misconceptions precisely because imitating the training distribution means imitating its errors; larger models can be \emph{less} truthful on these adversarially selected questions, a phenomenon the authors call ``inverse scaling'' for truthfulness. Data, then, sets an upper bound: a model cannot reliably report a fact that is absent, contradictory, or systematically misrepresented in what it saw.
+
+\section{Mechanism 3: two kinds of uncertainty}
+To ask whether a model can ``know'' it is unsure we must separate two sources of uncertainty, a distinction imported from Bayesian modeling by \citet{kendall2017uncertainties}.
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Aleatoric uncertainty} is irreducible randomness in the data-generating process---e.g.\ genuinely ambiguous questions or open-ended continuations with many valid answers. More data does not remove it.
+  \item \textbf{Epistemic uncertainty} reflects the model's lack of knowledge: regions where the parameters are underdetermined because training data were sparse. This is the uncertainty we \emph{want} a model to recognize before hallucinating, and in principle it is reducible with more data or retrieval.
+\end{itemize}
+Hallucinations are most damaging when they occur under high epistemic uncertainty that the model fails to flag. A well-behaved system should raise a signal in exactly those regions. The practical difficulty is that a single softmax over tokens conflates both uncertainties and, worse, is computed \emph{token-wise} rather than over \emph{meanings}.
+
+\section{Mechanism 4: can the model tell that it is unsure?}
+There is encouraging evidence that the information needed to detect uncertainty is partially present inside the model.
+
+\paragraph{Internal confidence and calibration.} \citet{kadavath2022know} show that LLMs can be prompted to estimate the probability that their own answer is correct (a ``P(True)'' head) and that this self-evaluation is reasonably calibrated on many tasks, improving with scale. This suggests the model carries a usable, if imperfect, internal signal of correctness distinct from the raw generation probability.
+
+\paragraph{Semantic, not lexical, entropy.} Naively, we might measure uncertainty as token-level entropy, but the same fact can be phrased in many ways, so lexical diversity overstates uncertainty. \citet{kuhn2023semantic} introduce \emph{semantic entropy}: sample several answers, cluster them by meaning using entailment, and compute entropy over meaning-clusters. High semantic entropy---many \emph{mutually contradictory} answers---is a strong predictor of hallucination. \citet{farquhar2024semantic} extend this to detect ``confabulations'' (arbitrary, incorrect generations) across free-form tasks, demonstrating that an unsupervised uncertainty estimate can flag likely fabrications without ground-truth labels.
+
+\paragraph{Consistency as a proxy.} A complementary black-box method, SelfCheckGPT \citep{manakul2023selfcheckgpt}, samples multiple responses and checks whether facts recur consistently; isolated, non-reproducible claims are treated as probable hallucinations. The underlying assumption is that genuinely known facts are stable under resampling, whereas confabulated ones vary.
+
+\paragraph{Verbalized confidence.} Models can also be trained or prompted to state confidence in words (``I am about 60\% sure''). \citet{lin2022teaching} find that fine-tuned models can emit verbalized probabilities that are moderately calibrated, offering a human-readable uncertainty channel. However, verbalized confidence can be gamed by stylistic cues and should be validated against outcome calibration.
+
+Taken together, these results imply a qualified ``yes'': the model possesses latent signals correlated with its own unreliability, recoverable through self-querying, resampling over meanings, or lightweight probes. What it lacks is a \emph{built-in incentive} to surface them, because the training and evaluation pipeline rewards fluent commitment.
+
+\section{Mechanism 5: interventions and their limits}
+\paragraph{Abstention / selective prediction.} If an uncertainty score is available, the system can refuse to answer below a threshold, trading coverage for accuracy. This is classical selective prediction; the open problem is choosing thresholds that respect task-specific costs and avoid over-refusal.
+
+\paragraph{Grounding via retrieval.} Retrieval-augmented generation \citep{lewis2020rag} reduces extrinsic hallucination by conditioning the output on retrieved documents, effectively converting an epistemic gap into a reading task. It does not eliminate hallucination: the model may ignore, misread, or over-generalize the evidence, and retrieval errors propagate.
+
+\paragraph{Alignment with explicit abstention incentives.} Because \citet{kalai2025hallucinate} trace part of the problem to graders that penalize honesty, a direct fix is to redesign evaluation and reward so that a calibrated ``I don't know'' earns more than a confident error. Reinforcement learning from human feedback \citep{ouyang2022instructgpt} can in principle instill such behavior, but reward models can themselves mis-specify honesty and induce sycophancy.
+
+\paragraph{Calibration repair.} Post-hoc methods (temperature scaling, following \citet{guo2017calibration}) and semantic-entropy gating act at inference time and are cheap, but they correct the symptom rather than the data-level cause.
+
+\section{Summary and study prompts}
+Hallucination is the predictable output of maximizing textual plausibility under a heavy-tailed, stale, error-containing corpus, amplified by benchmarks that reward guessing. A model does carry internal signals of its own epistemic uncertainty---recoverable via P(True) self-evaluation, semantic entropy, sampling consistency, and verbalized confidence---but current objectives do not reliably compel it to act on them. Reducing hallucination therefore requires both \emph{estimation} (detect uncertainty, distinguishing epistemic from aleatoric) and \emph{incentive design} (reward honest abstention and grounding). Consider: (i) Why does token-level entropy overstate uncertainty, and how does semantic clustering fix it? (ii) Design a grading rule for a QA benchmark that makes abstention the optimal policy under uncertainty. (iii) When does retrieval \emph{fail} to prevent hallucination despite correct evidence?
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

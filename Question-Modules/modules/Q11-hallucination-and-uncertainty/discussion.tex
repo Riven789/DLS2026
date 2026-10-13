@@ -1,0 +1,169 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q11 --- Discussion: Why Do Models Hallucinate, and Can They Know When They Are Unsure?}
+\author{DLS 2026 --- Graduate AI-Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Framing the Question}
+
+A student asks why large language models (LLMs) produce confident-sounding
+falsehoods, and whether a model can represent its own uncertainty. These are
+two distinct but entangled problems. The first concerns the \emph{generative}
+tendency of models to emit fluent but ungrounded text. The second concerns
+\emph{introspective calibration}: whether the model's internal or externalized
+confidence tracks the probability that its output is correct.
+
+It is useful to separate several mechanisms often lumped under
+``hallucination.'' Some errors arise from pretraining objectives that reward
+plausible continuations rather than truthful ones; \citet{ji2023survey}
+provide a taxonomy distinguishing intrinsic from extrinsic hallucination.
+Others arise from the statistical structure of the training distribution:
+\citet{kalai2024calibrated} argue that, under a cross-entropy objective, a
+nontrivial hallucination rate on rare facts is a mathematically expected
+consequence of being well-calibrated on the language-modeling task, linking
+generation errors to the base rate of ``singleton'' facts seen once in
+training. Instruction tuning and RLHF can further amplify confident assertion:
+\citet{ouyang2022training} show alignment reshapes output distributions in ways
+that do not directly optimize factual accuracy, and reward models may
+inadvertently prefer assertive answers.
+
+On the question of self-knowledge, the evidence is mixed. \citet{kadavath2022know}
+report that models can be trained or prompted to predict whether they ``know''
+an answer, with reasonable calibration on some tasks. \citet{guo2017calibration}
+established that modern neural networks are frequently \emph{miscalibrated},
+typically overconfident, and that post-hoc methods such as temperature scaling
+help. More recent work on verbalized confidence \citep{lin2022teaching} and
+on semantic-entropy-based uncertainty estimation \citep{kuhn2023semantic} and
+\citep{farquhar2024detecting} suggests that uncertainty signals exist but must
+be read out carefully, since token-level probabilities conflate linguistic
+and epistemic variability. Retrieval augmentation \citep{lewis2020retrieval}
+reduces but does not eliminate the problem, since models may still ignore or
+misweight retrieved evidence.
+
+\section*{Five Open Questions for Discussion}
+
+\begin{enumerate}[leftmargin=*,label=\textbf{Q\arabic*.}]
+
+  \item \textbf{Is hallucination a bug or a predictable equilibrium of the
+  objective?} If \citet{kalai2024calibrated} are right that error on rare facts
+  follows from calibrated density estimation, then eliminating hallucination
+  entirely may require trading away calibration or abandoning pure
+  next-token likelihood. What objective modifications (e.g., abstention-aware
+  losses, selective prediction) could decouple fluency from unwarranted
+  assertion without degrading general capability? Can you design a toy
+  distribution where this trade-off is provably sharp?
+
+  \item \textbf{Does a model ``know'' it is uncertain, or only know how to
+  say so?} \citet{kadavath2022know} and \citet{lin2022teaching} show models
+  can emit calibrated-looking confidence statements, but this may reflect
+  learned surface correlations rather than access to an internal epistemic
+  state. What experiment would distinguish genuine internal uncertainty
+  representation (e.g., probes on hidden states, semantic entropy over
+  sampled generations per \citet{kuhn2023semantic}) from mere stylistic
+  hedging learned from training data?
+
+  \item \textbf{Which layer of the stack is responsible?} Hallucination could
+  originate in pretraining distribution gaps, in the decoding procedure, or in
+  the RLHF reward model's preference for assertiveness \citep{ouyang2022training}.
+  How would you attribute a specific false claim to one of these sources? Can
+  controlled ablations (fixed base model, varying decoding temperature,
+  varying reward model) isolate the dominant contributor for a given task?
+
+  \item \textbf{Is uncertainty best measured in probability space or semantic
+  space?} Token-level entropy can be high simply because many paraphrases are
+  valid, not because the model is unsure of the fact. \citet{farquhar2024detecting}
+  and \citet{kuhn2023semantic} cluster semantically equivalent generations to
+  recover epistemic uncertainty. When does semantic entropy outperform
+  log-probability-based confidence, and what are its failure modes when the
+  semantic clustering model itself is unreliable?
+
+  \item \textbf{Does grounding transfer calibration?} Retrieval augmentation
+  \citep{lewis2020retrieval} supplies external evidence, but a model may still
+  hallucinate when evidence is absent, contradictory, or ignored. Can we build
+  models whose confidence is explicitly conditioned on retrieval support, such
+  that abstention rises when the context is uninformative? How would you
+  evaluate whether post-hoc calibration methods \citep{guo2017calibration}
+  compose with retrieval, or whether grounding and calibration must be
+  co-trained?
+
+\end{enumerate}
+
+\section*{Pointers for the Seminar}
+
+Students should come prepared to argue a position on at least two of the five
+questions, grounding claims in the taxonomy of \citet{ji2023survey} and the
+empirical self-knowledge results of \citet{kadavath2022know}. A productive
+exercise is to reproduce a small semantic-entropy detector following
+\citet{farquhar2024detecting} and report where it disagrees with raw
+log-probability confidence.
+
+\begin{thebibliography}{99}
+
+\bibitem[Ji et al.(2023)]{ji2023survey}
+Z.~Ji, N.~Lee, R.~Frieske, T.~Yu, D.~Su, Y.~Xu, E.~Ishii, Y.~J. Bang,
+A.~Madotto, and P.~Fung.
+\newblock Survey of hallucination in natural language generation.
+\newblock \emph{ACM Computing Surveys}, 55(12):1--38, 2023.
+
+\bibitem[Kalai and Vempala(2024)]{kalai2024calibrated}
+A.~T. Kalai and S.~S. Vempala.
+\newblock Calibrated language models must hallucinate.
+\newblock In \emph{Proceedings of the 56th Annual ACM Symposium on Theory of
+Computing (STOC)}, 2024.
+
+\bibitem[Ouyang et al.(2022)]{ouyang2022training}
+L.~Ouyang, J.~Wu, X.~Jiang, D.~Almeida, C.~L. Wainwright, P.~Mishkin, C.~Zhang,
+S.~Agarwal, K.~Slama, A.~Ray, et al.
+\newblock Training language models to follow instructions with human feedback.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+2022.
+
+\bibitem[Kadavath et al.(2022)]{kadavath2022know}
+S.~Kadavath, T.~Conerly, A.~Askell, T.~Henighan, D.~Drain, E.~Perez,
+N.~Schiefer, Z.~Hatfield-Dodds, N.~DasSarma, E.~Tran-Johnson, et al.
+\newblock Language models (mostly) know what they know.
+\newblock \emph{arXiv preprint arXiv:2207.05221}, 2022.
+
+\bibitem[Guo et al.(2017)]{guo2017calibration}
+C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In \emph{Proceedings of the 34th International Conference on Machine
+Learning (ICML)}, 2017.
+
+\bibitem[Lin et al.(2022)]{lin2022teaching}
+S.~Lin, J.~Hilton, and O.~Evans.
+\newblock Teaching models to express their uncertainty in words.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2022.
+
+\bibitem[Kuhn et al.(2023)]{kuhn2023semantic}
+L.~Kuhn, Y.~Gal, and S.~Farquhar.
+\newblock Semantic uncertainty: Linguistic invariances for uncertainty
+estimation in natural language generation.
+\newblock In \emph{International Conference on Learning Representations (ICLR)},
+2023.
+
+\bibitem[Farquhar et al.(2024)]{farquhar2024detecting}
+S.~Farquhar, J.~Kossen, L.~Kuhn, and Y.~Gal.
+\newblock Detecting hallucinations in large language models using semantic
+entropy.
+\newblock \emph{Nature}, 630:625--630, 2024.
+
+\bibitem[Lewis et al.(2020)]{lewis2020retrieval}
+P.~Lewis, E.~Perez, A.~Piktus, F.~Petroni, V.~Karpukhin, N.~Goyal,
+H.~K\"uttler, M.~Lewis, W.~Yih, T.~Rockt\"aschel, S.~Riedel, and D.~Kiela.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+2020.
+
+\end{thebibliography}
+
+\end{document}

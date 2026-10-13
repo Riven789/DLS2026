@@ -1,0 +1,57 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q07: The Science of Scaling}
+\subtitle{Power laws, Chinchilla, and the limits}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#21, \#22, \#39)}
+Why does scaling work? Is there a ``science of scaling,'' what are its limits, and can learning theory
+model it?
+\end{block}
+\end{frame}
+\begin{frame}{The empirical finding}
+\[ L(N) \approx L_\infty + (N_0/N)^{\alpha} \]
+\begin{itemize}
+\item Test loss falls as a \textbf{power law} in size $N$, data $D$, compute $C$.
+\item Holds over many orders of magnitude.
+\item Lets labs \emph{predict} loss \emph{before} training.
+\end{itemize}
+\end{frame}
+\begin{frame}{Compute-optimal (Chinchilla)}
+For fixed $C \approx 6ND$: scale $N$ and $D$ \textbf{together}.
+\begin{itemize}
+\item Earlier models: over-parameterized, under-trained.
+\item Smaller model + more data can beat bigger model + less, at equal cost.
+\end{itemize}
+\alert{Scaling laws are prescriptive, not just descriptive.}
+\end{frame}
+\begin{frame}{Why would it work?}
+Partial accounts (no closed theory):
+\begin{itemize}
+\item Prediction as \textbf{compression} (lower loss = better world-model).
+\item \textbf{Data-manifold} dimension sets the exponent.
+\item \textbf{Over-parameterization} + SGD find generalizing solutions.
+\end{itemize}
+\end{frame}
+\begin{frame}{The limits}
+\begin{itemize}
+\item \textbf{Data wall}: high-quality human text is finite.
+\item \textbf{Diminishing returns}: small exponent $\Rightarrow$ exponential cost.
+\item \textbf{Loss $\ne$ capability}; emergence debated.
+\item \textbf{New axes}: post-training + inference-time compute.
+\end{itemize}
+\end{frame}
+\begin{frame}{Can theory explain it?}
+\begin{itemize}
+\item Classical bounds (VC) predict overfitting --- too loose.
+\item Data-manifold / solvable models recover power laws under assumptions.
+\item No predictive theory matches real exponents across architectures yet.
+\end{itemize}
+\end{frame}
+
+\end{document}

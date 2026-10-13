@@ -1,0 +1,34 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{preamble}
+\authorsig{KUKLA}
+\begin{document}
+\moduletitle{Q32 --- Comprehension check}{Quantifying information flow with entropy}
+
+\begin{keybox}[Question]
+A classmate shows you a plot of mutual information $I(Z;X)$ between a hidden layer
+$Z$ and the input $X$ \emph{decreasing} over the course of training, and concludes
+``the network is compressing away irrelevant information.'' The network is an
+ordinary feed-forward net with deterministic layers.
+
+State the single most important objection to this conclusion, and name the one
+design choice in their analysis that most likely produced the downward curve.
+\end{keybox}
+
+\vspace{0.5em}
+\begin{keybox}[Answer]
+\textbf{Objection:} for a \emph{deterministic} map $Z=f(X)$, the mutual information
+$I(Z;X)$ is not actually finite/changing in the way plotted --- it is maximal
+(equal to $H(X)$, or infinite for continuous $X$). Any finite, moving number is a
+property of the \emph{estimator}, not of the network.
+
+\textbf{The design choice:} the \emph{binning / discretisation} used to estimate the
+entropy of a continuous activation (together with the choice of a saturating
+nonlinearity such as \texttt{tanh}). Saxe et al.\ (2018) showed this is what
+manufactures the apparent ``compression phase''; switching to \texttt{ReLU} or a
+finer binning typically makes it shrink or disappear.
+
+\emph{Full-credit answer} names both: (1) deterministic $\Rightarrow$ MI is
+estimator-defined, and (2) the binning/nonlinearity choice drives the curve.
+\end{keybox}
+
+\end{document}

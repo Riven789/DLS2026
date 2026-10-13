@@ -1,0 +1,143 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Why Models Hallucinate, and Can They Know When They Are Unsure?}
+\subtitle{Graduate AI-Internals Module Q11 (DLS 2026)}
+\author{Deep Learning Systems}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{The Student's Question}
+  \textbf{``Why do models hallucinate, and can they know when they are unsure?''}
+  \begin{itemize}
+    \item \emph{Hallucination}: fluent, confident output that is factually wrong or unsupported.
+    \item Two sub-questions, often conflated:
+    \begin{enumerate}
+      \item Why does the \emph{generation} produce falsehoods?
+      \item Does the \emph{internal state} encode a usable signal of uncertainty?
+    \end{enumerate}
+    \item Thesis: hallucination is partly \textbf{statistical and unavoidable}, partly \textbf{incentivized by training and evaluation}, and models \textbf{do carry} partial self-knowledge that we can extract.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source 1: Objective Mismatch and the Density Trap}
+  A language model minimizes cross-entropy over a corpus; it learns $p(\text{token}\mid\text{context})$, not truth.
+  \begin{itemize}
+    \item \textbf{Exposure bias / autoregression}: during generation the model conditions on its own (possibly wrong) outputs, compounding errors.
+    \item \textbf{Long-tail facts}: rare entities have little support, so the model interpolates plausible-but-false completions.
+    \item \citet{kalai2024calibrated} show hallucination arises even for an ideal learner: generating calibrated-but-novel text necessarily incurs some rate of fabrication, linking it to density estimation limits.
+    \item Lesson: a model optimized for likelihood will trade some correctness for fluency.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source 2: Training and Evaluation Incentives}
+  Hallucination is not only a bug---it is partly \emph{rewarded}.
+  \begin{itemize}
+    \item \citet{kalai2025hallucinate} argue models hallucinate because standard benchmarks score like exams: guessing beats abstaining, so ``I don't know'' is penalized.
+    \item RLHF can amplify confident assertion: \citet{ouyang2022training} optimize for human-preferred answers, and humans often prefer decisive, fluent responses.
+    \item \citet{sharma2023sycophancy} document \emph{sycophancy}: models adjust answers toward the user's stated view, trading accuracy for approval.
+    \item \textbf{Implication}: fix the scoring rule (reward calibrated abstention) and some hallucination disappears.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source 3: Do Models Encode Their Own Uncertainty?}
+  Evidence that the internal state \emph{knows} more than the output admits.
+  \begin{itemize}
+    \item \citet{kadavath2022know} find models can be trained/prompted to predict P(True) of their own answers and are often well-calibrated on whether they know.
+    \item \citet{azaria2023internal} show a probe on hidden activations detects whether a statement the model generates is true or false---internal ``lie'' signals exist.
+    \item \citet{burns2023discovering} discover latent truth directions \emph{without labels} (CCS), suggesting an unsupervised uncertainty substrate.
+    \item So: self-knowledge is partially present but not faithfully surfaced by greedy decoding.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source 4: Calibration and How to Read It}
+  Distinguish \emph{knowing} from \emph{saying you know}.
+  \begin{itemize}
+    \item \citet{guo2017calibration} show modern neural nets are often \emph{miscalibrated}---confidence $\neq$ accuracy; temperature scaling helps.
+    \item \citet{desai2020calibration} extend calibration study to pretrained transformers (in/out of domain).
+    \item Verbalized confidence (``I'm 90\% sure'') and token log-probs are both imperfect proxies; RLHF can degrade log-prob calibration.
+  \end{itemize}
+  \begin{block}{Operational definition}
+    A model is calibrated if, among claims it reports at confidence $c$, a fraction $\approx c$ are correct: $\;\mathbb{E}[\mathbf{1}(\text{correct})\mid \hat{p}=c]=c.$
+  \end{block}
+\end{frame}
+
+\begin{frame}{Source 5: Detecting Hallucination at Inference}
+  Practical signals that approximate ``am I unsure?''
+  \begin{itemize}
+    \item \textbf{Sampling consistency}: \citet{manakul2023selfcheckgpt} (SelfCheckGPT) flag hallucinations by measuring disagreement across sampled generations---no external DB needed.
+    \item \textbf{Semantic entropy}: \citet{kuhn2023semantic} cluster answers by meaning and measure entropy over clusters, a better uncertainty estimate than token entropy.
+    \item \textbf{Retrieval grounding}: \citet{lewis2020retrieval} (RAG) reduce fabrication by conditioning on retrieved evidence, shrinking the long-tail problem.
+  \end{itemize}
+  Rule of thumb: high semantic entropy or low cross-sample agreement $\Rightarrow$ treat the claim as unsupported.
+\end{frame}
+
+\begin{frame}{Synthesis: A Causal Picture}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \textbf{Why hallucinate?}
+      \begin{itemize}
+        \item Likelihood $\neq$ truth \citep{kalai2024calibrated}
+        \item Error compounding in autoregression
+        \item Scoring rewards guessing \citep{kalai2025hallucinate}
+        \item RLHF/sycophancy \citep{sharma2023sycophancy}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{Can they know?}
+      \begin{itemize}
+        \item Partial self-knowledge \citep{kadavath2022know}
+        \item Internal truth signals \citep{azaria2023internal,burns2023discovering}
+        \item But miscalibrated output \citep{guo2017calibration}
+        \item Recoverable via entropy/consistency \citep{kuhn2023semantic,manakul2023selfcheckgpt}
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vspace{1em}
+  \centering\emph{Hallucination $\approx$ statistical inevitability $+$ misaligned incentives; uncertainty exists internally but is lost at the output.}
+\end{frame}
+
+\begin{frame}{Takeaways and Exam Pointers}
+  \begin{enumerate}
+    \item Hallucination has \emph{multiple} causes; never attribute it to a single bug.
+    \item Models carry a partial, probeable signal of their own reliability---extracting it is the open engineering problem.
+    \item Mitigations stack: retrieval grounding, semantic-entropy gating, calibrated abstention, and better evaluation scoring.
+    \item \textbf{Be precise}: ``confident'' (output) $\neq$ ``certain'' (internal) $\neq$ ``correct'' (world).
+  \end{enumerate}
+  \vfill
+  \footnotesize Next lab: implement semantic-entropy detection and compare against verbalized-confidence calibration.
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+  \footnotesize
+  \begin{thebibliography}{99}
+    \bibitem{kalai2024calibrated} A.~T. Kalai and S.~S. Vempala. Calibrated Language Models Must Hallucinate. \emph{Proc. ACM Symposium on Theory of Computing (STOC)}, 2024.
+    \bibitem{kalai2025hallucinate} A.~T. Kalai, O.~Nachum, S.~S. Vempala, and E.~Zhang. Why Language Models Hallucinate. \emph{arXiv:2509.04664}, 2025.
+    \bibitem{ouyang2022training} L.~Ouyang et al. Training Language Models to Follow Instructions with Human Feedback. \emph{NeurIPS}, 2022.
+    \bibitem{sharma2023sycophancy} M.~Sharma et al. Towards Understanding Sycophancy in Language Models. \emph{arXiv:2310.13548}, 2023.
+    \bibitem{kadavath2022know} S.~Kadavath et al. Language Models (Mostly) Know What They Know. \emph{arXiv:2207.05221}, 2022.
+    \bibitem{azaria2023internal} A.~Azaria and T.~Mitchell. The Internal State of an LLM Knows When It's Lying. \emph{Findings of EMNLP}, 2023.
+    \bibitem{burns2023discovering} C.~Burns, H.~Ye, D.~Klein, and J.~Steinhardt. Discovering Latent Knowledge in Language Models Without Supervision. \emph{ICLR}, 2023.
+    \bibitem{guo2017calibration} C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger. On Calibration of Modern Neural Networks. \emph{ICML}, 2017.
+    \bibitem{desai2020calibration} S.~Desai and G.~Durrett. Calibration of Pre-trained Transformers. \emph{EMNLP}, 2020.
+    \bibitem{manakul2023selfcheckgpt} P.~Manakul, A.~Liusie, and M.~J.~F. Gales. SelfCheckGPT: Zero-Resource Black-Box Hallucination Detection for Generative Large Language Models. \emph{EMNLP}, 2023.
+    \bibitem{kuhn2023semantic} L.~Kuhn, Y.~Gal, and S.~Farquhar. Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation. \emph{ICLR}, 2023.
+    \bibitem{lewis2020retrieval} P.~Lewis et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. \emph{NeurIPS}, 2020.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

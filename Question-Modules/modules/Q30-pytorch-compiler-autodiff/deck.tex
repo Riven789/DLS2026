@@ -1,0 +1,47 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{metropolis}
+\usepackage{booktabs,amsmath,amssymb}
+\title{Q30: Inside PyTorch}
+\subtitle{torch.compile layers + autodiff memory}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\begin{frame}{The question}
+\begin{block}{Student question (\#29)}
+How does the PyTorch compiler work and what are its layers? Why does functional autodiff use far more
+memory than tape-based autodiff?
+\end{block}
+\end{frame}
+\begin{frame}{Eager vs.\ compiled}
+\begin{itemize}
+\item Default: \textbf{eager} --- ops dispatch immediately, easy to debug, slow.
+\item \texttt{torch.compile}: JIT-compiles, keeps eager semantics, recovers speed.
+\item Philosophy: \emph{capture what you can, fall back where you must}.
+\end{itemize}
+\end{frame}
+\begin{frame}{The torch.compile stack}
+\begin{itemize}
+\item \textbf{TorchDynamo}: trace bytecode $\to$ FX graph; \emph{graph breaks} on untraceable code.
+\item \textbf{AOTAutograd}: capture forward \emph{and} backward ahead of time.
+\item \textbf{TorchInductor}: fuse ops, lower to kernels.
+\item \textbf{Triton}: the emitted GPU kernel language.
+\end{itemize}
+\end{frame}
+\begin{frame}{Two flavors of autodiff}
+\begin{itemize}
+\item \textbf{Reverse-mode / tape}: record a tape forward, walk it backward (classic autograd).
+\item \textbf{Functional}: transform a pure fn into its gradient fn (\texttt{grad}, \texttt{vmap}, \texttt{jit}).
+\end{itemize}
+\end{frame}
+\begin{frame}{Why functional AD can use more memory}
+\begin{itemize}
+\item \textbf{Activations} saved for backward dominate training memory.
+\item A naive functional form may retain more intermediates than a tuned tape.
+\item Fix: \textbf{gradient checkpointing} --- save few activations, \emph{recompute} the rest.
+\end{itemize}
+\alert{Trade extra compute for a big memory cut (can turn OOM into trainable).}
+\end{frame}
+
+\end{document}

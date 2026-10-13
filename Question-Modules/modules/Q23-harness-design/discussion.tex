@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q23 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item The module claims ``harness design induces model failures.'' Take a retry storm you have personally triggered in Claude Code, Codex, or Hermes: what exactly did the error surface tell the model, and what would the harness have had to say to make the model's next action different? Who owns that failure?
+\item SWE-agent moved SWE-bench performance substantially by changing only the agent-computer interface \cite{yang2024sweagent}. If harness changes can buy gains that look like model-generation jumps, why does the field spend most of its compute on training new models rather than on interface search? What would a serious ``harness scaling law'' look like?
+\item The three-way decomposition (model / instructions / harness) assumes a failure has one dominant cause. Defend or attack: are joint failures (weak model + poor error surfaces) the norm at the frontier, and if so, is per-layer attribution still a useful fiction?
+\item Attribution protocol: you have one failing task, a fixed model, and three swap experiments available (model, instructions, harness version) but budget for only two. Which two do you run, in what order, and what residual ambiguity do you accept? Justify the ordering in terms of which swap is most likely to clear the failure.
+\item This course itself runs on agent harnesses. Consider the harness that drafted this module: it assembled context, called tools, wrote files. Which of its design choices (context truncation, permission gates, stopping conditions) shaped the content you are now reading --- and how would you even detect that from the artifacts alone?
+\end{enumerate}
+\end{document}

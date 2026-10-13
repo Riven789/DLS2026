@@ -1,0 +1,24 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q25: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A team uses model A to generate training data \emph{and} model A (same model)
+to judge which generated answers are best, then fine-tunes model B on the winners and reports that B
+improved---as scored by model A. Name the specific risk in this setup and one change that would make the
+reported improvement more trustworthy.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} The risk is \textbf{circularity / self-preference bias} (a form of reward hacking):
+because the same model generates the data and judges quality, its own stylistic biases are baked into both
+the training signal and the evaluation, so B can score well on A's judgments without genuinely improving on
+what humans care about---an illusory gain (and, over iterations, a path toward model collapse). A
+trustworthy change: evaluate B on an \emph{independent}, human-labeled held-out set (or at least a different
+judge model and fresh real data), decoupling the generator from the evaluator.}
+\end{document}

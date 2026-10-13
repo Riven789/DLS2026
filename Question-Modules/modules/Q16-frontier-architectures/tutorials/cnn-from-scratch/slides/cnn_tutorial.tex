@@ -1,0 +1,1168 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme[numbering=fraction,progressbar=frametitle,block=fill]{metropolis}
+\geometry{papersize={192mm,108mm}}
+\usefonttheme[onlymath]{serif}
+\usepackage{amsmath,amssymb,bm,booktabs,array}
+\usepackage{tikz,pgfplots,listings}
+\pgfplotsset{compat=1.17}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing,matrix}
+
+% ---------------------------------------------------------------- colours
+% One colour per stage, used consistently in every diagram.
+\definecolor{cInk}{HTML}{22303C}
+\definecolor{cTok}{HTML}{5B6770}   % tokens / ids
+\definecolor{cEmb}{HTML}{2F6DB5}   % embeddings
+\definecolor{cAtt}{HTML}{D9822B}   % attention
+\definecolor{cFfn}{HTML}{2E8B57}   % feed-forward
+\definecolor{cNrm}{HTML}{8C7A2B}   % normalisation
+\definecolor{cOut}{HTML}{7B4FA6}   % output / sampling
+\definecolor{cBad}{HTML}{B03A3A}
+\setbeamercolor{normal text}{fg=cInk,bg=white}
+\setbeamercolor{frametitle}{bg=cInk,fg=white}
+\setbeamercolor{progress bar}{fg=cAtt,bg=cAtt!25}
+\setbeamercolor{alerted text}{fg=cAtt}
+\setbeamercolor{block title}{bg=cEmb!14,fg=cInk}
+\setbeamercolor{block body}{bg=cEmb!5}
+\setbeamerfont{block title}{series=\bfseries,size=\small}
+\setbeamertemplate{itemize item}{\color{cAtt}\rule[0.25ex]{0.9ex}{0.9ex}}
+\setbeamertemplate{itemize subitem}{\color{cTok}--}
+\setlength{\leftmargini}{1.1em}
+
+% ---------------------------------------------------------------- macros
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator{\softmax}{softmax}
+\newcommand{\T}{\top}
+\renewcommand{\cite}[1]{{\scriptsize\color{cTok}[#1]}}
+\newcommand{\key}[1]{\textbf{\color{cAtt}#1}}
+
+\tikzset{
+  >={Stealth[length=5pt]},
+  stage/.style={draw=#1,fill=#1!12,rounded corners=2pt,line width=0.7pt,
+                minimum height=7.5mm,inner xsep=5pt,font=\small,align=center},
+  stage/.default=cTok,
+  flow/.style={->,line width=0.7pt,draw=cInk!80},
+  note/.style={font=\scriptsize,text=cTok,align=center},
+  tokbox/.style={draw=cTok,fill=cTok!10,rounded corners=1.5pt,font=\ttfamily\small,
+                 minimum height=5.5mm,inner xsep=3pt,outer sep=0pt},
+  cell/.style={minimum size=5mm,inner sep=0pt,font=\scriptsize},
+}
+
+\lstdefinestyle{py}{
+  language=Python,basicstyle=\ttfamily\fontsize{6.1}{7.4}\selectfont,
+  keywordstyle=\color{cEmb}\bfseries,commentstyle=\color{cFfn!85!black}\itshape,
+  stringstyle=\color{cAtt!85!black},showstringspaces=false,columns=fullflexible,
+  keepspaces=true,frame=none,backgroundcolor=\color{cInk!4},
+  xleftmargin=3pt,xrightmargin=3pt,aboveskip=2pt,belowskip=2pt,
+  literate={-}{{-}}1,
+}
+
+
+\DeclareMathOperator{\ReLU}{ReLU}
+\newcommand{\num}[1]{\textbf{\color{cEmb}#1}}
+
+% ---------------------------------------------------------------- this deck
+% Convolutional Neural Networks from the Ground Up -- a 20-frame tutorial.
+% Build from this directory:   latexmk -pdf cnn_tutorial.tex
+% Figures read data written by ../experiments.py into generated/;
+% frames 15 and 16 pull their listings directly from ../conv_numpy.py, ../cnn.py and ../train.py.
+% Colours: cEmb = image / input values, cAtt = kernel / weights, cFfn = feature maps / activations,
+%          cOut = class scores and probabilities, cTok = padding and annotations, cBad = errors.
+\DeclareMathOperator{\pool}{pool}
+\newcommand{\xcorr}{\star}
+\tikzset{
+  lab/.style={font=\fontsize{5}{6}\selectfont,inner sep=0pt,text=cInk},
+  gc/.style={draw=cInk!55,line width=0.3pt,minimum size=#1,inner sep=0pt,outer sep=0pt,font=\scriptsize},
+  gc/.default=5.5mm,
+}
+% \cellrow{x0}{row}{style}{v1,v2,...}: a row of number cells; cell (row r, column c) is centred at (x0+c, -r)
+\newcommand{\cellrow}[4]{\foreach \v [count=\c from 0] in {#4} \node[#3] at (#1+\c,-#2) {\v};}
+
+\title{Convolutional Neural Networks from the Ground Up}
+\subtitle{Kernels, feature maps, pooling, backpropagation and training, with runnable code}
+\date{A 20-slide tutorial \textbullet{} companion code: \texttt{conv\_numpy.py}, \texttt{cnn.py},
+      \texttt{train.py}, \texttt{experiments.py}, \texttt{walkthrough.py}}
+
+\input{generated/results.tex}
+\input{generated/arch_table.tex}
+\begin{document}
+
+% ======================================================================= 1
+\maketitle
+\addtocounter{framenumber}{1}
+
+% ======================================================================= 2
+\begin{frame}{Images are tensors, and why an MLP is the wrong tool for them}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\centering
+\begin{tikzpicture}[x=0.92mm,y=0.92mm]
+  \input{generated/img_boot.tex}
+  \draw[cAtt,line width=0.9pt] (\patchCol,-\patchRow) rectangle ++(5,-5);
+  \begin{scope}[xshift=36mm,yshift=-1.4mm,x=4.6mm,y=4.6mm,lab/.append style={font=\fontsize{5.4}{6}\selectfont}]
+    \input{generated/img_patch.tex}
+    \draw[cAtt,line width=0.9pt] (0,0) rectangle (5,-5);
+    \coordinate (za) at (0,0); \coordinate (zb) at (0,-5);
+  \end{scope}
+  \draw[cAtt,line width=0.4pt] (\patchCol+5,-\patchRow) -- (za) (\patchCol+5,-\patchRow-5) -- (zb);
+  \node[note,anchor=east] at (-1.5,-14) {$H{\times}W$\\$=28{\times}28$\\pixels,\\$C=1$\\channel};
+  \node[note,anchor=west] at (65.5,-14) {raw\\values\\0..255};
+\end{tikzpicture}
+
+\vspace{0.3mm}
+\begin{tikzpicture}[x=0.262mm,y=0.262mm,lab/.append style={font=\fontsize{4.6}{5}\selectfont,text=cTok}]
+  \input{generated/img_classes.tex}
+\end{tikzpicture}
+
+\vspace{0.5mm}
+\raggedright\footnotesize
+\begin{itemize}
+  \item \key{Image} = tensor of shape $(C,H,W)$; colour has $C=3$ (R, G, B). A batch is $(N,C,H,W)$.
+  \item \key{Scaling}: divide by 255, then standardise with the training-split mean and std:
+        $x'=(x/255-\pixMean)/\pixStd$. The patch centre \patchValue{} becomes $\patchNorm$, black $\blackNorm$.
+  \item \key{Labels}: class index $0..9$ in the order above. Data: Fashion-MNIST \cite{13},
+        \nTrain{} train / \nVal{} validation / \nTest{} test images (drawn dark-on-white).
+\end{itemize}
+\column{0.49\textwidth}
+\small
+A dense layer gives every unit its own weight per pixel. Two problems:
+\begin{itemize}\footnotesize
+  \item \key{Too many weights}: image area times layer width.
+
+  \vspace{0.3mm}
+  {\renewcommand{\arraystretch}{1.1}
+  \begin{tabular}{@{}lrr@{}}
+  \toprule
+  first layer & $28\times28\times1$ & $224\times224\times3$\\
+  \midrule
+  inputs & 784 & 150{,}528\\
+  dense, 1{,}000 units & 785{,}000 & 150{,}529{,}000\\
+  conv, 64 filters $3\times3$ & 640 & 1{,}792\\
+  \bottomrule
+  \end{tabular}}
+  \vspace{0.5mm}
+  \item \key{No notion of space.} After flattening, pixel 0 and pixel 1 are as unrelated as pixel 0
+        and pixel 783. A boot moved two pixels sideways is a new pattern to be learned again.
+\end{itemize}
+\vspace{-1mm}
+\begin{block}{Measured: scramble the pixels}
+\footnotesize
+Apply one fixed random permutation to the 784 pixel positions of every image; retrain (seed 0).\\[0.4mm]
+\begin{tabular}{@{}lcc@{}}
+ & original & scrambled\\
+MLP $784\to128\to64\to10$ & \seedAccMlp\% & \permMlp\%\\
+CNN (slide 11) & \seedAccCnn\% & \permCnn\%\\
+\end{tabular}\\[0.4mm]
+The MLP does not care: it never used the layout. The CNN loses \permCnnDrop{} points:
+its advantage \emph{is} the assumption that neighbours belong together.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 3
+\begin{frame}{The convolution: slide a small kernel over the image}
+\begin{columns}[T,onlytextwidth]
+\column{0.54\textwidth}
+\centering
+\begin{tikzpicture}[x=5.5mm,y=5.5mm]
+  \cellrow{0}{0}{gc,fill=cEmb!10}{1,2,0,1,3}
+  \cellrow{0}{1}{gc,fill=cEmb!10}{0,1,2,3,1}
+  \cellrow{0}{2}{gc,fill=cEmb!10}{2,0,1,1,0}
+  \cellrow{0}{3}{gc,fill=cEmb!10}{1,3,0,2,2}
+  \cellrow{0}{4}{gc,fill=cEmb!10}{0,1,1,0,1}
+  \draw[cAtt,line width=1.3pt] (0.5,0.5) rectangle (3.5,-2.5);
+  \draw[cFfn,line width=1.1pt,densely dashed] (-0.5,-1.5) rectangle (2.5,-4.5);
+  \node at (5.5,-2) {$\xcorr$};
+  \foreach \r in {1,2,3} {\cellrow{6.5}{\r}{gc,fill=cAtt!22}{1,0,$-1$}}
+  \node at (9.5,-2) {$=$};
+  \cellrow{10.5}{1}{gc,fill=cFfn!12}{0,$-2$,$-1$}
+  \cellrow{10.5}{2}{gc,fill=cFfn!12}{0,$-2$,0}
+  \cellrow{10.5}{3}{gc,fill=cFfn!12}{1,1,$-1$}
+  \draw[cAtt,line width=1.3pt] (11,-0.5) rectangle (12,-1.5);
+  \draw[cFfn,line width=1.1pt,densely dashed] (10,-2.5) rectangle (11,-3.5);
+  \node[note,text=cInk] at (2,1.05) {input $X$ \ ($5\times5$)};
+  \node[note,text=cInk] at (7.5,0.05) {kernel $K$};
+  \node[note,text=cInk] at (11.5,0.05) {output $Y$};
+  \node[note] at (11.5,-4.1) {``feature map''};
+\end{tikzpicture}
+
+\vspace{1mm}
+\raggedright\footnotesize
+\textbf{\color{cAtt}Orange window}, $Y_{0,1}$: multiply the kernel entry by entry with the patch
+$\bigl[\begin{smallmatrix}2&0&1\\1&2&3\\0&1&1\end{smallmatrix}\bigr]$ and add up:
+\[
+  Y_{0,1}=(2+1+0)\cdot1+(0+2+1)\cdot0+(1+3+1)\cdot(-1)=3-5=\num{-2}
+\]
+\textbf{\color{cFfn}Green window}, $Y_{2,0}$: \ $(2+1+0)-(1+0+1)=3-2=\num{1}$.
+
+\vspace{1mm}
+This kernel computes ``left column minus right column'': it responds where brightness changes
+from left to right. Nine multiplications per output value, the same nine weights everywhere.
+\column{0.43\textwidth}
+\small
+\begin{block}{Definition (one channel, no padding, stride 1)}
+\vspace{-2mm}
+\[
+  Y_{i,j}=b+\sum_{u=0}^{k-1}\sum_{v=0}^{k-1}K_{u,v}\,X_{i+u,\;j+v}
+\]
+\footnotesize $k$: kernel size; $b$: one bias per kernel. Output size $n-k+1$: here $5-3+1=3$.
+\end{block}
+\begin{itemize}\footnotesize
+  \item The \key{kernel} (or \emph{filter}) is a small array of weights. It is the thing that is learned.
+  \item Each output value is a dot product: it is large where the patch looks like the kernel.
+  \item An output unit sees only a $k\times k$ patch: \key{local connectivity}. The same kernel
+        is used at every position: \key{weight sharing} (slide 8).
+\end{itemize}
+\begin{block}{A note on the name}
+\footnotesize
+Mathematicians call this \key{cross-correlation}, written $X\xcorr K$. True convolution $X*K$ flips the
+kernel first, $K_{u,v}\to K_{k-1-u,\,k-1-v}$. Deep-learning libraries do not flip.
+Since $K$ is learned, the difference is only a relabelling of the weights \cite{14}.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 4
+\begin{frame}{Kernels are feature detectors: Sobel edge filters on a real image}
+\centering
+\begin{tikzpicture}[x=1.05mm,y=1.05mm]
+  \input{generated/img_boot.tex}
+  \node[note,text=cInk,anchor=south] at (14,0.6) {input $X$ (test image 0)};
+  \begin{scope}[xshift=49mm] \input{generated/sobel_gx.tex}
+    \node[note,text=cInk,anchor=south] at (14,0.6) {$G_x=X\xcorr S_x$}; \end{scope}
+  \begin{scope}[xshift=98mm] \input{generated/sobel_gy.tex}
+    \node[note,text=cInk,anchor=south] at (14,0.6) {$G_y=X\xcorr S_y$}; \end{scope}
+  \begin{scope}[xshift=134.5mm] \input{generated/sobel_mag.tex}
+    \node[note,text=cInk,anchor=south] at (14,0.6) {edge strength $\sqrt{G_x^2+G_y^2}$}; \end{scope}
+  % the two kernels, between the panels (cells are 3.4 mm)
+  \begin{scope}[xshift=35.8mm,yshift=-11.3mm,x=3.4mm,y=3.4mm]
+    \foreach \r/\a/\b in {0/1/1,1/2/2,2/1/1} {
+      \node[gc=3.4mm,fill=cEmb!25,font=\tiny] at (0,-\r) {$-\a$}; \node[gc=3.4mm,font=\tiny] at (1,-\r) {0};
+      \node[gc=3.4mm,fill=cAtt!30,font=\tiny] at (2,-\r) {\b};}
+    \node[note,text=cInk] at (1,1.15) {$S_x$};
+  \end{scope}
+  \begin{scope}[xshift=84.8mm,yshift=-11.3mm,x=3.4mm,y=3.4mm]
+    \foreach \c/\a in {0/1,1/2,2/1} {
+      \node[gc=3.4mm,fill=cEmb!25,font=\tiny] at (\c,0) {$-\a$}; \node[gc=3.4mm,font=\tiny] at (\c,-1) {0};
+      \node[gc=3.4mm,fill=cAtt!30,font=\tiny] at (\c,-2) {\a};}
+    \node[note,text=cInk] at (1,1.15) {$S_y=S_x^{\T}$};
+  \end{scope}
+  \node[font=\scriptsize] at (31.7mm,-14.7mm) {$\xcorr$}; \node[font=\scriptsize] at (46.7mm,-14.7mm) {$=$};
+  \node[font=\scriptsize] at (95.7mm,-14.7mm) {$=$}; \node[font=\scriptsize] at (80.9mm,-14.7mm) {$X\xcorr$};
+\end{tikzpicture}
+
+\vspace{0.3mm}
+{\scriptsize\color{cTok}Computed by \texttt{conv2d} in \texttt{conv\_numpy.py}, padding 1 (experiment B).
+Grey: darker = larger. {\color{cAtt}Orange} = positive, {\color{cEmb}blue} = negative response;
+full scale $\pm\sobelMax$ for pixels in $[0,1]$.}
+
+\vspace{1mm}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\footnotesize
+\begin{itemize}
+  \item $S_x$ compares right with left: it fires on \textbf{vertical} edges (back of the shaft, toe).
+        $S_y$ compares below with above: \textbf{horizontal} edges (sole, top line).
+  \item The sign gives the direction: dark$\to$bright is positive.
+\end{itemize}
+\column{0.32\textwidth}
+\begin{block}{By hand: a step edge}
+\footnotesize
+Rows $\;0\;0\;1\;1\;1\;$ (three identical rows):\\[0.5mm]
+$X\xcorr S_x=(\num{4},\,\num{4},\,0)$: large at the step, zero on the flat part.
+$X\xcorr S_y=(0,0,0)$.
+\end{block}
+\column{0.32\textwidth}
+\footnotesize
+\begin{itemize}
+  \item Each kernel sums to 0, so a constant region gives exactly 0:
+        \sobelZeroFrac\% of the last panel is below 5\% of its maximum.
+  \item These kernels were designed by hand in the 1960s \cite{17}. A CNN \textbf{learns} its
+        kernels; slide 18 shows ours.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 5
+\begin{frame}{Padding and stride: controlling the output size}
+\begin{columns}[T,onlytextwidth]
+\column{0.44\textwidth}
+\centering
+\begin{tikzpicture}[x=4.6mm,y=4.6mm]
+  \foreach \r in {0,...,6} \foreach \c in {0,...,6}
+    \node[gc=4.6mm,draw=cTok!60,densely dotted,text=cTok,font=\tiny] at (\c,-\r) {0};
+  \foreach \r in {1,...,5} \foreach \c in {1,...,5}
+    \node[gc=4.6mm,fill=cEmb!14] at (\c,-\r) {};
+  \draw[cAtt,line width=1.3pt] (-0.5,0.5) rectangle (2.5,-2.5);
+  \draw[cAtt,line width=1.1pt,densely dashed] (1.5,0.42) rectangle (4.5,-2.42);
+  \draw[cFfn,line width=1.1pt,densely dashed] (-0.42,-1.5) rectangle (2.42,-4.5);
+  \draw[->,cAtt,line width=0.8pt] (1,0.9) -- node[above,note,text=cAtt] {stride $s=2$} (3,0.9);
+  \foreach \r in {0,1,2} \foreach \c in {0,1,2} \node[gc=4.6mm,fill=cFfn!12] at (9.2+\c,-2-\r) {};
+  \draw[cAtt,line width=1.3pt] (8.7,-1.5) rectangle (9.7,-2.5);
+  \draw[cAtt,line width=1.1pt,densely dashed] (9.7,-1.5) rectangle (10.7,-2.5);
+  \draw[cFfn,line width=1.1pt,densely dashed] (8.7,-2.5) rectangle (9.7,-3.5);
+  \draw[flow] (6.8,-3) -- (8.4,-3);
+  \node[note,text=cInk] at (3,-7.1) {$n=5$, padding $p=1$: $7\times7$ after padding};
+  \node[note,text=cInk] at (10.2,-5.1) {output $3\times3$};
+  \node[note] at (10.2,-0.6) {$k=3$};
+\end{tikzpicture}
+
+\vspace{1mm}
+\begin{block}{Output size along one axis}
+\vspace{-2.5mm}
+\[
+  n_\text{out}=\Bigl\lfloor\frac{n+2p-k}{s}\Bigr\rfloor+1
+\]
+\footnotesize $n$ input size, $k$ kernel size, $p$ padding on each side, $s$ stride.
+Drawing: $\lfloor(5+2-3)/2\rfloor+1=\num{3}$.
+\end{block}
+\column{0.53\textwidth}
+\small
+\begin{itemize}\footnotesize
+  \item \key{Padding} $p$: surround the image with $p$ rings of zeros. Without it every layer shrinks the
+        map by $k-1$ and border pixels are used less often than central ones.
+        ``Same'' padding $p=(k-1)/2$ keeps the size (odd $k$, $s=1$).
+  \item \key{Stride} $s$: move the window $s$ pixels at a time. The output is about $s$ times smaller per axis,
+        so $s^2$ times cheaper. A strided convolution is a learned way of downsampling.
+  \item The floor: last rows and columns are ignored when the window does not fit.
+\end{itemize}
+\vspace{0.2mm}
+{\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}rrrrll@{}}
+\toprule
+$n$ & $k$ & $p$ & $s$ & $\lfloor(n+2p-k)/s\rfloor+1$ & where\\
+\midrule
+5 & 3 & 0 & 1 & $\lfloor2\rfloor+1=3$ & slide 3\\
+5 & 3 & 1 & 1 & $\lfloor4\rfloor+1=5$ & ``same''\\
+28 & 5 & 2 & 1 & $\lfloor27\rfloor+1=28$ & our conv1\\
+14 & 5 & 0 & 1 & $\lfloor9\rfloor+1=10$ & our conv2\\
+28 & 2 & 0 & 2 & $\lfloor13\rfloor+1=14$ & our pool1\\
+8 & 3 & 0 & 2 & $\lfloor2.5\rfloor+1=3$ & last column unused\\
+224 & 7 & 3 & 2 & $\lfloor111.5\rfloor+1=112$ & ResNet stem \cite{6}\\
+\bottomrule
+\end{tabular}}
+
+\vspace{1mm}
+{\footnotesize The same formula covers pooling (slide 9). More cases (dilation, transposed convolution): \cite{11}.}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 6
+\begin{frame}{Receptive field: how much of the image one unit can see}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[x=6mm,y=11mm]
+  \begin{scope}[on background layer]
+    \fill[cAtt!18] (0.5,0.19) -- (7.5,0.19) -- (6.5,0.81) -- (1.5,0.81) -- cycle;
+    \fill[cAtt!18] (1.5,1.19) -- (6.5,1.19) -- (5.5,1.81) -- (2.5,1.81) -- cycle;
+    \fill[cAtt!18] (2.5,2.19) -- (5.5,2.19) -- (4.5,2.81) -- (3.5,2.81) -- cycle;
+  \end{scope}
+  \foreach \c in {0,...,8} \node[gc=4.2mm,fill=cEmb!14] (i\c) at (\c,0) {};
+  \foreach \c in {1,...,7} \node[gc=4.2mm,fill=cFfn!12] at (\c,1) {};
+  \foreach \c in {2,...,6} \node[gc=4.2mm,fill=cFfn!12] at (\c,2) {};
+  \foreach \c in {3,...,5} \node[gc=4.2mm,fill=cFfn!12] at (\c,3) {};
+  \foreach \c in {1,...,7} \node[gc=4.2mm,fill=cEmb!45] at (\c,0) {};
+  \foreach \c in {2,...,6} \node[gc=4.2mm,fill=cFfn!45] at (\c,1) {};
+  \foreach \c in {3,...,5} \node[gc=4.2mm,fill=cFfn!45] at (\c,2) {};
+  \node[gc=4.2mm,fill=cAtt!60] at (4,3) {};
+  \foreach \y/\t in {0/input,1/layer 1,2/layer 2,3/layer 3} \node[note,text=cInk,anchor=east] at (-0.7,\y) {\t};
+  \foreach \y/\t in {0/{$r=7$},1/{$r=5$},2/{$r=3$},3/{$r=1$}} \node[note,text=cAtt,anchor=west] at (8.7,\y) {\t};
+  \node[note] at (4,-0.55) {a 1-D cut through three stacked convolutions, $k=3$, stride 1};
+\end{tikzpicture}
+
+\vspace{1.5mm}
+\raggedright\footnotesize
+The \key{receptive field} of a unit is the set of input pixels that can influence it. One $3\times3$ layer
+sees 3 pixels across; each further layer adds $k-1=2$.
+
+\vspace{1mm}
+\begin{block}{Recurrence (per axis), from the input upward}
+\vspace{-2.5mm}
+\[
+  r_\ell=r_{\ell-1}+(k_\ell-1)\,j_{\ell-1},\qquad j_\ell=j_{\ell-1}\,s_\ell,\qquad r_0=j_0=1
+\]
+\footnotesize $j$ (``jump'') is the distance in input pixels between neighbouring units of a layer.
+Stride and pooling multiply $j$, so every later layer grows $r$ faster.
+\end{block}
+\column{0.47\textwidth}
+\small
+\textbf{Our network} (slide 11)
+
+\vspace{0.5mm}
+{\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{@{}lccrcl@{}}
+\toprule
+layer & $k$ & $s$ & $r$ & $j$ & $r$ computed as\\
+\midrule
+input & & & 1 & 1 & \\
+conv $5\times5$ & 5 & 1 & \num{5} & 1 & $1+4\cdot1$\\
+max-pool $2\times2$ & 2 & 2 & \num{6} & 2 & $5+1\cdot1$\\
+conv $5\times5$ & 5 & 1 & \num{14} & 2 & $6+4\cdot2$\\
+max-pool $2\times2$ & 2 & 2 & \num{16} & 4 & $14+1\cdot2$\\
+\bottomrule
+\end{tabular}}
+
+\vspace{1.5mm}
+{\footnotesize A unit of the last feature map sees a $16\times16$ window of the $28\times28$ image:
+enough for a sleeve or a heel, not the whole garment. The linear layers after it combine all 25 positions.}
+
+\vspace{1mm}
+\begin{itemize}\footnotesize
+  \item \key{Depth builds a hierarchy}: edges, then corners and textures, then parts \cite{12}.
+  \item \key{Small kernels, stacked}: two $3\times3$ layers see $5\times5$ with $2\cdot9=18$ weights instead of 25,
+        three see $7\times7$ with 27 instead of 49, and they add nonlinearities in between.
+        This is the design rule of VGG \cite{5}.
+  \item The \emph{effective} receptive field is smaller than $r$: central pixels have many more paths to the
+        unit than peripheral ones \cite{16}.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 7
+\begin{frame}{Many channels in, many filters out}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[x=1mm,y=1mm]
+  % input volume: C_in = 3 slabs
+  \foreach \i in {2,1,0} \draw[cEmb,fill=cEmb!12,line width=0.5pt] (\i*2.2,\i*2.2) rectangle ++(20,20);
+  \foreach \i in {2,1,0} \draw[cAtt,fill=cAtt!35,line width=0.6pt] (3+\i*2.2,9+\i*2.2) rectangle ++(6,6);
+  \node[note,text=cInk] at (12.2,-3) {input $X$: $C_\text{in}\times H\times W$};
+  \node[note,text=cAtt,anchor=west] at (25.5,26) {one filter:};
+  \node[note,text=cAtt,anchor=west] at (25.5,22.6) {$C_\text{in}\times k\times k$};
+  \draw[cAtt,line width=0.4pt] (25.2,22) -- (13.6,18);
+  % output volume: C_out = 4 maps
+  \foreach \i in {3,2,1,0} \draw[cFfn,fill=cFfn!12,line width=0.5pt] (52+\i*2.2,1+\i*2.2) rectangle ++(16,16);
+  \draw[cAtt,fill=cAtt!60,line width=0.5pt] (55,9) rectangle ++(2,2);
+  \draw[cAtt,line width=0.4pt] (9,15) -- (55,11) (9,9) -- (55,9);
+  \node[note,text=cInk] at (63.5,-3) {output $Y$: $C_\text{out}\times H'\times W'$};
+  \node[note,text=cFfn!80!black] at (64,28.5) {one map per filter};
+  \draw[flow] (30,8) -- node[below,note] {$C_\text{out}$ filters} (49,8);
+\end{tikzpicture}
+
+\vspace{0.5mm}
+\begin{block}{The convolution layer in full}
+\vspace{-2.5mm}
+\[
+  Y_{o,i,j}=b_o+\sum_{c=0}^{C_\text{in}-1}\;\sum_{u=0}^{k-1}\sum_{v=0}^{k-1}W_{o,c,u,v}\;X_{c,\;si+u,\;sj+v}
+\]
+\footnotesize Weight tensor $W\in\R^{C_\text{out}\times C_\text{in}\times k\times k}$, bias $b\in\R^{C_\text{out}}$;
+$X$ is the padded input, $s$ the stride. In PyTorch: \texttt{nn.Conv2d(C\_in, C\_out, k)}, whose
+\texttt{weight.shape} is $(C_\text{out},C_\text{in},k,k)$.
+\end{block}
+\column{0.47\textwidth}
+\small
+\begin{itemize}\footnotesize
+  \item A filter is a small \textbf{volume}: it spans \emph{all} input channels but only $k\times k$ pixels.
+        One output value is the dot product of that volume with the patch under it.
+  \item Each filter yields one \key{feature map}. $C_\text{out}$ filters give $C_\text{out}$ maps, which are
+        the input channels of the next layer.
+  \item Typical pattern: spatial size goes down, channel count goes up.
+\end{itemize}
+\vspace{-0.5mm}
+\begin{block}{Counting parameters: $C_\text{out}\,(C_\text{in}\,k^2+1)$}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lll@{}}
+our conv1 & $(8,1,5,5)$ & $8\,(1\cdot25+1)=\num{208}$\\
+our conv2 & $(16,8,5,5)$ & $16\,(8\cdot25+1)=\num{3{,}216}$\\
+RGB, 64 filters & $(64,3,3,3)$ & $64\,(3\cdot9+1)=\num{1{,}792}$\\
+\end{tabular}
+
+\vspace{0.8mm}
+The count does not depend on $H$ or $W$. A dense layer from 784 pixels to the $8\cdot28\cdot28=6{,}272$
+outputs of conv1 would need 4{,}923{,}520 parameters instead of 208.
+\end{block}
+{\footnotesize \key{$1\times1$ convolution}: $k=1$ mixes channels at each pixel separately; it is a dense
+layer applied at every position, used to change the channel count cheaply \cite{10}.}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 8
+\begin{frame}{Weight sharing and translation equivariance}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[x=5.6mm,y=5.6mm]
+  \node[note,text=cInk,anchor=east] at (-0.8,0) {$x$};
+  \cellrow{0}{0}{gc=5.6mm,fill=cEmb!10}{0,1,3,1,0,0,0}
+  \foreach \c/\v in {1/1,2/3,3/1} \node[gc=5.6mm,fill=cEmb!40] at (\c,0) {\v};
+  \node[note,text=cInk,anchor=east] at (-0.8,-1.7) {$x\xcorr k$};
+  \cellrow{1}{1.7}{gc=5.6mm,fill=cFfn!10}{$-3$,0,3,1,0}
+  \foreach \c/\v in {1/$-3$,2/0,3/3} \node[gc=5.6mm,fill=cFfn!40] at (\c,-1.7) {\v};
+  \node[note,text=cInk,anchor=east] at (-0.8,-4.1) {$T_2x$};
+  \cellrow{0}{4.1}{gc=5.6mm,fill=cEmb!10}{0,0,0,1,3,1,0}
+  \foreach \c/\v in {3/1,4/3,5/1} \node[gc=5.6mm,fill=cEmb!40] at (\c,-4.1) {\v};
+  \node[note,text=cInk,anchor=east] at (-0.8,-5.8) {$(T_2x)\xcorr k$};
+  \cellrow{1}{5.8}{gc=5.6mm,fill=cFfn!10}{0,$-1$,$-3$,0,3}
+  \foreach \c/\v in {3/$-3$,4/0,5/3} \node[gc=5.6mm,fill=cFfn!40] at (\c,-5.8) {\v};
+  \node[note,text=cAtt] at (3,-2.9) {kernel $k=(1,\,0,\,-1)$ in both cases};
+  \draw[->,cTok,line width=0.9pt] (7.0,-0.85) to[bend left=35] node[right,note] {shift\\by 2} (7.0,-4.95);
+\end{tikzpicture}
+
+\vspace{1mm}
+\raggedright\footnotesize
+Shifting the input by 2 shifts the output by 2 (dark cells). What is pushed past the border is lost
+(the 1 near the end of the first output); a new value enters on the other side.
+\begin{block}{Translation equivariance}
+\vspace{-2.5mm}
+\[
+  (T_a x)\xcorr k\;=\;T_a\,(x\xcorr k)\qquad\text{$T_a$: shift by $a$ pixels}
+\]
+\footnotesize Exact away from the border. It follows from the definition: the weights $K_{u,v}$ do not depend
+on the position $(i,j)$.
+\end{block}
+\column{0.47\textwidth}
+\small
+\begin{itemize}\footnotesize
+  \item \key{Weight sharing}: every position uses the same kernel. A feature learned in one corner is
+        detected everywhere, with no extra parameters or training examples.
+  \item \key{Equivariant} is not \key{invariant}. Equivariant: the feature map moves with the object.
+        Invariant: the answer does not change. Classification wants invariance; pooling and the head
+        (slides 9, 10) must turn one into the other.
+\end{itemize}
+\vspace{-0.5mm}
+\begin{block}{Measured on a real image (experiment C)}
+\footnotesize
+Test image 0 shifted 2 pixels down, 3 right; four random $5\times5$ kernels, padding 2.\\[0.6mm]
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}p{58mm}r@{}}
+$\max\bigl|(T x)\xcorr K-T(x\xcorr K)\bigr|$, interior & \textbf{\equivInterior}\\
+same, including the border rows and columns & \equivBorder\\
+random dense layer, $\lVert W\,Tx-Wx\rVert/\lVert Wx\rVert$ & \denseChange\%\\
+\end{tabular}
+
+\vspace{0.6mm}
+The interior agrees to the last bit. A dense layer has no output positions that could move:
+its response to the shifted image is just a different vector.
+\end{block}
+{\footnotesize Caveat: with stride or pooling this holds only for shifts by multiples of the total stride,
+and a trained CNN is \emph{not} shift-invariant \cite{15}. Slide 14 measures it.}
+\end{columns}
+\end{frame}
+
+% ======================================================================= 9
+\begin{frame}{Nonlinearity and pooling}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\centering
+\begin{tikzpicture}[x=5mm,y=5mm]
+  \cellrow{0}{0}{gc=5mm,fill=cFfn!10}{1,$-2$,0,3}
+  \cellrow{0}{1}{gc=5mm,fill=cFfn!10}{4,2,$-1$,$-3$}
+  \cellrow{0}{2}{gc=5mm,fill=cFfn!10}{$-1$,0,2,1}
+  \cellrow{0}{3}{gc=5mm,fill=cFfn!10}{$-2$,5,0,6}
+  \node[note,text=cInk] at (1.5,1.1) {feature map $A$};
+  \draw[flow] (3.8,-1.5) -- node[above,note] {ReLU} (5.7,-1.5);
+  \cellrow{6.5}{0}{gc=5mm,fill=cFfn!10}{1,0,0,3}
+  \cellrow{6.5}{1}{gc=5mm,fill=cFfn!10}{4,2,0,0}
+  \cellrow{6.5}{2}{gc=5mm,fill=cFfn!10}{0,0,2,1}
+  \cellrow{6.5}{3}{gc=5mm,fill=cFfn!10}{0,5,0,6}
+  \foreach \c/\r/\v in {6.5/1/4,9.5/0/3,7.5/3/5,9.5/3/6} \node[gc=5mm,fill=cAtt!45] at (\c,-\r) {\v};
+  \draw[cInk,line width=0.9pt] (6,0.5) rectangle (10,-3.5) (8,0.5) -- (8,-3.5) (6,-1.5) -- (10,-1.5);
+  \node[note,text=cInk] at (8,1.1) {$\max(0,A)$};
+  \draw[flow] (10.3,-0.9) -- node[above,note,sloped] {max} (12.4,0.1);
+  \draw[flow] (10.3,-2.1) -- node[below,note,sloped] {mean} (12.4,-3.1);
+  \cellrow{13.2}{-0.9}{gc=5mm,fill=cAtt!45}{4,3}
+  \cellrow{13.2}{0.1}{gc=5mm,fill=cAtt!45}{5,6}
+  \cellrow{13.3}{2.9}{gc=6.4mm,fill=cFfn!30,font=\tiny}{1.75,0.75}
+  \cellrow{13.3}{4.05}{gc=6.4mm,fill=cFfn!30,font=\tiny}{1.25,2.25}
+  \node[note,text=cInk] at (13.7,2.0) {max-pool $2\times2$};
+  \node[note,text=cInk] at (13.9,-5.3) {average-pool $2\times2$};
+\end{tikzpicture}
+
+\vspace{0.5mm}
+\raggedright\footnotesize
+\key{ReLU}, $\max(0,a)$, applied to every value. Without a nonlinearity two convolutions in a row
+collapse into one larger convolution (linear after linear is linear). A zero means
+``this feature is absent here''.
+
+\vspace{1mm}
+\key{Pooling} summarises each $2\times2$ block (kernel 2, stride 2) of each channel separately,
+by its maximum or its mean:
+\[
+  \pool(A)_{i,j}=\max_{0\le u,v<2}A_{2i+u,\,2j+v}\,.
+\]
+\vspace{-3.5mm}
+
+Output size (slide 5): $\lfloor(4-2)/2\rfloor+1=2$. No parameters.
+\column{0.45\textwidth}
+\small
+\begin{itemize}\footnotesize
+  \item \textbf{Why pool?} It removes 75\% of the values, so later layers are four times
+        cheaper, and it doubles the jump $j$ of slide 6: the receptive field grows faster.
+  \item \textbf{A little invariance}: if the 4 in the top-left block moves to another cell
+        of its block, the max-pooled output is unchanged. A first step from equivariance to invariance.
+  \item \textbf{Max or average?} Max: ``is the feature anywhere in the block?'' Average:
+        ``how much of it?'' Max is the usual choice inside a network.
+  \item Many modern networks downsample with stride-2 convolutions instead \cite{6}.
+\end{itemize}
+\vspace{-0.5mm}
+\begin{block}{Global average pooling (GAP) \cite{10}}
+\footnotesize
+Average each channel over \emph{all} positions: $C\times H\times W\to C$ numbers. For the map above:
+$24/16=\num{1.5}$. It replaces the large flatten-plus-dense head: with a GAP head our network has
+\paramsGap{} parameters instead of \paramsCnn{} (\texttt{CNN(head="gap")}), and accepts any input size.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 10
+\begin{frame}{The classifier head: flatten, linear, softmax, cross-entropy}
+\centering
+\begin{tikzpicture}[x=1mm,y=1mm]
+  \foreach \i in {7,...,0} \draw[cFfn,fill=cFfn!12,line width=0.4pt] (\i*0.9,\i*0.9) rectangle ++(8,8);
+  \node[note,text=cInk] at (7.5,-3) {$16\times5\times5$};
+  \draw[flow] (17,6) -- node[above,note] {flatten} (29,6);
+  \draw[cFfn,fill=cFfn!25,line width=0.5pt] (31,-4) rectangle ++(2.4,20); \node[note,text=cInk] at (32.2,-7) {$h\in\R^{400}$};
+  \draw[flow] (35,6) -- node[above,note,text=cAtt] {$W^1,b^1$} node[below,note] {linear} (50,6);
+  \draw[cFfn,fill=cFfn!25,line width=0.5pt] (52,0) rectangle ++(2.4,12); \node[note,text=cInk] at (53.2,-3) {64, ReLU};
+  \draw[flow] (56,6) -- node[above,note,text=cAtt] {$W^2,b^2$} node[below,note] {linear} (71,6);
+  \draw[cOut,fill=cOut!25,line width=0.5pt] (73,2) rectangle ++(2.4,8); \node[note,text=cInk] at (74.2,-1) {logits $z\in\R^{10}$};
+  \draw[flow] (77,6) -- node[above,note] {softmax} (92,6);
+  \draw[cOut,fill=cOut!25,line width=0.5pt] (94,2) rectangle ++(2.4,8); \node[note,text=cInk] at (95.2,-1) {$p$};
+  \draw[flow] (98,6) -- (110,6);
+  \node[stage=cAtt] (L) at (121,6) {loss $-\ln p_y$};
+  \node[stage=cTok,minimum height=5.5mm] (y) at (121,17) {label $y$};
+  \draw[flow] (y) -- (L);
+  \node[note,anchor=west] at (133,6) {one number:\\how wrong?};
+\end{tikzpicture}
+
+\vspace{1.5mm}
+\begin{columns}[T,onlytextwidth]
+\column{0.37\textwidth}
+\footnotesize
+\begin{itemize}
+  \item \key{Flatten}: write the $16\cdot5\cdot5$ values as one vector of 400; an ordinary MLP follows.
+  \item \key{Logits} $z=W^2\ReLU(W^1h+b^1)+b^2$: one raw score per class.
+  \item \key{Softmax} turns scores into probabilities:
+  \[ p_k=\frac{e^{z_k}}{\sum_{j}e^{z_j}},\qquad p_k>0,\ \ \textstyle\sum_k p_k=1. \]
+  \vspace{-3mm}
+  \item \key{Cross-entropy} loss for true class $y$:
+  \[ \mathcal L=-\ln p_y,\qquad \frac{\partial\mathcal L}{\partial z}=p-\operatorname{onehot}(y). \]
+\end{itemize}
+\column{0.30\textwidth}
+\centering
+\begin{tikzpicture}[x=9.5mm,y=31mm,font=\scriptsize]
+  \draw[cInk!60] (-0.1,0) -- (4.1,0);
+  \foreach \i/\p/\z/\c in {0/0.644/2/cOut,1/0.237/1/cAtt,2/0.087/0/cOut,3/0.032/{-1}/cOut} {
+    \draw[\c,fill=\c!35] (\i+0.15,0) rectangle (\i+0.85,\p);
+    \node[above,inner sep=1.5pt] at (\i+0.5,\p) {\p};
+    \node[below,inner sep=2pt] at (\i+0.5,0) {$z{=}\z$};}
+  \node[note,anchor=west] at (1.9,0.52) {$p_k$ for four classes;\\the true class is orange};
+\end{tikzpicture}
+
+\vspace{1mm}
+{\footnotesize Untrained, all $p_k\approx\tfrac1{10}$:\\the loss starts near $\ln10=\num{2.30}$.}
+\column{0.29\textwidth}
+\begin{block}{By hand (4 classes)}
+\footnotesize
+$z=(2,\,1,\,0,\,-1)$\\[0.4mm]
+$e^{z}=(7.389,\,2.718,\,1,\,0.368)$, sum $11.475$\\[0.4mm]
+$p=(0.644,\,0.237,\,0.087,\,0.032)$\\[0.4mm]
+True class is the 2nd: $\mathcal L=-\ln0.237=\num{1.440}$\\[0.4mm]
+$\partial\mathcal L/\partial z=(0.644,{-0.763},0.087,0.032)$:
+raise the true score, lower the rest.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 11
+\begin{frame}{The complete network: a LeNet-style CNN, shape by shape}
+\centering
+\begin{tikzpicture}[x=1mm,y=1mm]
+  % stacks: x position / number of slabs / side / slab offset / colour
+  \draw[cEmb,fill=cEmb!12,line width=0.4pt] (0,0) rectangle ++(15,15);
+  \foreach \i in {7,...,0} \draw[cFfn,fill=cFfn!12,line width=0.4pt] (27+\i*0.6,\i*0.6) rectangle ++(15,15);
+  \foreach \i in {7,...,0} \draw[cFfn,fill=cFfn!12,line width=0.4pt] (58+\i*0.6,3.7+\i*0.6) rectangle ++(7.5,7.5);
+  \foreach \i in {15,...,0} \draw[cFfn,fill=cFfn!12,line width=0.4pt] (82+\i*0.45,4.8+\i*0.45) rectangle ++(5.4,5.4);
+  \foreach \i in {15,...,0} \draw[cFfn,fill=cFfn!12,line width=0.4pt] (107+\i*0.45,6.1+\i*0.45) rectangle ++(2.7,2.7);
+  \draw[cFfn,fill=cFfn!25,line width=0.5pt] (130,-2.5) rectangle ++(2.2,20);
+  \draw[cFfn,fill=cFfn!25,line width=0.5pt] (145,2.5) rectangle ++(2.2,10);
+  \draw[cOut,fill=cOut!25,line width=0.5pt] (160,5) rectangle ++(2.2,5);
+  \foreach \a/\b/\t/\u in {15.6/26.4/{conv $5{\times}5$}/{pad 2, ReLU},47/57.4/{max-pool}/{$2{\times}2$},
+      70/81.4/{conv $5{\times}5$}/{ReLU},94.6/106.4/{max-pool}/{$2{\times}2$},117/129.4/flatten/{},
+      132.8/144.4/linear/{ReLU},147.8/159.4/linear/{}}
+    \draw[flow] (\a,7.5) -- node[above,note,text=cAtt!85!black,font=\tiny] {\t} node[below,note,font=\tiny] {\u} (\b,7.5);
+  \foreach \x/\t in {7.5/{$1{\times}28{\times}28$},36.5/{$8{\times}28{\times}28$},63.5/{$8{\times}14{\times}14$},
+      88/{$16{\times}10{\times}10$},112/{$16{\times}5{\times}5$},131.1/{400},146.1/{64},161.1/{10}}
+    \node[note,text=cInk] at (\x,-5.5) {\t};
+\end{tikzpicture}
+
+\vspace{1.5mm}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+{\footnotesize
+\renewcommand{\arraystretch}{1.07}\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+layer & output $(C,H,W)$ & values & parameters\\
+\midrule
+\archRows
+\midrule
+total & & & \textbf{\paramsCnn}\\
+\bottomrule
+\end{tabular}}
+
+\vspace{0.5mm}
+{\scriptsize\color{cTok}Generated from \texttt{shape\_table(CNN())} in \texttt{cnn.py}; the column sum is checked against the model.}
+\column{0.47\textwidth}
+\footnotesize
+\begin{itemize}
+  \item The pattern is LeNet's \cite{2,3}: [convolution, nonlinearity, pooling] twice, then dense layers.
+        LeNet-5 used tanh-like units and trainable subsampling instead of ReLU and max-pooling.
+  \item \textbf{Parameters}: the two convolutions hold \paramsConv{} (\paramsConvShare\%); the first
+        dense layer alone holds 25{,}664.
+  \item \textbf{Arithmetic}: conv2 does $1{,}600\cdot200=320{,}000$ multiplications per image,
+        conv1 $6{,}272\cdot25=156{,}800$, both dense layers together $26{,}240$. Convolutions are cheap in
+        parameters, not in computation.
+  \item \textbf{Baselines} (slide 17): an MLP $784\to128\to64\to10$ with \paramsMlp{} parameters
+        (\paramRatio{} times more) and softmax regression $784\to10$ with \paramsLin.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 12
+\begin{frame}{Backpropagation through a convolution}
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\small
+Forward: $Y=X\xcorr K+b$. The layer above hands us $\delta=\partial\mathcal L/\partial Y$, one number per
+output position.
+\begin{block}{Backward pass of one convolution (stride 1)}
+\vspace{-3mm}
+\begin{align*}
+ \frac{\partial\mathcal L}{\partial K_{u,v}} &= \sum_{i,j}\delta_{i,j}\,X_{i+u,\,j+v}
+     &&\Longleftrightarrow\quad \frac{\partial\mathcal L}{\partial K}=X\xcorr\delta\\
+ \frac{\partial\mathcal L}{\partial X_{m,n}} &= \sum_{u,v}\delta_{m-u,\,n-v}\,K_{u,v}
+     &&\Longleftrightarrow\quad \frac{\partial\mathcal L}{\partial X}=\delta * K\\
+ \frac{\partial\mathcal L}{\partial b} &= \sum_{i,j}\delta_{i,j}
+\end{align*}
+\end{block}
+\begin{itemize}\footnotesize
+  \item \textbf{Kernel gradient}: the input correlated with the error map. The kernel is shared, so
+        its gradient is a \emph{sum over all positions}.
+  \item \textbf{Input gradient}: a true (flipped, ``full'') convolution: pad $\delta$ by $k-1$ and
+        correlate with $K$ rotated by $180^\circ$. This flows on to the layer below.
+  \item \textbf{ReLU}: pass $\delta$ where the input was positive. \textbf{Max-pool}: send $\delta$ to
+        the cell that held the maximum.
+\end{itemize}
+\column{0.50\textwidth}
+\centering
+\begin{tikzpicture}[x=4.7mm,y=4.7mm]
+  \cellrow{0}{0}{gc=4.7mm,fill=cEmb!10}{1,2,0} \cellrow{0}{1}{gc=4.7mm,fill=cEmb!10}{0,1,3}
+  \cellrow{0}{2}{gc=4.7mm,fill=cEmb!10}{2,1,1}
+  \node at (3.4,-1) {$\xcorr$};
+  \cellrow{4.6}{0.5}{gc=4.7mm,fill=cAtt!22}{1,$-1$} \cellrow{4.6}{1.5}{gc=4.7mm,fill=cAtt!22}{0,2}
+  \node at (6.9,-1) {$=$};
+  \cellrow{8.1}{0.5}{gc=4.7mm,fill=cFfn!12}{1,8} \cellrow{8.1}{1.5}{gc=4.7mm,fill=cFfn!12}{1,0}
+  \cellrow{12.3}{0.5}{gc=4.7mm,fill=cBad!14}{1,0} \cellrow{12.3}{1.5}{gc=4.7mm,fill=cBad!14}{$-1$,2}
+  \node[note,text=cInk] at (1,1.15) {$X$}; \node[note,text=cInk] at (5.1,1.15) {$K$};
+  \node[note,text=cInk] at (8.6,1.15) {$Y$}; \node[note,text=cInk] at (12.8,1.15) {$\delta=\partial\mathcal L/\partial Y$ (given)};
+  \cellrow{2.6}{4.6}{gc=4.7mm,fill=cAtt!45}{3,7} \cellrow{2.6}{5.6}{gc=4.7mm,fill=cAtt!45}{0,2}
+  \node[note,text=cInk] at (3.1,-3.6) {$\partial\mathcal L/\partial K=X\xcorr\delta$};
+  \cellrow{9.4}{4.1}{gc=4.7mm,fill=cEmb!40}{1,$-1$,0} \cellrow{9.4}{5.1}{gc=4.7mm,fill=cEmb!40}{$-1$,5,$-2$}
+  \cellrow{9.4}{6.1}{gc=4.7mm,fill=cEmb!40}{0,$-2$,4}
+  \node[note,text=cInk] at (10.4,-3.1) {$\partial\mathcal L/\partial X=\delta*K$};
+\end{tikzpicture}
+
+\vspace{0.5mm}
+\raggedright\footnotesize
+\textbf{Check two entries.}
+$\partial\mathcal L/\partial K_{0,0}=1\cdot1+0\cdot2+(-1)\cdot0+2\cdot1=\num{3}$ ($\delta$ times the top-left
+$2\times2$ patch of $X$). The centre pixel $X_{1,1}$ feeds all four outputs:
+$1\cdot2+0\cdot0+(-1)(-1)+2\cdot1=\num{5}$.
+\begin{block}{Measured: \texttt{conv2d\_backward} (experiment E)}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}p{64mm}r@{}}
+vs.\ centred finite differences: worst relative error over $x$, $w$, $b$ and three stride/padding settings & $\gradFD$\\
+vs.\ PyTorch autograd: worst absolute difference & $\gradTorch$\\
+\end{tabular}
+
+\vspace{0.4mm}
+The code handles any stride and padding ($X_{si+u,\,sj+v}$ in the sums).
+\end{block}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 13
+\begin{frame}{Training: mini-batches, optimizer, learning rate}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=8.3cm,height=4.2cm,xmin=0.5,xmax=12.5,ymin=0,ymax=0.65,
+  xlabel={epoch},ylabel={loss (cross-entropy)},label style={font=\scriptsize},tick label style={font=\tiny},
+  axis lines=left,ymajorgrids,grid style={cInk!10},xtick={1,...,12},
+  legend style={font=\scriptsize,draw=none,fill=none,at={(0.98,0.98)},anchor=north east},legend cell align=left,
+  every axis plot/.append style={line width=1.1pt,mark size=1.3pt}]
+  \addplot[cEmb,mark=*] table[x=epoch,y=train]{generated/curves.dat}; \addlegendentry{training loss}
+  \addplot[cAtt,mark=square*] table[x=epoch,y=val]{generated/curves.dat}; \addlegendentry{validation loss}
+  \draw[cInk,dashed] (axis cs:\bestEpoch,0) -- (axis cs:\bestEpoch,0.3);
+  \node[font=\tiny,anchor=north east,text=cInk,inner sep=1.5pt] at (axis cs:\bestEpoch,0.12) {best checkpoint};
+\end{axis}
+\end{tikzpicture}
+
+\vspace{-0.5mm}
+{\scriptsize\color{cTok}Measured: CNN of slide 11, seed 0, Adam, $\eta=0.002$, batch 64; training loss on 2{,}000
+training images. One run.}
+
+\vspace{0.8mm}
+\raggedright\footnotesize
+\begin{itemize}
+  \item \key{Mini-batch SGD}: estimate the gradient on $B$ images, step, repeat:
+        $\theta\leftarrow\theta-\eta\,\nabla_\theta\frac1B\sum_{n=1}^{B}\mathcal L_n$.
+        With $B=64$, one \key{epoch} over \nTrain{} images is 157 steps.
+  \item \key{Validation} after every epoch. Keep the weights of the best epoch (here \bestEpoch, loss \bestVal);
+        stop after 3 epochs without improvement.
+  \item The gap between the curves is \textbf{overfitting}: after epoch \epochsCnn{} the training loss is
+        \lastTrain, the validation loss \lastVal{} (slide 14).
+\end{itemize}
+\column{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{semilogxaxis}[width=8.3cm,height=4.2cm,xmin=0.0002,xmax=1.5,ymin=0.4,ymax=2.75,
+  xlabel={learning rate $\eta$},ylabel={validation loss after 2 epochs},label style={font=\scriptsize},
+  tick label style={font=\tiny},axis lines=left,ymajorgrids,grid style={cInk!10},
+  xtick={0.0003,0.001,0.003,0.01,0.03,0.1,0.3,1},xticklabels={.0003,.001,.003,.01,.03,.1,.3,1},
+  legend style={font=\scriptsize,draw=none,fill=none,at={(0.04,0.62)},anchor=west},legend cell align=left,
+  every axis plot/.append style={line width=1.1pt,mark size=1.5pt}]
+  \addplot[cTok,mark=*] table[x=lr,y=sgd]{generated/lr.dat}; \addlegendentry{plain SGD}
+  \addplot[cFfn,mark=triangle*] table[x=lr,y=adam]{generated/lr.dat}; \addlegendentry{Adam}
+  \draw[cBad,dashed] (axis cs:0.0002,2.303) -- (axis cs:1.5,2.303);
+  \node[font=\tiny,text=cBad,anchor=south west] at (axis cs:0.00022,2.33) {$\ln10$: no better than guessing};
+\end{semilogxaxis}
+\end{tikzpicture}
+
+\vspace{-0.5mm}
+{\scriptsize\color{cTok}Measured: same CNN, 3{,}000 training images, 2 epochs, one run per point (experiment F). Values above 2.5 are drawn at 2.5.}
+
+\vspace{0.8mm}
+\raggedright\footnotesize
+\begin{itemize}
+  \item The \key{learning rate} $\eta$ matters most. Too small: little happens in the time
+        available. Too large: an early step throws the weights so far that every image gets the same
+        answer; the loss stays at $\ln10$.
+  \item \key{Adam} \cite{9} divides each weight's step by the root of a running average of its squared
+        gradient. It reaches a loss below 1 here for $\eta$ from \lrAdamRange, plain SGD only from \lrSgdRange.
+  \item Everywhere else: Adam, $\eta=0.002$, no schedule.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 14
+\begin{frame}{Regularisation, normalisation, augmentation: what actually helped}
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\footnotesize
+\key{Batch normalisation} \cite{7}, after a convolution. Per channel $c$, with mean $\mu_c$ and
+std $\sigma_c$ over the batch and all positions:
+\[
+  \hat x=\frac{x-\mu_c}{\sigma_c},\qquad y=\gamma_c\,\hat x+\beta_c\qquad(\gamma_c,\beta_c\text{ learned})
+\]
+\vspace{-4mm}
+
+Example: $(1,3,5,7)\to\hat x=(-1.34,-0.45,0.45,1.34)$. Test time: running averages.
+
+\vspace{0.8mm}
+\key{Dropout} \cite{8}, before the last layer. In training, zero each hidden activation with
+probability $p=0.3$, divide the rest by $1-p$. Off at test time.
+
+\vspace{0.8mm}
+\key{Data augmentation.} Each time an image is used, shift it by a random $(d_y,d_x)$,
+$|d_y|,|d_x|\le2$ pixels: 25 variants per image, same label.
+
+\vspace{0.8mm}
+\textbf{Honest reading of the measurements}
+\begin{itemize}
+  \item Batch norm and dropout did not improve test accuracy here (12 epochs, \nTrain{} images): rows 1--3
+        differ by less than the seed noise, $\pm\accCnnStd$.
+  \item Augmentation \emph{lowered} centred-test accuracy, shrank the train--validation gap and
+        bought robustness to shifts.
+  \item Without it, a 2-pixel shift takes the CNN from \shiftZeroCnn\% to \shiftTwoCnn\%, the MLP from
+        \shiftZeroMlp\% to \shiftTwoMlp\%: neither is invariant \cite{15}.
+\end{itemize}
+\column{0.50\textwidth}
+\centering
+{\footnotesize\renewcommand{\arraystretch}{1.06}\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+CNN variant & val.\ & test & test, 2-px & val $-$ train\\[-1.5pt]
+(seed 0, accuracy in \%) & acc.\ & acc.\ & shift & loss\\
+\midrule
+plain (slide 11) & \ablPlainVal & \ablPlainTest & \ablPlainShiftTwo & \ablPlainGap\\
++ batch norm & \ablBnVal & \ablBnTest & \ablBnShiftTwo & \ablBnGap\\
++ dropout 0.3 & \ablDropVal & \ablDropTest & \ablDropShiftTwo & \ablDropGap\\
++ shifts $\pm2$ px & \ablAugVal & \ablAugTest & \textbf{\ablAugShiftTwo} & \ablAugGap\\
+all three & \ablAllVal & \ablAllTest & \textbf{\ablAllShiftTwo} & \ablAllGap\\
+\bottomrule
+\end{tabular}}
+
+\vspace{1.5mm}
+\begin{tikzpicture}
+\begin{axis}[width=8.6cm,height=4.3cm,xmin=-0.15,xmax=4.15,ymin=18,ymax=92,ytick={20,40,60,80},
+  xlabel={test images shifted by $s$ pixels},ylabel={accuracy (\%)},label style={font=\scriptsize},
+  tick label style={font=\tiny},axis lines=left,ymajorgrids,grid style={cInk!10},xtick={0,1,2,3,4},
+  legend style={font=\tiny,draw=none,fill=none,at={(0.02,0.0)},anchor=south west,row sep=-1.5pt},legend cell align=left,
+  legend columns=1,every axis plot/.append style={line width=1.0pt,mark size=1.3pt},ylabel shift=-3pt]
+  \addplot[cFfn,mark=*] table[x=s,y=cnnaug]{generated/shift.dat}; \addlegendentry{CNN + shift aug.}
+  \addplot[cOut,mark=triangle*] table[x=s,y=mlpaug]{generated/shift.dat}; \addlegendentry{MLP + shift aug.}
+  \addplot[cFfn,dashed,mark=o,mark options={solid}] table[x=s,y=cnn]{generated/shift.dat}; \addlegendentry{CNN}
+  \addplot[cOut,dashed,mark=triangle,mark options={solid}] table[x=s,y=mlp]{generated/shift.dat}; \addlegendentry{MLP}
+  \addplot[cTok,densely dotted,mark=x,mark options={solid}] table[x=s,y=linear]{generated/shift.dat}; \addlegendentry{softmax regr.}
+\end{axis}
+\end{tikzpicture}
+
+\vspace{-1mm}
+{\scriptsize\color{cTok}Measured (experiments G, H). First \shiftN{} test images, mean of the 4 shift
+directions. Dashed and dotted: mean of 3 seeds; solid: seed 0.}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 15
+\begin{frame}[fragile]{Code: convolution from scratch in NumPy (forward and backward)}
+\vspace{-1mm}
+{\footnotesize \texttt{conv\_numpy.py}: the forward pass of slide 7 and the backward pass of slide 12
+(lines verbatim; three lines of shape bookkeeping omitted)}
+\lstinputlisting[style=py,basicstyle=\ttfamily\fontsize{5.7}{6.8}\selectfont,linerange={21-22,26-34}]{../conv_numpy.py}
+\lstinputlisting[style=py,basicstyle=\ttfamily\fontsize{5.7}{6.8}\selectfont,linerange={37-37,40-49}]{../conv_numpy.py}
+\vspace{0.5mm}
+{\footnotesize
+\textbf{Checked} (\texttt{python conv\_numpy.py}, \texttt{test\_cnn.py}): forward equals \texttt{torch.nn.functional.conv2d}
+to $\fwdTorch$; backward equals autograd to $\gradTorch$ and finite differences to $\gradFD$. The trained
+network run through these functions plus \texttt{pool2d} (\texttt{cnn\_forward}) reproduces the PyTorch logits.
+The loops are for reading; \texttt{conv2d\_windows} does the same without them.}
+\end{frame}
+
+% ====================================================================== 16
+\begin{frame}[fragile]{Code: the model and the training loop in PyTorch}
+\vspace{-1mm}
+{\footnotesize \texttt{cnn.py}: the network of slide 11 (\texttt{norm} is batch norm or nothing; \texttt{c1, c2 = 8, 16})}
+\lstinputlisting[style=py,basicstyle=\ttfamily\fontsize{5.7}{6.8}\selectfont,linerange={24-29,31-36}]{../cnn.py}
+\vspace{0.3mm}
+{\footnotesize \texttt{train.py}, inside \texttt{fit()} (augmentation and logging omitted). Afterwards the best weights are
+restored and \texttt{evaluate()} reports test accuracy, the confusion matrix and a one-class baseline.}
+\lstinputlisting[style=py,basicstyle=\ttfamily\fontsize{5.7}{6.8}\selectfont,linerange={84-86,89-93,95-96,105-107}]{../train.py}
+\end{frame}
+
+% ====================================================================== 17
+\begin{frame}{Results: CNN vs.\ MLP vs.\ softmax regression}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\footnotesize
+\texttt{python train.py -{}-model \{cnn,mlp,linear\} -{}-seed \{0,1,2\}}
+
+\vspace{0.8mm}
+{\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lrcc@{}}
+\toprule
+model & parameters & test accuracy & per seed\\
+ & & mean $\pm$ std & \\
+\midrule
+CNN (slide 11) & \paramsCnn & \textbf{\accCnnMean} $\pm$ \accCnnStd & \accCnnAll\\
+MLP 128, 64 & \paramsMlp & \accMlpMean{} $\pm$ \accMlpStd & \accMlpAll\\
+softmax regression & \paramsLin & \accLinMean{} $\pm$ \accLinStd & \accLinAll\\
+always one class & 0 & \accBase & \\
+\bottomrule
+\end{tabular}}
+
+\vspace{0.8mm}
+{\scriptsize\color{cTok}Fashion-MNIST, \nTrain{} of the 60{,}000 training images, all \nTest{} test images; accuracy in \%.
+\nSeeds{} seeds (a seed sets the train/validation split and the initial weights). Same optimizer settings for all.
+Seed-0 training time, one CPU core: \secondsCnn{} s, \secondsMlp{} s, \secondsLinear{} s.}
+
+\vspace{0.3mm}
+\footnotesize
+\begin{itemize}
+  \item The CNN beats the MLP by \gainCnnMlp{} points with \paramRatio{} times fewer parameters
+        (\errCut\% of the MLP's errors removed). The MLP beats the linear model by \gainMlpLin.
+  \item The gain is clear but modest, and the CNN has the largest seed-to-seed spread
+        (three seeds give only a rough estimate of it).
+  \item The price is computation (slide 11). This is a small-data, 12-epoch, CPU-sized
+        setting; we did not train on all 60{,}000 images.
+\end{itemize}
+\column{0.47\textwidth}
+\centering
+\begin{tikzpicture}[x=4.7mm,y=4.7mm,lab/.append style={font=\fontsize{5.2}{6}\selectfont}]
+  \input{generated/confusion.tex}
+  \node[note,rotate=90] at (-3.6,-5) {true class};
+  \node[note] at (5,-10.7) {predicted class (columns)};
+\end{tikzpicture}
+
+\vspace{0.3mm}
+{\scriptsize\color{cTok}Confusion matrix, seed-0 CNN, \nTest{} test images (1{,}000 per class).}
+
+\vspace{0.8mm}
+\raggedright\footnotesize
+\textbf{Where it fails.} Most confused pairs: \confOne{} (\confOneN{} errors), \confTwo{} (\confTwoN),
+\confThree{} (\confThreeN). \upperShare\% of all errors are among the five upper-body garments.
+Recall ranges from \worstRecall\% (\worstClass) to \bestRecall\% (\bestClass).
+\end{columns}
+\end{frame}
+
+% ====================================================================== 18
+\begin{frame}{What the network learned: first-layer filters and feature maps}
+\begin{columns}[T,onlytextwidth]
+\column{0.55\textwidth}
+\centering
+{\footnotesize\textbf{The 8 learned $5\times5$ kernels of conv1} \ (seed-0 CNN; {\color{cAtt}orange} $>0$, {\color{cEmb}blue} $<0$)}
+
+\vspace{0.8mm}
+\begin{tikzpicture}[x=1.95mm,y=1.95mm,lab/.append style={font=\fontsize{5.5}{6}\selectfont,text=cTok}]
+  \input{generated/filters.tex}
+\end{tikzpicture}
+
+\vspace{1.5mm}
+{\footnotesize\textbf{Their feature maps for test image 0, after ReLU} \ (darker = larger)}
+
+\vspace{0.8mm}
+\begin{tikzpicture}[x=0.68mm,y=0.68mm,lab/.append style={font=\fontsize{5.5}{6}\selectfont,text=cTok}]
+  \input{generated/feature_maps.tex}
+\end{tikzpicture}
+\column{0.42\textwidth}
+\centering
+\begin{tikzpicture}[x=0.74mm,y=0.74mm]
+  \input{generated/img_boot.tex}
+  \node[note,anchor=west] at (31,-14) {the input: test image 0,\\true class \trueClass,\\predicted \predClass};
+\end{tikzpicture}
+
+\vspace{1mm}
+\raggedright\footnotesize
+\begin{itemize}
+  \item Nobody designed these kernels: they began as random numbers and were shaped by gradient descent
+        on \nTrain{} labelled images (experiment J; ordered by mean activation on this image).
+  \item \mapSparsity\% of the values in the eight maps are exactly zero after ReLU: a map marks
+        \emph{where} its pattern occurs and is silent elsewhere.
+  \item In this run, maps 1 and 2 fire on the empty background, map 3 on the sole (a horizontal edge),
+        maps 4 and 7 on the vertical edge at the back of the shaft.
+  \item The kernels are noisier than textbook pictures; the familiar clean oriented-edge filters come
+        from much larger networks and datasets \cite{4,12}. Deeper layers combine these maps into
+        detectors for larger parts.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 19
+\begin{frame}{Four networks that shaped the field}
+\centering
+\begin{tikzpicture}[node distance=4mm,font=\footnotesize]
+  \node[stage=cTok] (neo) {Neocognitron\\[-2pt]{\scriptsize 1980 \cite{1}}};
+  \node[stage=cEmb,right=of neo] (lenet) {LeNet\\[-2pt]{\scriptsize 1989--1998 \cite{2,3}}};
+  \node[stage=cAtt,right=of lenet] (alex) {AlexNet\\[-2pt]{\scriptsize 2012 \cite{4}}};
+  \node[stage=cFfn,right=of alex] (vgg) {VGG\\[-2pt]{\scriptsize 2014 \cite{5}}};
+  \node[stage=cOut,right=of vgg] (res) {ResNet\\[-2pt]{\scriptsize 2015 \cite{6}}};
+  \node[stage=cTok,right=of res] (vit) {Vision Transformer\\[-2pt]{\scriptsize 2020 \cite{18}}};
+  \draw[flow] (neo)--(lenet); \draw[flow] (lenet)--(alex); \draw[flow] (alex)--(vgg); \draw[flow] (vgg)--(res);
+  \draw[flow,dashed] (res)--(vit);
+  \node[note,right=1.5mm of vit,anchor=west] {no convolution;\\needs very large\\datasets};
+\end{tikzpicture}
+
+\vspace{1.5mm}
+\begin{columns}[T,onlytextwidth]
+\column{0.60\textwidth}
+{\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}llrrl@{}}
+\toprule
+network & year & weight layers & parameters & ImageNet top-5 error\\
+\midrule
+LeNet-5 \cite{3} & 1998 & 7 & 60 thousand & n/a (MNIST digits)\\
+AlexNet \cite{4} & 2012 & 8 & 60 million & 15.3\%\\
+VGG-16 \cite{5} & 2014 & 16 & 138 million & 7.3\%\\
+ResNet-152 \cite{6} & 2015 & 152 & 60 million & 3.57\%\\
+\bottomrule
+\end{tabular}}
+
+\vspace{0.3mm}
+{\scriptsize\color{cTok}Layers counted as in each paper. Top-5 test error of the ImageNet competition entries (ensembles). Quoted, not measured here.}
+
+\vspace{0.8mm}
+\footnotesize
+\begin{itemize}
+  \item \key{LeNet}: convolution, subsampling and dense layers trained end to end by backpropagation, to read
+        handwritten digits. The template for slide 11.
+  \item \key{AlexNet}: the same idea scaled up, with ReLU, dropout, augmentation and GPUs.
+        Its 2012 ImageNet win started the deep-learning era in vision.
+  \item \key{VGG}: depth matters. Only $3\times3$ convolutions, stacked (slide 6), and $2\times2$ max-pooling.
+  \item \key{ResNet}: residual connections make very deep networks trainable; batch norm after every
+        convolution; global average pooling as the head.
+\end{itemize}
+\column{0.37\textwidth}
+\centering
+\begin{tikzpicture}[font=\scriptsize,node distance=3.2mm]
+  \node (x) {$x$};
+  \node[stage=cFfn,below=of x,minimum height=5.2mm,minimum width=24mm] (c1) {conv $3{\times}3$, BN, ReLU};
+  \node[stage=cFfn,below=of c1,minimum height=5.2mm,minimum width=24mm] (c2) {conv $3{\times}3$, BN};
+  \node[circle,draw=cOut,fill=cOut!15,inner sep=0.6pt,below=of c2] (add) {$+$};
+  \node[below=3.2mm of add] (y) {$y=\ReLU\bigl(F(x)+x\bigr)$};
+  \draw[flow] (x)--(c1); \draw[flow] (c1)--(c2); \draw[flow] (c2)--(add); \draw[flow] (add)--(y);
+  \draw[flow,cOut,rounded corners=3pt] (x.east) -- ++(17mm,0) |- node[pos=0.25,right,note,text=cOut] {identity\\(skip)} (add.east);
+  \node[note,left=0.5mm of c1,yshift=-4.3mm,text=cFfn!80!black] {$F(x)$};
+\end{tikzpicture}
+
+\vspace{0.5mm}
+\begin{block}{Residual connection}
+\footnotesize
+Very deep plain networks had \emph{higher training error} than shallower ones \cite{6}:
+an optimisation failure, not overfitting. A residual block learns only the change $F(x)$ to its input.
+Doing nothing ($F=0$) is easy, and gradients reach early layers directly through the skip path.
+\end{block}
+\end{columns}
+\end{frame}
+
+% ====================================================================== 20
+\begin{frame}{References and how to run the code}
+\fontsize{6.4}{7.9}\selectfont
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{enumerate}[{[1]}]\setlength{\itemsep}{0.6pt}
+\item Fukushima. \emph{Neocognitron: A Self-organizing Neural Network Model for a Mechanism of Pattern Recognition Unaffected by Shift in Position.} Biological Cybernetics 36, 1980.
+\item LeCun, Boser, Denker, Henderson, Howard, Hubbard, Jackel. \emph{Backpropagation Applied to Handwritten Zip Code Recognition.} Neural Computation 1(4), 1989.
+\item LeCun, Bottou, Bengio, Haffner. \emph{Gradient-Based Learning Applied to Document Recognition.} Proceedings of the IEEE 86(11), 1998.
+\item Krizhevsky, Sutskever, Hinton. \emph{ImageNet Classification with Deep Convolutional Neural Networks.} NeurIPS 2012.
+\item Simonyan, Zisserman. \emph{Very Deep Convolutional Networks for Large-Scale Image Recognition.} ICLR 2015. arXiv:1409.1556
+\item He, Zhang, Ren, Sun. \emph{Deep Residual Learning for Image Recognition.} CVPR 2016. arXiv:1512.03385
+\item Ioffe, Szegedy. \emph{Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift.} ICML 2015. arXiv:1502.03167
+\item Srivastava, Hinton, Krizhevsky, Sutskever, Salakhutdinov. \emph{Dropout: A Simple Way to Prevent Neural Networks from Overfitting.} JMLR 15, 2014.
+\item Kingma, Ba. \emph{Adam: A Method for Stochastic Optimization.} ICLR 2015. arXiv:1412.6980
+\item Lin, Chen, Yan. \emph{Network In Network.} ICLR 2014. arXiv:1312.4400
+\item Dumoulin, Visin. \emph{A Guide to Convolution Arithmetic for Deep Learning.} 2016. arXiv:1603.07285
+\item Zeiler, Fergus. \emph{Visualizing and Understanding Convolutional Networks.} ECCV 2014. arXiv:1311.2901
+\end{enumerate}
+\column{0.49\textwidth}
+\begin{enumerate}[{[1]}]\setlength{\itemsep}{0.6pt}
+\setcounter{enumi}{12}
+\item Xiao, Rasul, Vollgraf. \emph{Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms.} 2017. arXiv:1708.07747. Data: github.com/zalandoresearch/fashion-mnist
+\item Goodfellow, Bengio, Courville. \emph{Deep Learning}, chapter 9. MIT Press, 2016. deeplearningbook.org
+\item Azulay, Weiss. \emph{Why Do Deep Convolutional Networks Generalize so Poorly to Small Image Transformations?} JMLR 20, 2019. arXiv:1805.12177
+\item Luo, Li, Urtasun, Zemel. \emph{Understanding the Effective Receptive Field in Deep Convolutional Neural Networks.} NeurIPS 2016. arXiv:1701.04128
+\item Sobel, Feldman. \emph{A 3x3 Isotropic Gradient Operator for Image Processing.} Talk, Stanford Artificial Intelligence Project, 1968.
+\item Dosovitskiy et al. \emph{An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale.} ICLR 2021. arXiv:2010.11929
+\item Paszke et al. \emph{PyTorch: An Imperative Style, High-Performance Deep Learning Library.} NeurIPS 2019. arXiv:1912.01703
+\end{enumerate}
+
+\vspace{0.5mm}
+{\fontsize{6.5}{7.9}\selectfont\color{cInk}
+\textbf{Run it} (Python, NumPy, PyTorch; CPU only)
+
+\vspace{0.5mm}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{52mm}@{}}
+\texttt{python test\_cnn.py} & seven checks, incl.\ backward pass vs.\ finite differences\\
+\texttt{python walkthrough.py} & the hand calculations (slides 2--10, 12, 14)\\
+\texttt{python conv\_numpy.py} & from-scratch convolution vs.\ PyTorch\\
+\texttt{python train.py} & the harness, about a minute; \texttt{-{}-help} lists every knob\\
+\texttt{python experiments.py} & all figures and numbers, about \totalMinutes{} minutes\\
+\end{tabular}
+
+\vspace{0.6mm}
+\textbf{Exercises.} Train \texttt{-{}-model cnn\_gap} and compare parameters and accuracy.
+Replace max- by average-pooling. Test the augmented CNN at a 6-pixel shift.}
+\end{columns}
+\end{frame}
+
+\end{document}

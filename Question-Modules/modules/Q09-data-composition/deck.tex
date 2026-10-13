@@ -1,0 +1,97 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q09: Data Composition Shapes What a Model Knows}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``How does the composition of training data shape what a model knows and can do?''
+\item Collection/curation, dedup, filtering, mixture weights, curriculum, quality vs.\ scale
+\item Answer preview: \textbf{at fixed compute, composition is among the cheapest levers --- and sometimes rivals modest scale increases}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What is in the corpus?}
+\begin{itemize}
+\item Common Crawl snapshots dominate by volume --- raw HTML, uneven quality
+\item Curated slices: code (The Stack: 3.1 TB, 30 languages; Kocetkov et al.\ 2022), Wikipedia, books, papers
+\item Heterogeneous sources broadly beneficial; single-source curricula worse (Longpre et al.\ 2023)
+\item A ``token'' is not fungible: learning signal per FLOP varies by source
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Deduplication: exact + MinHash}
+\begin{itemize}
+\item Exact: hash documents/lines --- cheap, misses boilerplate and paraphrase
+\item Fuzzy (MinHash): shingle sets; $\Pr[\text{signature match}] = \text{Jaccard}(A,B)$; LSH banding makes it subquadratic
+\item Why dedup: fewer wasted steps, $\sim$10$\times$ less verbatim regurgitation, honest eval (Lee et al.\ 2022)
+\item But: global dedup of 96 CC snapshots cut 20T$\to$4T tokens and trained \emph{worse} than per-snapshot dedup (Penedo et al.\ 2024)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Quality filtering: three families}
+\begin{enumerate}
+\item \textbf{Heuristics} (C4-style): length, punctuation, stopword rules --- cheap, blunt
+\item \textbf{Perplexity} (CCNet; Wenzek et al.\ 2020): keep text a Wikipedia-trained LM finds likely --- domain targeting in disguise
+\item \textbf{Classifier} (FineWeb-Edu; Penedo et al.\ 2024): LLM-annotated ``educational value''; 15T $\to$ 1.3T tokens
+\end{enumerate}
+\vspace{0.5em}
+Result at fixed 350B-token budget: MMLU 33\%$\to$37\%, ARC 46\%$\to$57\%\\
+Caveat: filters trade benchmarks vs.\ coverage/toxicity; no universal threshold (Longpre et al.\ 2023)
+\end{frame}
+
+\begin{frame}{Mixture weights and repetition}
+\begin{itemize}
+\item DoReMi (Xie et al.\ 2023): group-DRO proxy model finds domain weights; $+6.5$ pts few-shot, $2.6\times$ fewer steps at 8B
+\item Code in the mix: up to 50\% Python $\Rightarrow$ $\sim$2$\times$ effective tokens \emph{on natural-language tasks} (Muennighoff et al.\ 2023)
+\item Repetition: up to $\sim$4 epochs $\approx$ fresh data; then returns decay to zero (400+ runs, $\leq$9B params)
+\item Data-constrained optimum: smaller model, more epochs --- not Chinchilla's equal scaling (Hoffmann et al.\ 2022)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Annealing and curriculum}
+\begin{itemize}
+\item Annealing: diverse mix early $\to$ upsampled high-quality data at the end (LR decay)
+\item MiniCPM (Hu et al.\ 2024): math+code share raised to $\sim$70\% in the annealing phase
+\item Data age: train/eval temporal gap degrades performance; finetuning does not repair it (Longpre et al.\ 2023)
+\item RHO-LOSS (Mindermann et al.\ 2022): ordering by reducible holdout loss accelerates training on noisy web data
+\item Honest read: coarse mixture schedules (annealing) $>$ fine-grained curricula at scale
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Tokenizer--mixture interaction}
+\begin{itemize}
+\item Tokenizer is trained on a sample of the mixture; fertility differs by domain
+\item Code / non-English text: more subwords per word $\Rightarrow$ fixed token budget holds less content
+\item Domain weights in tokens $\neq$ weights in bytes/characters
+\item Missing vocabulary biases the \emph{effective} mixture away from the declared one
+\item Magnitude vs.\ mixture weights: unquantified at scale --- open question
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why quality rivals scale}
+\begin{itemize}
+\item Fresh-data stock could be fully utilized $\sim$2026--2032 (Villalobos et al.\ 2024)
+\item Repeated + code tokens keep working, with quantified diminishing returns (Muennighoff et al.\ 2023)
+\item Classifier filtering reorders benchmark rankings at fixed compute (Penedo et al.\ 2024)
+\item Optimized mixtures $\approx$ nontrivial compute increases (Xie et al.\ 2023)
+\item But the compute-optimal frontier still binds (Hoffmann et al.\ 2022) --- quality complements, not replaces, scale
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Penedo et al.\ 2024 (FineWeb / FineWeb-Edu) --- curation ablations at scale
+\item Muennighoff et al.\ 2023 --- data-constrained scaling, 4-epoch rule, code augmentation
+\item Lee et al.\ 2022 --- dedup, memorization, efficiency
+\item Hoffmann et al.\ 2022 (Chinchilla) --- the compute-optimal baseline
+\item Longpre et al.\ 2023 --- controlled curation ablations (age, domain, quality, toxicity)
+\end{itemize}
+\end{frame}
+
+\end{document}

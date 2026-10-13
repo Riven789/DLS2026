@@ -1,0 +1,94 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usecolortheme{seahorse}
+\setbeamertemplate{navigation symbols}{}
+\title{Q13: How Models Represent and Store Knowledge}
+\author{Paradise (nuc13)}
+\date{October 2026}
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{The question}
+\begin{itemize}
+\item ``How do models represent and store knowledge, and use it to answer?''
+\item No database, no schema --- yet facts come out. Where do they live?
+\item Answer preview: \textbf{mid-layer FFN modules as key--value memories; features as directions in superposition; retrieval routed by attention}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Storage site: FFN layers are key--value memories}
+\begin{itemize}
+\item FFN = $\approx$ two-thirds of Transformer parameters
+\item $\mathrm{FFN}(x) = f(xK^\top)\,V$ \quad $\Rightarrow$ structurally a key--value memory (Geva et al.\ 2021)
+\item Keys: rows of $K$ match textual patterns; values: columns of $V$ induce output distributions
+\item Lower layers: shallow patterns; upper layers: semantic themes
+\item Output = weighted \emph{composition} of memories, refined via residual stream
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Retrieval path: causal tracing (ROME)}
+\begin{itemize}
+\item Intervention: corrupt the input; restore states one at a time; see which repairs the fact
+\item Finding (GPT-2 XL): mid-layer \textbf{MLP modules} at the \textbf{last subject token} mediate recall
+\item Late-layer \textbf{attention} then moves the information to the output position
+\item Storage (MLP) and routing (attention) are \emph{separable} mechanisms
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Format: linear representations}
+\begin{itemize}
+\item Linear representation hypothesis: features = \textbf{directions}; activations = $\sum_i a_i f_i$
+\item Why probing works: linear readout suffices --- if information is used or at least accessible
+\item Caveat: probing accuracy $\neq$ causal use; complement with interventions
+\item But then: a $d$-dimensional layer could only hold $d$ features\dots
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Format: superposition}
+\begin{itemize}
+\item Networks store \textbf{more features than dimensions} (Elhage et al.\ 2022)
+\item Trick: non-orthogonal, nearly-collapsed directions; high dimensions make random vectors almost orthogonal
+\item Cost: \textbf{interference} --- co-active features leak into each other's readout
+\item ReLU acts as the noise filter; geometric structures (triangles, simplices) emerge
+\item \textbf{Polysemanticity} is the visible symptom --- one neuron, many concepts
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Demo: superposition in NumPy}
+\begin{itemize}
+\item $N$ features into $d < N$ dimensions via random near-orthogonal vectors
+\item Sparse features: recoverable readout despite interference
+\item Dense features: interference dominates --- capacity exceeded
+\item \texttt{code/superposition\_demo.py} --- pass/fail assertions, no dependencies beyond NumPy
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Editing: locate, then patch}
+\begin{itemize}
+\item \textbf{ROME}: rank-one update of one mid-MLP matrix; $k_* \mapsto v_*$
+\item Generalizes across paraphrases, stays specific to the subject
+\item \textbf{MEMIT}: spreads batches of edits across mediating layers (thousands at once)
+\item Side effects: bleedover to neighbors, fluency degradation, brittleness
+\item Open problem: surgical edits in a superposed store, with guarantees
+\end{itemize}
+\end{frame}
+
+\begin{frame}{In weights vs.\ in context}
+\begin{itemize}
+\item Weights: vast, static, hard to update (edit/retrain)
+\item Context: tiny, instant, attention is the read mechanism
+\item Failure modes differ: stale/absent vs.\ retrieval error / overflow
+\item Forward-link to Q12: what happens when the two channels \textbf{conflict}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reading}
+\begin{itemize}
+\item Geva et al.\ 2021 --- Transformer Feed-Forward Layers Are Key-Value Memories (EMNLP)
+\item Meng et al.\ 2022 --- Locating and Editing Factual Associations in GPT (NeurIPS)
+\item Elhage et al.\ 2022 --- Toy Models of Superposition (Transformer Circuits)
+\item Meng et al.\ 2023 --- Mass-Editing Memory in a Transformer (ICLR)
+\end{itemize}
+\end{frame}
+
+\end{document}

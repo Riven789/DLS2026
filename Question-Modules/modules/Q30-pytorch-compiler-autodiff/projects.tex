@@ -1,0 +1,17 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q30: Project Suggestions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Measure graph breaks (small, 2--3 days).} Take a model with data-dependent control flow; use \texttt{torch.\_dynamo.explain} to count graph breaks, refactor to remove some, and measure the speedup from \texttt{torch.compile}.
+\item \textbf{Checkpointing trade curve (medium, 3--5 days).} On a deep net, sweep how many layers are gradient-checkpointed; plot peak activation memory vs.\ step time to map the compute--memory trade.
+\item \textbf{Tape vs.\ functional memory (medium, 1 week).} Implement the same model with \texttt{autograd} and with \texttt{torch.func}; measure peak memory and discuss where (and why) they differ, and whether checkpointing closes the gap.
+\end{enumerate}
+\end{document}

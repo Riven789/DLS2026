@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q03 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item If a sufficiently good SFT dataset existed (perfect demonstrations for every prompt type), would RLHF still add anything? What specifically do preferences buy that demonstrations cannot?
+\item The KL anchor is described as a trust region for the reward model rather than a safety feature. Construct a concrete scenario where a large $\beta$ (tight anchor) \emph{causes} a worse outcome than a small one.
+\item DPO's derivation eliminates the reward model by making it implicit. What do we lose operationally when we can no longer inspect or reuse $r_\phi$ --- and could that loss matter for safety evaluation?
+\item GRPO's group-relative advantage assumes the group contains useful signal (some wins, some losses). What happens to training when a task is either trivially solvable or unsolvable for the current policy --- and what would you do about it?
+\item ``Preference optimization aligns to raters, not truth.'' Whose preferences were collected for the models you use, and what systematic biases would you expect to survive into deployment because of it?
+\end{enumerate}
+\end{document}

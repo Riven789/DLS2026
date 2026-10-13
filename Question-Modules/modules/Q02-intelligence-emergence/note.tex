@@ -1,0 +1,41 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}\usepackage{lmodern,microtype,hyperref,enumitem}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q02: Is Next-Token Generation Intelligence? How Did Intelligence Emerge from Deep Learning?}
+\author{DLS 2026 --- Draft module}\date{October 2026}
+\begin{document}\maketitle
+\section*{Learning objectives}
+Students will distinguish an operational performance claim from a claim about intelligence; identify what scaling results do and do not establish; and design an evaluation that tests a stated capability rather than relying on a label.
+
+\section{Start by unbundling the question}
+``Intelligence'' is not one measured quantity. It can mean successful task performance, flexible generalization, planning, learning, social understanding, consciousness, or some combination. A useful course answer therefore begins by asking: \emph{which capability, in which environment, under which evidence standard?} Turing's 1950 proposal redirected a vague metaphysical question toward observable conversational performance \cite{turing1950}; it did not settle every later question about understanding, agency, or consciousness.
+
+Next-token generation is a training objective: estimate $p(x_{t+1}\mid x_{\leq t})$. The objective alone neither proves nor rules out intelligence. A system can perform impressively on some tasks while failing brittle variants, relying on training-data regularities, or lacking abilities that a student associates with intelligence. The scientifically useful move is to replace a global label with claims that can fail.
+
+\section{What we can observe}
+Language models can produce useful behavior on many tasks: answer questions, transform text, write code, and adapt their output to demonstrations placed in context. Brown et al. documented few-shot task performance in large language models \cite{brown2020language}. Such observations justify careful claims about measured behavior on stated tasks. They do not by themselves identify the internal algorithm, establish robust out-of-distribution generalization, or show that the system has human-like goals or experience.
+
+A capability claim needs a task distribution, a scoring rule, comparison baselines, and a failure analysis. For example, ``the model can reason'' is too broad. ``On held-out arithmetic word problems with adversarially varied wording, the model reaches X\% exact accuracy and its verifier-checked intermediate program succeeds Y\% of the time'' is an empirical claim another group can test.
+
+\section{Why capabilities may change with scale}
+As data, compute, and model capacity change, measured performance can improve. Some reports describe sharp threshold-like gains on particular benchmarks \cite{wei2022emergent}. There are at least three nonexclusive interpretations: an underlying computation becomes available only after sufficient capacity/training; a continuous capability crosses a task threshold; or the evaluation metric and prompting procedure make a smooth gain look abrupt. Schaeffer et al. show that metric choice can create apparent discontinuities \cite{schaeffer2023mirage}. ``Emergence'' is consequently a description to investigate, not a causal explanation.
+
+Deep learning does not add a single ``intelligence switch.'' Optimization can create representations and procedures that help predict structured data. Larger or better-trained models may use those representations more effectively in context. But how reliably that transfers depends on the data, architecture, post-training, prompt, tools, and evaluation conditions.
+
+\section{Three bad inferences to avoid}
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Fluency implies understanding.} A coherent explanation can be false or copied from a familiar pattern. Check it against a new problem and a verifier.
+\item \textbf{One benchmark implies general intelligence.} A benchmark measures a constructed slice of behavior and can suffer contamination, shortcut exploitation, or saturation.
+\item \textbf{Failure implies no capability.} A failure may reflect a prompt, interface, tool restriction, or distribution shift. Diagnose before drawing a global conclusion.
+\end{enumerate}
+These cautions do not make the systems uninteresting; they make the claims testable. They also connect to critiques that warn against treating text-generation behavior as a complete account of language understanding or social competence \cite{bender2021stochastic}.
+
+\section{A small operational exercise}
+The accompanying code runs a deterministic rule-learning task. A rule is shown through examples, then evaluated on held-out combinations. It compares exact generalization with a deliberately weak memorization baseline. The exercise does \emph{not} measure intelligence. It demonstrates a methodological point: define a capability, hold out the cases that distinguish rule use from lookup, and inspect errors before assigning a large label.
+
+\section{Takeaway}
+Whether to call a next-token system ``intelligent'' is partly a conceptual choice, but its component claims are empirical. Describe the behavior, specify the distribution and metric, test alternatives, and report uncertainty. Scaling studies motivate hypotheses about changing capability; they do not eliminate the need for careful evaluation.
+
+\bibliographystyle{plain}\bibliography{bibliography}
+\end{document}

@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q11 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} Kalai and Vempala argue that a \emph{calibrated} language model trained on ideal (fully truthful) data must still hallucinate on ``arbitrary'' facts at a rate close to its monofact rate. A colleague concludes: ``So hallucination is unavoidable --- we should stop funding mitigation work.'' Identify the flaw(s) in the conclusion, citing (a) which facts the theorem covers, (b) what the theorem assumes about pre-training vs.\ post-training, and (c) what mitigation actually does to the reliability boundary.
+
+\vspace{1em}
+\textbf{Answer:} The conclusion overreaches on all three points. (a) The lower bound applies to \emph{arbitrary} facts --- those whose truth cannot be determined from training data --- and specifically \emph{not} to systematic facts (arithmetic, rule-checkable claims) or frequently-attested facts like publication references, where the bound gives no force. (b) The theorem describes \emph{pre-trained} models optimized to be good predictors; it explicitly does not preclude post-training that reduces hallucination --- at the cost of degrading calibration, which is precisely the observed behavior of aligned models. (c) Mitigation does not need to move the statistical floor to be worthwhile: retrieval extends what counts as ``attested'' (converting arbitrary facts into context-supported ones), abstention and post-training shift behavior toward the reliability boundary (fewer samples beyond it), and verification filters samples after the fact. The theorem says some floor exists for a specific fact class under a specific training regime --- not that engineering cannot save the workloads we actually care about.
+\end{document}

@@ -1,0 +1,82 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q05: When Does Extra Reasoning Actually Improve an Answer?}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+\usepackage{url}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=1.4em]
+\item Explain what ``extra reasoning'' (chain-of-thought, test-time compute) actually changes at inference.
+\item State the conditions under which longer reasoning helps, hurts, or is neutral.
+\item Reason quantitatively about the accuracy-vs-cost trade-off of test-time compute.
+\end{itemize}
+
+\begin{quote}\small\textbf{Companion video:}\begin{itemize}\setlength\itemsep{0pt}\item \emph{OpenAI o1's New Paradigm: Test-Time Compute Explained} --- bycloud (15:43). \url{https://www.youtube.com/watch?v=pi7LF-OpO6k}\end{itemize}\end{quote}
+
+\section{What ``extra reasoning'' means}
+Student response \#05 asks when extra reasoning actually improves an answer and what it costs.
+``Extra reasoning'' here means spending more inference-time computation before committing to a final
+answer: emitting intermediate steps (\emph{chain-of-thought}, CoT \citep{wei2022cot}), sampling many
+candidate solutions and aggregating (\emph{self-consistency} \citep{wang2023selfconsistency}), or using
+a trained reasoning model that produces long deliberate traces (o1-style / R1-style
+\citep{deepseekr1}). All of these trade tokens---hence latency and money---for a chance at higher
+accuracy. The central question is \emph{when that trade is worth it}.
+
+\section{When extra reasoning helps}
+The gains are \textbf{task-dependent}, and this is the key teaching point.
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Multi-step problems} (math, code, logic, planning) benefit most: CoT lets the model
+externalize intermediate state it would otherwise have to compute in a single forward pass
+\citep{wei2022cot}. Empirically the benefit grows with the number of reasoning steps the problem
+genuinely requires.
+\item \textbf{Problems with a verifiable answer} benefit from sampling-and-selecting: self-consistency
+and best-of-$n$ with a verifier convert extra samples into accuracy, because a correct answer only has
+to be \emph{found} once and then recognized \citep{wang2023selfconsistency,cobbe2021verifiers}.
+\item \textbf{Test-time compute can substitute for parameters}: on some benchmarks, letting a smaller
+model think longer matches a larger model answering immediately \citep{snell2024scaling}.
+\end{itemize}
+
+\section{When it does not help---or hurts}
+\begin{itemize}[leftmargin=1.4em]
+\item \textbf{Simple or retrieval-like tasks}: for single-step factual lookups, CoT adds tokens and
+latency with little or no accuracy gain, and can even \emph{lower} accuracy by talking the model out of
+a correct first instinct.
+\item \textbf{Overthinking}: forcing long traces on easy problems wastes compute and raises the chance
+of a reasoning error compounding. Recent work documents an inverted-U: accuracy rises then falls as
+reasoning length grows past what the task needs.
+\item \textbf{Faithfulness gap}: the written reasoning is not guaranteed to be the computation that
+produced the answer \citep{turpin2023faithfulness}. A plausible-looking trace can accompany a wrong
+answer, which matters when we use the trace to \emph{trust} the output.
+\end{itemize}
+
+\section{The trade-off, quantitatively}
+Let $p_1$ be single-sample accuracy and suppose we draw $n$ independent samples and select with a
+verifier of recall $r$. Coverage (probability at least one sample is correct) is
+$1-(1-p_1)^n$, so best-of-$n$ accuracy is upper-bounded by that and, with a perfect verifier, equals it.
+Cost scales roughly linearly in $n$ (and in trace length for CoT). The practical consequence: returns
+\emph{diminish}---each extra sample buys less marginal accuracy---so there is an economically optimal
+compute budget per query, and it depends on the value of a correct answer versus the price of tokens.
+The companion code (\texttt{code/best\_of\_n.py}) simulates this coverage curve.
+
+\section{A decision rule for practitioners}
+Spend extra reasoning when: (1) the task is genuinely multi-step, (2) errors are costly, and (3) you can
+\emph{verify} or at least cross-check candidate answers. Keep it short when the task is single-step,
+latency-sensitive, or unverifiable. Calibrate the budget per task---do not apply one reasoning length
+globally.
+
+\section{Summary}
+Extra reasoning trades inference compute for accuracy. It pays on multi-step, verifiable problems and
+is wasteful or harmful on simple ones. Returns diminish with sample count and trace length, the written
+trace may be unfaithful, and the right budget is task-specific---so the honest answer to ``does
+reasoning help?'' is ``it depends, measurably, on the task.''
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

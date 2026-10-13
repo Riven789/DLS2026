@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q23 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Attribution lab:} take one failing task from a real coding-agent run (any issue from this course's repos); log context, raw tool results, and injected results at every step; build the diff table; attribute the failure to model / instructions / harness with evidence. Deliverable: the attribution write-up \emph{plus} the one-line harness patch that fixes it, if it is a harness cause.
+\item \textbf{Error-surface ablation:} build a 150-line agent on a fixed task suite; hold model and instructions constant; vary only the error formatter across four designs (silent, generic, structured, corrective). Measure task success rate and retry counts. Hypothesis: the corrective surface dominates. Report where the hypothesis fails.
+\item \textbf{Injection-error detector:} instrument a harness so that every tool result is hashed at the source and re-hashed at injection; deliberately seed corruption bugs (wrong-call results, stale cache hits, truncation) and measure detection rate and time-to-detection. Extend to automatic counterfactual replay: splice in the correct result and re-run.
+\item \textbf{Context-rot curve:} run a fixed multi-step task while sweeping only the context-management policy (full history, rolling window, compaction, prioritized instructions). Plot success rate and instruction-violation rate against context length. Identify the task class where rot first appears and the policy that delays it longest.
+\end{enumerate}
+\end{document}

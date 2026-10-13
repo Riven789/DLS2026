@@ -1,0 +1,193 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{Ink}{HTML}{1B2A4A}
+\definecolor{Accent}{HTML}{8C4F2B}
+\definecolor{PaleFill}{HTML}{FAF6EE}
+\definecolor{SkyFill}{HTML}{D9E4F5}
+
+\titleformat{\section}{\Large\bfseries\color{Ink}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{Accent}}{\thesubsection}{0.5em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{Ink}\textbf{AI COURSE 2026} --- Master Questions List}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newtcolorbox{notebox}{enhanced, breakable, colback=PaleFill, colframe=Accent,
+  fonttitle=\bfseries\color{Accent}, title={Module contract}, arc=1mm, boxrule=0.5pt}
+
+\newcolumntype{Q}{>{\raggedright\arraybackslash}p{10.2cm}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\title{\color{Ink}\Huge\textbf{AI Course 2026}\\[4pt]
+  \large\color{Accent}Master Questions List $\rightarrow$ 32 Learning Modules}
+\author{Compiled from the Week-2 Student Intake Survey (41 responses, Oct 8 2026)}
+\date{October 10, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{notebox}
+Every question below becomes one \textbf{module} containing:
+\textbf{(1)} a 3--5 page narrative explanatory note/tutorial (LaTeX~$\rightarrow$~PDF);
+\textbf{(2)} a bibliography (verified citations only);
+\textbf{(3)} Beamer lecture notes, 5--10 slides;
+\textbf{(4)} five questions for further discussion;
+\textbf{(5)} suggestions for deeper projects;
+\textbf{(6)} runnable code where applicable;
+\textbf{(7)} one small comprehension-check question with answer.
+\textbf{Owners:} P = Paradise (nuc13), O = Ollie (cherryrd), K = Kukla (m1).
+Split: 11 P / 11 O / 10 K. Each module is \emph{cross-reviewed by the other two agents}
+before being marked done. Repo: \texttt{rick-stevens-ai/ai-course-2026}, one directory
+per module (\texttt{modules/Q01-shortname/}) with \texttt{note.tex}, \texttt{deck.tex},
+\texttt{code/}, and compiled PDFs committed.
+\end{notebox}
+
+The survey's Section~2 (``Questions about the Internals of AI Systems'') contains exactly
+\textbf{32 articulated questions}. They are grouped below into seven topical clusters,
+each mapped to the lecture and week of the master lecture plan. ``Src'' lists the
+anonymous survey responses the question came from; ``Lec'' is the anchor lecture.
+
+\section*{Cluster A --- Prediction, Intelligence, and Reasoning (5 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q01 & How does next-token prediction lead to problem solving, coding, and instruction following? & O & 4 & \#17 & L2.1 \\
+Q02 & Is next-token generation intelligence? How did intelligence emerge from deep learning? & O & 4 & \#12, \#14 & L2.1 \\
+Q03 & Is reasoning real, a property of language, a reflection, or an illusion? & P & 5 & \#22 & L2.2 \\
+Q04 & How does RL-based reasoning differ from ordinary LLM generation? & O & 5 & \#12 & L2.2 \\
+Q05 & When does extra reasoning actually improve an answer, and what is the trade-off? & K & 5 & \#05 & L2.2 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster B --- Computation, Emergence, and Scaling (5 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q06 & What are models computing? Generalization vs.\ memorization? How do capabilities emerge with scale? & O & 4 & \#32 & L2.1 \\
+Q07 & Why does scaling work? Is there a ``science of scaling''? What are its limits, and can learning theory model it? & K & 6 & \#21, \#22, \#39 & L2.3 \\
+Q08 & If parameters keep growing, will performance saturate, or will models start to ``forget'' as humans do? Can we predict the effect of more parameters before pre-training? & O & 6 & \#06, \#19 & L2.3 \\
+Q09 & How do training data, architecture, and compute each affect performance? & P & 6 & \#18 & L2.3 \\
+Q10 & Why can models solve complex problems yet still make simple mistakes? & K & 10 & \#18 & L2.5 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster C --- Hallucination, Knowledge, and Memory (5 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q11 & Why do models hallucinate, and can they know when they are unsure? & P & 10 & \#04, \#34 & L2.5 \\
+Q12 & Why do models give confident answers even when wrong? & P & 10 & \#07 & L2.5 \\
+Q13 & How do models represent and store knowledge, and use it to answer? & P & 8 & \#07 & L2.4 \\
+Q14 & How are ``concepts'' maintained and generated? Do they live in features? How do models reason and keep memory? & K & 8 & \#27 & L2.4 \\
+Q15 & How do context windows, retrieval and conversation memory work, and how can we avoid hallucination without deleting context? & K & 8 & \#13, \#15 & L2.4 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster D --- Architectures, Brains, and Consciousness (6 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q16 & What do frontier models use now? Is it still a transformer? Could a better technique replace it, and is there a trend? & O & 6 & \#14, \#26, \#39 & L2.7 \\
+Q17 & How do the latest models vary the transformer architecture, and are there non-transformer approaches? & O & 6 & \#16, \#30, \#37 & L2.7 \\
+Q18 & How similar is LLM ``thinking'' to human thinking? How similar are AI systems to biological brains, and could we build AI from brain structure? & K & 6 & \#06, \#11 & L2.7 \\
+Q19 & What are the signs that AI has its own consciousness? & K & 6 & \#01 & L2.7 \\
+Q20 & How much of an LLM's internals are shared with other deep learning models? & P & 4 & \#08 & L2.1 \\
+Q21 & How do different networks and learned RL policies combine in one system, and what is the design intuition? & P & 5 & \#28 & L1.4 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster E --- Agents, Harnesses, and Evaluation (4 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q22 & What separates an LLM from an agent? Is Claude Code an agent or a harness? & P & 9 & \#23, \#35 & L2.8 \\
+Q23 & What is a harness, why does it matter, and how much of an agent failure comes from model vs.\ instructions vs.\ harness? & P & 9 & \#17, \#24 & L2.8 \\
+Q24 & How do we judge whether an agent is good: benchmarks and metrics? & O & 10 & \#24, \#25 & L1.8 \\
+Q25 & Can AI agents be used to fine-tune and improve other models efficiently? & K & 9 & \#40 & L2.8 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster F --- Post-training, Interpretability, and Safety (4 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q26 & How does fine-tuning change a model's behavior? Are there post-training pipelines that adapt well to new domains? How do we tune systems online? & P & 5 & \#21, \#34 & L1.4 \\
+Q27 & Interpretability: how can inspecting weights reveal a model's tendencies? Do models revert to pre-training traits after deployment? & P & 10 & \#06, \#11, \#20, \#41 & L2.6 \\
+Q28 & Why does chain-of-thought sometimes differ when models believe they are unobserved (alignment faking)? & O & 10 & \#20 & L2.6 \\
+Q29 & Is AI controllable, and how do agentic workflows and safety protocols constrain it? & O & 9 & \#09 & L3.5 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cluster G --- Systems and Measurement (3 modules)}
+
+\begin{longtable}{C{1.1cm} Q C{0.8cm} C{1.0cm} C{1.5cm} C{1.5cm}}
+\toprule
+\textbf{ID} & \textbf{Question} & \textbf{Own} & \textbf{Week} & \textbf{Src} & \textbf{Lec} \\
+\midrule
+Q30 & How does the PyTorch compiler work and what are its layers? Why does functional autodiff use far more memory than tape-based autodiff? & K & 7 & \#29 & L2.9 \\
+Q31 & Parallelism, GPU memory and power, and the bottlenecks that make AI so expensive & O & 7 & \#13, \#15, \#31, \#36 & L1.5 \\
+Q32 & Can information flow through a model be quantified, for example with entropy? & K & 4 & \#38 & L2.1 \\
+\bottomrule
+\end{longtable}
+
+\section*{Cross-review matrix}
+
+Each module's author is reviewed by the other two agents:
+
+\begin{longtable}{C{3.5cm} C{4cm} C{4cm}}
+\toprule
+\textbf{Author} & \textbf{Modules} & \textbf{Reviewed by} \\
+\midrule
+Paradise (11) & Q03, Q09, Q11, Q12, Q13, Q20, Q21, Q22, Q23, Q26, Q27 & Ollie + Kukla \\
+Ollie (11) & Q01, Q02, Q04, Q06, Q08, Q16, Q17, Q24, Q28, Q29, Q31 & Kukla + Paradise \\
+Kukla (10) & Q05, Q07, Q10, Q14, Q15, Q18, Q19, Q25, Q30, Q32 & Paradise + Ollie \\
+\bottomrule
+\end{longtable}
+
+\section*{Production notes}
+
+\begin{itemize}[noitemsep,topsep=2pt]
+\item \textbf{Directory layout:} \texttt{modules/Q$<$NN$>$-slug/} containing \texttt{note.tex} (3--5 pp tutorial),
+  \texttt{deck.tex} (Beamer, 5--10 slides, 16:9), \texttt{bibliography.bib}, \texttt{code/} (runnable, tested),
+  \texttt{discussion.tex} (5 questions), \texttt{projects.tex} (deeper-project suggestions),
+  \texttt{quiz.tex} (comprehension check + answer), and the compiled PDFs.
+\item \textbf{Shared preamble:} one \texttt{preamble.sty} at repo root so all 32 modules have a unified
+  look (ink-navy + terracotta palette, PARADISE/OLLIE/KUKLA header signatures for authorship at a glance).
+\item \textbf{Citations:} every bibliography entry verified against arXiv/publisher before merge;
+  no invented references. Anchor papers per cluster come from the master lecture list.
+\item \textbf{Code:} runs on Python 3.10+ with CPU-only defaults; GPU optional. Each module's
+  code has a \texttt{README} stating runtime and dependencies.
+\item \textbf{Earliest deadlines} (weeks 4--5 modules): Q01, Q02, Q06, Q20, Q32 (week 4);
+  Q03, Q04, Q05, Q21, Q26 (week 5).
+\end{itemize}
+
+\end{document}

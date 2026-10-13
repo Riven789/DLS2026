@@ -1,0 +1,41 @@
+{
+  "config": {
+    "vocab_size": 258,
+    "context": 64,
+    "width": 64,
+    "layers": 2,
+    "heads": 4,
+    "dropout": 0.0,
+    "attention": "manual"
+  },
+  "args": {
+    "data": "data/science.txt",
+    "out": "runs/classroom",
+    "steps": 300,
+    "stop_after": 0,
+    "context": 64,
+    "width": 64,
+    "layers": 2,
+    "heads": 4,
+    "batch_size": 8,
+    "accum": 1,
+    "lr": 0.001,
+    "weight_decay": 0.1,
+    "dropout": 0.0,
+    "warmup": 20,
+    "eval_every": 50,
+    "eval_batches": 10,
+    "device": "cpu",
+    "precision": "fp32",
+    "attention": "manual",
+    "seed": 42,
+    "threads": 4,
+    "resume": ""
+  },
+  "device": "cpu",
+  "torch_version": "2.14.1+cpu",
+  "parameters": 120704,
+  "train_tokens": 17986,
+  "val_tokens": 1970,
+  "data_sha256": "1432b416c928d6bd8f01a85c64059bc4268d4aef3381c5e1cce7038c852d96f8"
+}

@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q03 --- Discussion: Is Reasoning Real, a Property of Language, a Reflection, or an Illusion?}
+\author{DLS 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+The student question probes whether the apparent reasoning of large language models reflects a genuine computational process, an emergent property of linguistic structure, a reflection of patterns present in training data, or a persuasive illusion produced by fluent text generation. The distinctions matter: they bear on evaluation design, on claims of generality, and on how much trust we extend to intermediate ``reasoning'' traces. Chain-of-thought prompting demonstrably improves performance on multi-step tasks \citep{wei2022chain}, and self-consistency sampling further boosts arithmetic and commonsense benchmarks \citep{wang2022selfconsistency}, yet improved outputs do not by themselves settle the question of what internal process produces them. Recent work shows that generated rationales can be unfaithful to the model's actual decision process \citep{turpin2023language}, that benchmark gains may partly reflect contamination or format-matching rather than transferable competence \citep{srivastava2023beyond}, and that measured abilities can be sensitive to how we quantify ``emergence'' \citep{schaeffer2023emergent}. The following open questions are intended to structure discussion rather than to prescribe answers.
+
+\begin{enumerate}[leftmargin=*,label=\textbf{Q\arabic*.}]
+
+\item \textbf{What would count as evidence that reasoning is \emph{real} rather than retrieved?}
+If a model solves a novel multi-step problem, how do we distinguish genuine compositional inference from recombination of memorized templates? Consider the roles of training-set contamination, held-out symbolic tasks, and controlled perturbations of problem surface form. Does performance that degrades sharply under semantically irrelevant rephrasing \citep{srivastava2023beyond} undermine a claim of ``real'' reasoning, or merely reveal brittle but authentic reasoning? Propose an operational test and state what result would falsify your hypothesis.
+
+\item \textbf{Is the chain-of-thought trace the computation, or a post-hoc narration of it?}
+Prompted rationales improve answers \citep{wei2022chain}, yet rationales can be demonstrably unfaithful to the features actually driving the model's output \citep{turpin2023language}. If the visible trace is not causally load-bearing, in what sense is the model ``reasoning through'' it? Discuss whether faithfulness is a binary property or a graded one, and how we might measure the causal contribution of intermediate tokens to the final answer.
+
+\item \textbf{Is reasoning better understood as an emergent capability or as a measurement artifact?}
+Claims of sharp emergent reasoning at scale have been challenged on the grounds that discontinuities can arise from discontinuous or nonlinear metrics rather than from genuine phase changes in capability \citep{schaeffer2023emergent}. How should the choice of metric (exact-match vs.\ partial credit, log-likelihood vs.\ accuracy) shape our ontological claims? Can a capability be ``real'' yet appear illusory, or ``illusory'' yet appear real, purely as a function of evaluation design?
+
+\item \textbf{To what extent is reasoning a property of \emph{language} rather than of the model?}
+Natural language encodes argumentative structure, inferential connectives, and worked examples; a model trained to continue such text may inherit the statistical shadow of human reasoning without instantiating an independent inference engine. Does self-consistency \citep{wang2022selfconsistency} reflect convergence toward a correct latent computation, or merely majority voting over linguistically plausible continuations? Argue whether ``reasoning in language'' and ``reasoning by the model'' are separable, and how one could design an experiment to pull them apart.
+
+\item \textbf{Does the real/illusion dichotomy even carve the problem correctly?}
+Perhaps ``real,'' ``property of language,'' ``reflection,'' and ``illusion'' are not mutually exclusive but describe different layers of the same system. Formulate a position in which reasoning is simultaneously an emergent property of linguistic prediction and a causally efficacious internal process. What mechanistic evidence (e.g., localized circuits, intervention studies, probing of intermediate representations) would be required to make such a layered account more than a rhetorical compromise? What are the practical stakes for deployment if the question remains unresolved?
+
+\end{enumerate}
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+
+\bibitem[Schaeffer et al.(2023)]{schaeffer2023emergent}
+R.~Schaeffer, B.~Miranda, and S.~Koyejo.
+\newblock Are emergent abilities of large language models a mirage?
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem[Srivastava et al.(2023)]{srivastava2023beyond}
+A.~Srivastava et al.
+\newblock Beyond the imitation game: Quantifying and extrapolating the capabilities of language models.
+\newblock \emph{Transactions on Machine Learning Research (TMLR)}, 2023.
+
+\bibitem[Turpin et al.(2023)]{turpin2023language}
+M.~Turpin, J.~Michael, E.~Perez, and S.~R. Bowman.
+\newblock Language models don't always say what they think: Unfaithful explanations in chain-of-thought prompting.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2023.
+
+\bibitem[Wang et al.(2023)]{wang2022selfconsistency}
+X.~Wang, J.~Wei, D.~Schuurmans, Q.~Le, E.~Chi, S.~Narang, A.~Chowdhery, and D.~Zhou.
+\newblock Self-consistency improves chain of thought reasoning in language models.
+\newblock In \emph{International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem[Wei et al.(2022)]{wei2022chain}
+J.~Wei, X.~Wang, D.~Schuurmans, M.~Bosma, B.~Ichter, F.~Xia, E.~Chi, Q.~Le, and D.~Zhou.
+\newblock Chain-of-thought prompting elicits reasoning in large language models.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, 2022.
+
+\end{thebibliography}
+
+\end{document}

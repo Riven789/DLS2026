@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q20 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A colleague says: ``LLMs are completely different from older neural networks --- backprop doesn't really apply, they learn differently, and GPU optimizations for CNNs are useless for them.'' Identify each claim as correct or incorrect, with one sentence of justification each.
+
+\vspace{1em}
+\textbf{Answer:} All three are incorrect. (1) LLMs are trained with backpropagation exactly like older networks --- same reverse-mode autodiff, same optimizer family. (2) They learn by gradient descent on a loss like any deep model; the \emph{loss} (next-token prediction) is different, not the learning rule. (3) At the hardware level both are dominated by dense matmuls; tensor cores and GEMM kernels tuned for convnets transfer directly to Transformer matmuls (and vice versa).
+\end{document}

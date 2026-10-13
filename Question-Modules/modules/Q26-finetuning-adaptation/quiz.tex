@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q26 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} Your team has a frozen, preference-tuned LLM and three adaptation goals: (a) it must cite your company's updated pricing sheet accurately in answers, (b) it must always emit JSON matching a strict schema instead of prose, and (c) it must keep absorbing pricing corrections pushed hourly. For each goal, choose between retrieval (RAG), parameter-efficient fine-tuning (LoRA), and anchored online updates --- and justify each choice in one sentence, naming the risk your choice avoids.
+
+\vspace{1em}
+\textbf{Answer:}
+(a) \textbf{Retrieval.} Pricing is volatile factual knowledge that must be cited and revoked on update --- exactly what a retrievable index provides; the evidence is that fine-tuning injects new facts unreliably compared to RAG, so tuning would both underperform and go stale hourly.
+(b) \textbf{LoRA fine-tuning.} Schema-conformant output is a behavior change (reshaping the response distribution), which prompting cannot stabilize reliably and retrieval cannot cause at all; the rank-constrained adapter bounds the update so general capabilities and preference tuning are preserved (low forgetting), and the adapter can be versioned or rolled back.
+(c) \textbf{Anchored online updates --- on the retrieval index, not the weights.} Hourly corrections are far too frequent and non-stationary for weight updates (naive online SGD would drift the KL-anchored optimum and collapse output entropy), so the bounded mechanism is to stream edits into the index the model already retrieves from; only if a skill-level change were needed would a small-$r$ LoRA refresh against a pinned reference model be justified.
+\end{document}

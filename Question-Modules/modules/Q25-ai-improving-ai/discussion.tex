@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q25: Discussion Questions}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\begin{enumerate}[leftmargin=1.5em]
+\item Distillation lets a small student learn from a large teacher. What does the student gain, what can it never gain, and why is this not ``free'' capability?
+\item RLAIF replaces human preference labels with model-generated ones. Under what conditions does that preserve alignment quality, and when does it quietly degrade it?
+\item LLM-as-judge is biased toward its own style and longer answers. Design an evaluation protocol that uses AI judging at scale while controlling these biases.
+\item Model collapse happens when models train on recursively generated data. What minimum amount or kind of fresh human data do you think is needed to prevent it, and how would you test that?
+\item If an agent can propose and run its own ML experiments, what is the single most important human-held checkpoint you would keep in that loop, and why?
+\end{enumerate}
+\end{document}

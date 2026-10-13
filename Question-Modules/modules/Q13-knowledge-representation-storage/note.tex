@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q13: How Transformers Represent, Store, and Recall Factual Knowledge}
+\author{DLS 2026 --- module author: Kukla}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+\begin{itemize}[leftmargin=*]
+  \item Explain where factual associations physically reside inside a transformer, distinguishing the roles of feed-forward (MLP) layers and attention, and how the key--value view of MLPs supports a ``memory'' interpretation.
+  \item Describe how a stored fact is retrieved during inference, from subject enrichment in early-to-mid layers to the ``extraction'' event that moves an attribute into the residual stream for prediction.
+  \item Critically assess the evidence for localized knowledge storage (causal tracing, model editing) and its limits (distributed representations, superposition, editing side effects).
+\end{itemize}
+
+\section{Framing the question}
+A language model trained with next-token prediction never stores facts as explicit database rows. Instead, during training it compresses statistical regularities of text into its weights, and at inference it reconstructs an answer from those weights given a context. When we ask ``how do models store knowledge,'' we are really asking two coupled questions: (i) which parameters encode a given association, and (ii) what computation reads those parameters to produce the answer. A useful running example is the factual triple \emph{(subject, relation, object)}, e.g.\ ``The Eiffel Tower is located in \underline{Paris}.'' This tutorial surveys the mechanistic picture built up over the last few years, emphasizing that ``storage'' and ``recall'' are properties of a \emph{computation over distributed parameters}, not of a lookup table.
+
+\section{MLP layers as key--value memories}
+The transformer block alternates self-attention with a position-wise feed-forward network (FFN/MLP) of the form $\mathrm{FFN}(x)=W_{\text{out}}\,\sigma(W_{\text{in}}x)$, where $\sigma$ is a nonlinearity. In large models these MLP layers hold roughly two-thirds of all parameters, which already hints that much knowledge lives there rather than in attention.
+
+\citet{geva2021kv} gave this intuition a precise form: each MLP can be read as a set of key--value memories. The rows of $W_{\text{in}}$ act as \emph{keys} that detect patterns in the incoming residual stream, and the matching columns of $W_{\text{out}}$ act as \emph{values} that are added back into the stream. Concretely, the activation $\sigma(W_{\text{in}}x)_i$ measures how strongly the $i$-th key fires for the current input; this scalar then scales the $i$-th value vector. The MLP output is a weighted sum of value vectors, i.e.\ a soft retrieval over a learned associative memory. \citet{geva2021kv} further showed empirically that individual keys correspond to human-interpretable textual patterns (from shallow $n$-gram patterns in early layers to semantic topics in later layers), and that the induced value vectors frequently push the distribution toward tokens that complete those patterns. A follow-up analysis projected the value vectors directly into vocabulary space and argued that MLP updates \emph{promote} concepts that are then surfaced in the output distribution \citep{geva2022promote}.
+
+This gives our first concrete answer: a fact is stored, in part, as a key--value pair (or a small bundle of them) distributed across MLP neurons. The ``key'' half recognizes the subject-plus-relation context; the ``value'' half writes the object into the residual stream.
+
+\section{Locating a specific fact: causal tracing}
+Knowing MLPs are memories does not tell us \emph{which} memory holds ``Eiffel Tower $\to$ Paris.'' \citet{meng2022rome} introduced \emph{causal tracing} to localize individual facts. The idea is a controlled corruption-and-restoration experiment:
+\begin{enumerate}[leftmargin=*]
+  \item Run the clean prompt and record the correct-answer probability.
+  \item Corrupt the subject tokens' embeddings with noise, degrading the prediction.
+  \item Restore the clean hidden state at a single (layer, token) position and measure how much the correct answer recovers. The restoration with the largest ``indirect effect'' marks a site causally responsible for the fact.
+\end{enumerate}
+The striking finding was that recovery peaks at MLP layers over the \emph{last subject token}, in the early-to-middle layers of the network. This suggests a two-stage picture: mid-layer MLPs at the subject position enrich the representation with attributes of that subject, and later attention layers move the relevant attribute to the final position for prediction. \citet{meng2022rome} turned this localization into an editing method, ROME, which treats the critical MLP as a linear associative memory and performs a rank-one update to $W_{\text{out}}$ so that the subject key maps to a new value (object). That editing a \emph{single} matrix can reliably change a fact is strong causal evidence that the fact was, at least operationally, stored there.
+
+\section{The retrieval event: enrichment then extraction}
+How is the stored value actually read out? \citet{geva2023dissecting} dissected the recall process and proposed a clean division of labor. First, MLPs at the subject positions perform \emph{subject enrichment}: across several layers they accumulate many attributes of the subject into its residual representation, building a rich bundle of ``everything the model knows about the Eiffel Tower.'' Second, at the last position of the prompt, an \emph{attention head extracts} the specific attribute demanded by the relation, copying it from the enriched subject representation into the position where the next token is predicted. Interventions that block this attention-mediated extraction suppress the correct answer even though the MLPs still ``contain'' the fact. Thus storage (MLP value) and selective recall (attention routing conditioned on the relation) are genuinely distinct mechanisms; both must fire for a correct answer.
+
+This also explains why the same subject can produce different facts depending on the relation: the enriched representation is a superset, and the attention extraction step selects the slice relevant to the query. The residual stream serves as the shared communication channel \citep{elhage2021mathematical} across which these reads and writes are composed.
+
+\section{Distributed, polysemantic, and superposed representations}
+The localized picture above is powerful but partial. A competing body of evidence stresses that representations are \emph{distributed} and \emph{superposed}. \citet{elhage2022superposition} argued that networks pack more features than they have neurons by representing features as nearly-orthogonal directions, so a single neuron participates in many unrelated concepts (polysemanticity) and a single concept is spread across many neurons. Under superposition, ``the neuron that stores Paris'' is a misleading abstraction; what exists is a direction in activation space, recoverable only by looking across units. Sparse dictionary learning (e.g.\ sparse autoencoders) is one route to decompose activations back into more monosemantic features \citep{cunningham2023sparse}. This tension matters pedagogically: causal tracing localizes the \emph{computation} that writes a fact to a layer and token, but the \emph{representation} of the fact can still be a distributed direction rather than a handful of dedicated neurons.
+
+A related caution comes from \citet{hase2023does}, who showed that where a fact can be \emph{edited} does not necessarily coincide with where causal tracing says it is \emph{stored}; successful edits can be made at layers far from the traced site. This decouples ``localization of storage'' from ``effective intervention point'' and warns against over-reading any single localization method.
+
+\section{Evidence from model editing and its side effects}
+Model editing is both a tool for studying storage and a stress test of the localized hypothesis. ROME edits one fact via a rank-one MLP update \citep{meng2022rome}; MEMIT scales this to thousands of facts by spreading updates across a range of MLP layers, directly treating those layers as a batch-writable memory store \citep{meng2022memit}. The success of these methods confirms that MLP weights carry editable factual content. However, the \emph{side effects} are instructive about how knowledge is organized. \citet{cohen2023ripple} documented ``ripple effects'': editing one fact changes logically entailed facts inconsistently, revealing that related knowledge is not stored as a coherent, dereferenceable graph. Edits can also fail to generalize across paraphrases or degrade unrelated behavior, indicating that the ``stored value'' is entangled with the broader representation. These findings reinforce the superposition perspective: an edit nudges a direction that overlaps with many other facts.
+
+\section{Does the model ``know what it knows''?}
+Finally, storage interacts with reliability. Even when a fact is encoded, the model may fail to recall it, or may confidently emit a plausible but false ``value''---a hallucination. \citet{kadavath2022know} found that models carry some internal signal of their own correctness, and that calibration and self-evaluation can partly predict whether a recalled fact is right. This suggests that recall quality is itself represented, however imperfectly, and that storage without reliable retrieval is a central failure mode of knowledge in language models.
+
+\section{Synthesis}
+Putting the pieces together, a defensible mechanistic story is: (1) MLP layers act as key--value associative memories \citep{geva2021kv,geva2022promote}; (2) a given fact's write-site can be causally localized to mid-layer MLPs at the subject token, and edited there \citep{meng2022rome,meng2022memit}; (3) recall proceeds by subject enrichment followed by attention-based attribute extraction at the query position \citep{geva2023dissecting} over the residual stream \citep{elhage2021mathematical}; and (4) the underlying representations are nonetheless distributed and superposed \citep{elhage2022superposition,cunningham2023sparse}, so localization of computation must not be confused with tidy localization of representation \citep{hase2023does}, and edits ripple through entangled knowledge \citep{cohen2023ripple}. Knowledge in a transformer is best understood not as a stored table but as a learned, distributed memory that is reconstructed on demand by a specific, partly interpretable computation.
+
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+\end{document}

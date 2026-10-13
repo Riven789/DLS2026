@@ -1,0 +1,72 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor}
+\usepackage{listings}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\lstset{basicstyle=\ttfamily\small,columns=fullflexible,keepspaces=true,breaklines=true}
+
+\title{Q26: How Does Fine-Tuning Change a Model --- and How Should We Adapt It?}
+\author{DLS 2026 --- Module (Paradise)}
+\date{October 2026}
+\begin{document}
+\maketitle
+
+\section*{Learning objectives}
+After this module, a student should be able to (i) distinguish what fine-tuning changes in weights from what changes on the \emph{behavior surface} (response distribution vs.\ knowledge), (ii) explain catastrophic forgetting and the main mitigations (replay, low-rank updates), (iii) place LoRA and QLoRA in the parameter-efficient family and say why a rank-$r$ constraint preserves base capabilities, (iv) apply the retrieve-vs-tune decision rule, and (v) reason about online/continual adaptation and why naive online updates destabilize RLHF-trained models.
+
+\section{Weight update vs.\ behavior surface}
+Fine-tuning is, mechanically, nothing exotic: continue running (a variant of) SGD on a loss computed over a new, narrower dataset, starting from pretrained weights $\theta_0$. What students often miss is that the \emph{mechanics} say nothing about which \emph{kind} of change the user will observe. Two families dominate practice:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Behavior reshaping.} Instruction tuning and preference optimization (RLHF, DPO) change the \emph{response distribution} --- how the model formats, refuses, plans, and engages --- far more than what it knows. InstructGPT is the canonical demonstration: a 1.3B model tuned on demonstrations and preference labels was \emph{preferred} by human raters to the 175B base GPT-3 it came from, on the same prompt distribution \cite{ouyang2022training}. The knowledge was already in the base model; the tuning moved probability mass from ``continue this text'' toward ``answer this request.'' DPO makes the same point from the optimization side: preference alignment is a classification-like loss on the policy itself, with a KL anchor to the reference model to keep the change bounded \cite{rafailov2023direct}.
+  \item \textbf{Knowledge/vocabulary injection.} Continued (domain) pre-training on in-domain corpora is meant to add vocabulary, entities, and facts. This is the harder direction: the evidence is that unsupervised fine-tuning transfers new \emph{facts} poorly. Ovadia et al.\ compared unsupervised fine-tuning against retrieval-augmented generation (RAG) on knowledge-intensive tasks and found RAG consistently ahead --- for knowledge the model had seen and for genuinely new knowledge alike; fine-tuning helped somewhat but ``was not competitive'' \cite{ovadia2024fine}.
+\end{itemize}
+
+This split motivates the module's decision rule: \emph{if it's facts you need, retrieve; if it's behavior you need, tune.} Facts change hourly, cite poorly from weights, and audit worse; retrieval (RAG couples a frozen generator to a retrievable non-parametric memory \cite{lewis2020retrieval}) updates by editing an index, with provenance for free. Behavior --- tone, format, tool protocol, refusal style --- cannot be prompted reliably at the margin and is exactly what gradient descent on demonstrations moves cheaply.
+
+\section{Catastrophic forgetting}
+The obstacle to any sequential adaptation is \emph{catastrophic forgetting}: training on task B overwrites weights that task A relied on, because plain SGD has no memory of which weights matter to what \cite{french1999catastrophic,kirkpatrick2017overcoming}. The effect is abrupt, not gradual --- classic list-learning results show accuracy on old associations collapsing within a handful of new-task trials \cite{french1999catastrophic}. Two mitigations matter for LLM practice:
+
+\begin{itemize}[noitemsep]
+  \item \textbf{Replay (data mixing).} Interleave a sample of pre-training or general instruction data with the domain data. The gradient signal on old-task data cancels the drift; this is why every serious domain-adaptation recipe mixes replay buffers, and why continual pre-training uses much lower learning rates \cite{ovadia2024fine}.
+  \item \textbf{Constrained updates (LoRA, EWC-style penalties).} Elastic Weight Consolidation penalizes movement of weights proportionally to their importance (a Fisher-information diagonal) to old tasks \cite{kirkpatrick2017overcoming}. LoRA reaches a similar endpoint by construction rather than penalty, as the next section explains.
+\end{itemize}
+
+\section{The PEFT family: LoRA and QLoRA}
+LoRA \cite{hu2022lora} freezes the pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$ and learns only a low-rank residual:
+\begin{equation}
+W = W_0 + \Delta W, \qquad \Delta W = \frac{\alpha}{r}\, B A, \qquad B \in \mathbb{R}^{d \times r},\ A \in \mathbb{R}^{r \times k},\ r \ll \min(d,k).
+\end{equation}
+Only $A$ and $B$ receive gradients ($A$ initialized randomly, $B$ at zero, so $\Delta W = 0$ at step 0). Three consequences:
+
+\begin{enumerate}[noitemsep]
+  \item \textbf{Parameter count.} Trainable parameters drop from $dk$ to $r(d+k)$; on GPT-3 175B, up to $10{,}000\times$ fewer, with no added inference latency because $W_0 + BA$ can be merged into one matrix \cite{hu2022lora}.
+  \item \textbf{Why rank-$r$ preserves base capabilities.} The update lives, by construction, in an $r$-dimensional subspace of a $d$-dimensional row space: $\Delta W$'s rows are all linear combinations of the $r$ rows of $A$. The bulk of $W_0$ --- the directions that encode pretrained competence --- is untouched, and the residual the optimizer may express is confined to a subspace too small to rewrite the base function wholesale. Hu et al.'s empirical finding that the adaptation-induced $\Delta W$ has low ``intrinsic rank'' (very small $r$ suffices even for $d = 12{,}288$) is what makes this a \emph{constraint} that costs little rather than a straitjacket \cite{hu2022lora}. The forgetting story is a corollary: a capacity-limited residual cannot drift as far from $W_0$ as an unconstrained full update, which is why LoRA behaves like a soft EWC in our companion demo.
+  \item \textbf{Swappability.} Adapters are small enough to store per domain and hot-swap at inference; the base model serves all domains.
+\end{enumerate}
+
+QLoRA \cite{dettmers2023qlora} stacks a quantization trick on top: backpropagate through a frozen \emph{4-bit} quantized base model (NF4, an information-theoretically motivated datatype for normally distributed weights, plus double quantization of the constants and paged optimizers) into LoRA adapters. The result --- a 65B model fine-tuned within a single 48GB GPU with 16-bit-level task performance --- moved fine-tuning from a datacenter activity to a workstation one, at some cost in fidelity and throughput relative to full precision.
+
+\section{RAG vs.\ fine-tune: the decision rule in practice}
+The rule is a first cut, not a law. Retrieve when: knowledge is volatile, must be cited, is too large to encode, or access must be revocable. Tune when: the target is \emph{behavior} --- output format, style, domain-specific instruction-following, latency-critical skills that prompting cannot stabilize --- or when the domain's \emph{style} (not its facts) is the shift. Combine them when both apply: a LoRA-tuned generator over a domain index is a standard stack, and Ovadia et al.\ found fine-tuning the RAG generator sometimes helps, though inconsistently --- evidence that fine-tuning's effect on knowledge injection is itself unstable \cite{ovadia2024fine}. Costs favor retrieval for iteration speed (an index rebuild is not a training run), and tuning for per-token inference cost and no context-window tax.
+
+\section{Online and continual adaptation}
+\paragraph{Test-time training.} Adaptation can happen at inference: Sun et al.'s test-time training turns each unlabeled test input into a self-supervised problem and updates (a copy of) the model before predicting, extending naturally to streams \cite{sun2020test}. In LLM use, the same idea appears as test-time/few-shot adaptation and cache/context editing; the discipline it teaches is that the objective used online must be \emph{self-supervised} --- there are no labels at test time.
+\paragraph{Streaming updates.} Full continual learning --- weights updated as data arrives --- remains fragile. Non-stationary streams, small per-step batches, and distribution drift reintroduce catastrophic forgetting at production cadence; replay ratios, EWC-style consolidation \cite{kirkpatrick2017overcoming}, and bounded updates are the standard controls.
+\paragraph{Why naive online SGD destabilizes RLHF models.} A preference-tuned model sits at a delicate optimum: a KL-anchored point where small logit shifts can move generation out of the trained distribution. Unconstrained online updates (i) violate the anchor --- there is no reference-model penalty in plain SGD, so the policy drifts arbitrarily far from what the preference data certified; (ii) sharpen the distribution --- repeated likelihood-style updates on a narrow stream collapse entropy, producing repetitive, over-confident outputs; and (iii) compound --- each update moves the starting point of the next, so errors accumulate. This is why deployed ``learning'' systems favor bounded mechanisms (LoRA residual with small $r$, KL/anchor penalties, periodic re-tuning from the frozen base \cite{rafailov2023direct}) over in-the-loop weight writes.
+
+\section{Adaptation pipelines in practice}
+A domain-adaptation stack, in the order that works:
+\begin{enumerate}[noitemsep]
+  \item \textbf{Retrieval first.} Build the domain index; measure how far the frozen base + RAG already goes. This is the cheapest iteration loop \cite{lewis2020retrieval,ovadia2024fine}.
+  \item \textbf{SFT for domain behavior.} If format/instruction-following still lags, SFT on curated domain demonstrations --- typically LoRA \cite{hu2022lora} or QLoRA \cite{dettmers2023qlora} --- with replay data mixed in.
+  \item \textbf{Preference optimization last.} DPO/RLHF stages shape tone and refusals; run them \emph{after} SFT, because preference data assumes the model can already produce the behavior being ranked, and the KL/DPO anchor is defined against the post-SFT reference \cite{rafailov2023direct,ouyang2022training}. Reversing the order wastes the preference stage re-teaching format.
+\end{enumerate}
+The one-sentence summary: \emph{fine-tuning is a constrained, forget-prone edit to a response distribution --- retrieve for knowledge, tune for behavior, keep the update bounded, and order the pipeline SFT $\to$ preference.}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+\title{Q14: Comprehension Check}
+\author{DLS 2026 --- Kukla}
+\date{October 2026}
+\begin{document}
+\maketitle
+\textbf{Comprehension check.} A student says ``I'll just find the neuron that stores the fact that Paris
+is the capital of France and read it off.'' Give two reasons from this module why that is harder than it
+sounds, and name where such factual knowledge is most likely concentrated.
+
+\vspace{0.8cm}\hrule\vspace{4pt}
+{\small\textbf{Answer.} (1) Concepts are represented as \emph{directions} (linear combinations of many
+neurons), not single units, so there is usually no one ``Paris'' neuron to read. (2) \emph{Superposition}:
+networks pack more features than neurons, so individual neurons are \emph{polysemantic} (fire for many
+unrelated things), making any single neuron's activation ambiguous. Such factual associations are most
+likely concentrated in the \textbf{MLP/feed-forward sublayers}, which act as key--value memories and can be
+localized with causal tracing (and disentangled with sparse autoencoders).}
+\end{document}

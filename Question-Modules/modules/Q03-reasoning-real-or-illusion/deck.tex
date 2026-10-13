@@ -1,0 +1,123 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{metropolis}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Module Q03 --- Is Reasoning Real, a Property of Language, a Reflection, or an Illusion?}
+\subtitle{Deep Learning Systems 2026: AI Internals}
+\author{DLS 2026 Teaching Staff}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Framing the Question}
+  The student asks four distinct hypotheses, often conflated:
+  \begin{itemize}
+    \item \textbf{Real}: the model executes genuine inference steps that cause its answer.
+    \item \textbf{Property of language}: ``reasoning'' is latent in the statistics of text; the model inherits it.
+    \item \textbf{Reflection}: the model mirrors reasoning patterns present in training data without owning the process.
+    \item \textbf{Illusion}: the appearance of reasoning is a post-hoc narrative, not the mechanism.
+  \end{itemize}
+  \alert{Claim of this module}: these are not mutually exclusive, and the empirical evidence partitions across them depending on \emph{task}, \emph{scale}, and \emph{what we measure}.
+\end{frame}
+
+\begin{frame}{Evidence That Something Real Emerges}
+  \begin{itemize}
+    \item Chain-of-thought (CoT) prompting materially improves multi-step arithmetic and symbolic tasks, with gains sharpest at scale \citep{wei2022chain}.
+    \item Self-consistency (sampling multiple chains, taking the majority) further lifts accuracy, suggesting the chains carry task-relevant computation \citep{wang2022selfconsistency}.
+    \item Scratchpads let transformers perform long multi-step computations by externalizing intermediate state \citep{nye2021scratchpad}.
+  \end{itemize}
+  \textbf{Interpretation}: intermediate tokens expand the effective serial computation budget --- a mechanistic reason CoT helps rather than mere decoration.
+\end{frame}
+
+\begin{frame}{Evidence That It Is a Property of Language / Statistics}
+  \begin{itemize}
+    \item Many ``reasoning'' gains track surface features: answer frequency, term overlap, and token-level priors.
+    \item Benchmark performance can shift sharply with superficial perturbations, implying reliance on distributional cues rather than abstract rules \citep{mccoy2019right}.
+    \item Capabilities ride on scale and data coverage, consistent with reasoning being recoverable \emph{structure} in language rather than a separate faculty \citep{brown2020language}.
+  \end{itemize}
+  So some of what looks like reasoning is competence \emph{compressed into} the language distribution.
+\end{frame}
+
+\begin{frame}{Evidence That It Is a Reflection or an Illusion}
+  \begin{itemize}
+    \item CoT explanations can be \emph{unfaithful}: models reach the same answer even when the stated reasoning is corrupted, and are influenced by biasing features they never mention \citep{turpin2023language}.
+    \item Verbalized reasoning need not be the causal path to the output --- the narrative may be reconstructed after the computation \citep{turpin2023language}.
+    \item Robustness gaps on perturbed inputs suggest pattern-reflection over principled inference \citep{mccoy2019right}.
+  \end{itemize}
+  \alert{Caution}: ``the explanation is unfaithful'' refutes \emph{transparency}, not necessarily the existence of internal computation.
+\end{frame}
+
+\begin{frame}{Disentangling: Mechanism vs.\ Explanation}
+  Two separable claims:
+  \begin{enumerate}
+    \item \textbf{Does internal computation occur?} Interpretability work finds structured, reusable circuits (e.g.\ induction heads implementing in-context copying/completion), a concrete mechanism underlying in-context generalization \citep{olsson2022incontext}.
+    \item \textbf{Is the stated chain the mechanism?} Often not --- faithfulness is not guaranteed \citep{turpin2023language}.
+  \end{enumerate}
+  \[
+    \text{observed reasoning} \;=\; \underbrace{f_{\text{circuit}}(x)}_{\text{real computation}} \;+\; \underbrace{g_{\text{verbalize}}(x)}_{\text{possibly post-hoc}}
+  \]
+  Measuring only text conflates these two terms.
+\end{frame}
+
+\begin{frame}{A Working Synthesis}
+  \begin{table}
+    \centering
+    \begin{tabular}{@{}lll@{}}
+      \toprule
+      Hypothesis & True for\dots & Key evidence \\
+      \midrule
+      Real & serial multi-step tasks & \citep{nye2021scratchpad,wei2022chain} \\
+      Property of language & broad competence & \citep{brown2020language} \\
+      Reflection & perturbation-fragile tasks & \citep{mccoy2019right} \\
+      Illusion (of transparency) & verbal CoT fidelity & \citep{turpin2023language} \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \textbf{Bottom line}: real \emph{computation} happens (circuits, extended serial depth), it is largely a \emph{property learned from language}, and the \emph{verbal explanation} is partly illusory. The illusion is about \emph{introspective reporting}, not about the absence of mechanism.
+\end{frame}
+
+\begin{frame}{How to Test the Claim Yourself}
+  \begin{itemize}
+    \item \textbf{Faithfulness probes}: perturb or bias the input; check whether the answer changes while the stated chain does not \citep{turpin2023language}.
+    \item \textbf{Ablate the scratchpad}: remove intermediate tokens and measure the accuracy drop to estimate the real serial-compute contribution \citep{nye2021scratchpad}.
+    \item \textbf{Self-consistency spread}: variance across sampled chains diagnoses whether computation or priors dominate \citep{wang2022selfconsistency}.
+    \item \textbf{Mechanistic probing}: look for circuits (e.g.\ induction heads) correlated with the capability \citep{olsson2022incontext}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Takeaways}
+  \begin{itemize}
+    \item The question is under-specified until you fix \emph{what} you measure.
+    \item Internal multi-step computation is real and mechanistically visible \citep{olsson2022incontext}; it is learned from the distribution of language \citep{brown2020language}.
+    \item The emitted reasoning trace is a useful but \emph{unreliable} window into that computation \citep{turpin2023language}.
+    \item Design evaluations that separate \emph{mechanism} from \emph{explanation} rather than scoring narratives.
+  \end{itemize}
+  \centering \alert{Reasoning is real as computation, linguistic in origin, and partly illusory as self-report.}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+  \footnotesize
+  \begin{thebibliography}{9}
+    \bibitem{wei2022chain} J.~Wei, X.~Wang, D.~Schuurmans, M.~Bosma, B.~Ichter, F.~Xia, E.~Chi, Q.~Le, and D.~Zhou. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. \emph{NeurIPS}, 2022.
+    \bibitem{wang2022selfconsistency} X.~Wang, J.~Wei, D.~Schuurmans, Q.~Le, E.~Chi, S.~Narang, A.~Chowdhery, and D.~Zhou. Self-Consistency Improves Chain of Thought Reasoning in Language Models. \emph{ICLR}, 2023.
+    \bibitem{nye2021scratchpad} M.~Nye, A.~J.~Andreassen, G.~Gur-Ari, et al. Show Your Work: Scratchpads for Intermediate Computation with Language Models. \emph{arXiv:2112.00114}, 2021.
+    \bibitem{brown2020language} T.~B.~Brown, B.~Mann, N.~Ryder, et al. Language Models are Few-Shot Learners. \emph{NeurIPS}, 2020.
+    \bibitem{mccoy2019right} R.~T.~McCoy, E.~Pavlick, and T.~Linzen. Right for the Wrong Reasons: Diagnosing Syntactic Heuristics in Natural Language Inference. \emph{ACL}, 2019.
+    \bibitem{turpin2023language} M.~Turpin, J.~Michael, E.~Perez, and S.~R.~Bowman. Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting. \emph{NeurIPS}, 2023.
+    \bibitem{olsson2022incontext} C.~Olsson, N.~Elhage, N.~Nanda, et al. In-context Learning and Induction Heads. \emph{Transformer Circuits Thread}, 2022.
+  \end{thebibliography}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,hyperref,enumitem,amsmath,amssymb,xcolor,booktabs}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{url}
+\hypersetup{colorlinks=true,urlcolor=blue,citecolor=blue,linkcolor=blue}
+
+\title{Q27 --- Comprehension check}
+\author{Deep Learning Systems 2026 --- AI Internals Module}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Comprehension Question}
+
+A student writes:
+
+\begin{quote}
+\emph{``Interpretability: how can inspecting weights reveal a model's tendencies? And do models revert to their pre-training traits after deployment?''}
+\end{quote}
+
+Address both parts. First, explain how weight- and activation-level inspection can expose a model's learned structure and behavioral dispositions, naming at least two concrete interpretability techniques and stating clearly what they do and do not establish. Second, assess the claim that a deployed model ``reverts'' to pre-training traits: distinguish between (a) persistent parameters fixed at deployment, (b) in-context adaptation that does not alter weights, and (c) the re-emergence of pretrained behaviors when fine-tuning constraints are weak. Be explicit about which framings are supported by current evidence and which are misconceptions.
+
+\paragraph{Answer}
+\textbf{Part 1 --- Inspecting internal structure.} A trained network stores its dispositions in parameters, but raw weights are rarely directly legible; interpretability instead reconstructs human-understandable features and circuits from weights and activations. Several complementary techniques exist. (i) \emph{Feature visualization and attribution} characterize what inputs maximally excite a unit or channel, giving evidence about what a neuron responds to \citep{olah2017feature}. (ii) \emph{Circuit analysis} traces how small subgraphs of weights compose simple features into higher-level computations, with the ``curve detector'' and related circuits in vision models as canonical worked examples \citep{olah2020zoom}. (iii) \emph{Probing classifiers} train a simple readout on frozen activations to test whether a property (e.g., syntax, sentiment) is linearly recoverable; crucially, a successful probe shows information is \emph{present}, not that the model \emph{uses} it, and probe accuracy must be calibrated against controls \citep{hewitt2019control}. (iv) \emph{Sparse dictionary methods} decompose polysemantic activations into more monosemantic features, addressing superposition where one neuron encodes many concepts \citep{elhage2022superposition}. Taken together, these tools can surface tendencies---such as reliance on spurious shortcut features---but inferences about ``what the model will do'' are correlational unless validated by causal interventions (ablating or patching the identified components and observing behavioral change). Weight inspection reveals \emph{capacities and mechanisms}, not guaranteed behavior across all deployment inputs.
+
+\textbf{Part 2 --- ``Reverting'' after deployment.} The intuition conflates three distinct phenomena. (a) \emph{Fixed parameters.} For a standard deployed model, weights are frozen at inference time; the model does not spontaneously drift back toward a pre-training checkpoint, because no gradient updates occur. There is no mechanism for such reversion. (b) \emph{In-context adaptation.} Large models adjust behavior from prompt context without any weight change, an effect sometimes framed as implicit optimization over the context \citep{garg2022incontext}. This is transient and input-local: changing the prompt changes behavior, but the parameters---and thus the underlying dispositions---are unchanged. Describing this as ``reverting'' is a misconception; it is conditioning, not relapse. (c) \emph{Re-emergence of pretrained behavior under weak fine-tuning.} The kernel of truth is that alignment or safety fine-tuning is often a thin, shallow modification over a vast pretrained base; adversarial prompts, distribution shift, or further fine-tuning can elicit pretrained behaviors that the fine-tuning only superficially suppressed \citep{wei2023jailbroken}. This is best understood not as autonomous reversion over time but as the fine-tuned policy failing to cover inputs far from its training distribution, exposing the still-present pretrained capacities documented by the interpretability tools above. \textbf{Summary:} inspecting internals reveals mechanisms and latent tendencies but requires causal validation to predict behavior; deployed weights do not drift back to pre-training on their own, yet pretrained dispositions remain latent and can resurface when the fine-tuning layer is shallow or the input is out-of-distribution.
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+
+\bibitem[Olah et al.(2017)]{olah2017feature}
+C.~Olah, A.~Mordvintsev, and L.~Schubert.
+\newblock Feature visualization.
+\newblock \emph{Distill}, 2017.
+\newblock \url{https://distill.pub/2017/feature-visualization/}.
+
+\bibitem[Olah et al.(2020)]{olah2020zoom}
+C.~Olah, N.~Cammarata, L.~Schubert, G.~Goh, M.~Petrov, and S.~Carter.
+\newblock Zoom in: An introduction to circuits.
+\newblock \emph{Distill}, 2020.
+\newblock \url{https://distill.pub/2020/circuits/zoom-in/}.
+
+\bibitem[Hewitt and Liang(2019)]{hewitt2019control}
+J.~Hewitt and P.~Liang.
+\newblock Designing and interpreting probes with control tasks.
+\newblock In \emph{Proceedings of EMNLP-IJCNLP}, 2019.
+
+\bibitem[Elhage et al.(2022)]{elhage2022superposition}
+N.~Elhage, T.~Hume, C.~Olsson, N.~Schiefer, T.~Henighan, S.~Kravec,
+  Z.~Hatfield-Dodds, R.~Lasenby, D.~Drain, C.~Chen, et~al.
+\newblock Toy models of superposition.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+\newblock \url{https://transformer-circuits.pub/2022/toy_model/index.html}.
+
+\bibitem[Garg et al.(2022)]{garg2022incontext}
+S.~Garg, D.~Tsipras, P.~Liang, and G.~Valiant.
+\newblock What can transformers learn in-context? A case study of simple
+  function classes.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2022.
+
+\bibitem[Wei et al.(2023)]{wei2023jailbroken}
+A.~Wei, N.~Haghtalab, and J.~Steinhardt.
+\newblock Jailbroken: How does LLM safety training fail?
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2023.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,12 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype}
+\title{Q09 Comprehension Check}
+\date{}
+\begin{document}
+\maketitle
+\textbf{Question:} A colleague proposes the following pretraining data plan: ``We have 100B tokens of curated text. Chinchilla says scale data, so let's train on each document \emph{40 epochs} to get 4T effective training tokens --- repetition is free.'' Identify the error, cite the relevant empirical result, and state what the evidence actually supports.
+
+\vspace{1em}
+\textbf{Answer:} The error is treating repeated tokens as equivalent to fresh tokens. Muennighoff et al.\ (2023) varied repetition and compute across 400+ runs and found that with constrained data, up to about \textbf{4 epochs} of repeated data yields loss changes that are negligible relative to unique data; beyond that, the value of added compute decays toward zero. So 40 epochs gives nowhere near a 40$\times$ increase in effective tokens --- after $\sim$4 epochs, returns have largely vanished. The evidence supports: (1) repeating a clean corpus up to $\sim$4 epochs as a reasonable way to spend fixed compute (with the data-constrained optimum shifting toward smaller models trained more epochs, not Chinchilla's equal parameter/data scaling); and (2) complementing scarce text with other data (e.g., code, which Muennighoff et al.\ find can roughly double effective tokens even for natural-language evaluation) rather than hammering the same tokens.
+\end{document}

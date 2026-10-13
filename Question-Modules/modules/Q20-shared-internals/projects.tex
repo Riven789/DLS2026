@@ -1,0 +1,14 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q20 Deeper Project Suggestions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item \textbf{Lineage audit:} implement a 2-layer CNN, RNN, and Transformer in the same notebook with a shared training loop; tabulate which code lines are architecture-specific vs.\ shared. Quantify: what fraction of the \emph{code} is the skeleton?
+\item \textbf{Mixer swap experiment:} train identical-parameter small models where only the sequence mixer differs (attention vs.\ conv vs.\ recurrence). Plot loss curves and training wall-clock; measure parallelism sensitivity by varying sequence length.
+\item \textbf{Transfer-of-intuition test:} take three classic vision diagnostics (LR-range test, grad-norm monitoring, overfit-one-batch) and systematically apply them to small LM training; document which transfer and which mislead.
+\item \textbf{Post-training on a non-LLM:} apply DPO-style preference optimization to a small classifier's logits and characterize what breaks; write up whether ``post-training'' is inherently generative.
+\end{enumerate}
+\end{document}

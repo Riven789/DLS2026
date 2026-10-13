@@ -1,0 +1,15 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern,microtype,enumitem}
+\title{Q13 Discussion Questions}
+\date{}
+\begin{document}
+\maketitle
+\begin{enumerate}[noitemsep]
+\item Geva et al.\ showed FFN layers \emph{can be viewed} as key--value memories, and ROME's causal tracing supported mid-MLP storage for crisp entity facts. Where do you expect this picture to break --- procedural knowledge, commonsense, skills --- and what experiment would distinguish ``stored in MLPs'' from ``emergent from the whole network''?
+\item Superposition trades capacity against interference. If a frontier model stores many more features than dimensions, what does that imply about the achievable precision of knowledge editing --- and is there any representation scheme that would give us both compression and editability?
+\item Probing accuracy shows information is \emph{accessible} in a representation, not that the model \emph{uses} it. Design a minimal experiment that separates the two for a factual claim (e.g., ``the capital of Australia''), using only black-box queries and linear probes.
+\item ROME/MEMIT edits can bleed over to neighboring subjects and degrade fluency. Given the superposition story, is bleedover a bug that better engineering will remove, or an intrinsic property of distributed storage? What would count as evidence for each?
+\item Knowledge-in-weights is static and hard to update; knowledge-in-context is instant but tiny. Which failure mode worries you more for a deployed assistant --- stale parametric knowledge overriding correct context, or context overflow dropping crucial facts --- and how would you architect the boundary between the two channels?
+\end{enumerate}
+\end{document}
