@@ -1,0 +1,9 @@
+\documentclass[aspectratio=169]{beamer}\usetheme{metropolis}\title{Deep Learning Foundations}\subtitle{T1-02}\author{DLS 2026}\date{11 October 2026}\begin{document}\maketitle
+\begin{frame}{The learning chain} Examples $\rightarrow$ representation $\rightarrow$ prediction $\rightarrow$ loss $\rightarrow$ gradient $\rightarrow$ update. Every link can fail differently.\end{frame}
+\begin{frame}{A binary classifier} $z=w^Tx+b$, $p=\sigma(z)$, $\ell=-[y\log p+(1-y)\log(1-p)]$. The loss translates a task judgment into an optimization signal.\end{frame}
+\begin{frame}{The useful derivative} $\partial\ell/\partial z=p-y$ and $\nabla_w\ell=(p-y)x$. Underprediction of a positive example raises its logit; overprediction of a negative lowers it.\end{frame}
+\begin{frame}{Backpropagation} Apply the chain rule backward through a computation graph. It efficiently reuses intermediate calculations; it does not guarantee a good task or data set.\end{frame}
+\begin{frame}{Worked update} For $x=(2,-1)$, $w=(.1,.2)$, $b=0$, $y=1$: $p=.5$, gradient $=(-1,.5)$; a small update increases this example's probability.\end{frame}
+\begin{frame}{Why training loss is insufficient} Leakage, nonrepresentative splits, imbalance, and a bad objective can all yield an attractive curve and a bad deployed system.\end{frame}
+\begin{frame}{Verification habits} Use held-out data; make preprocessing split-aware; inspect errors; finite-difference-check a small gradient implementation.\end{frame}
+\begin{frame}{Question} What would convince you that an observed accuracy gain is generalization rather than leakage or a shifted test distribution?\end{frame}\end{document}
