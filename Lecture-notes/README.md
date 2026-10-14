@@ -16,12 +16,18 @@ each (`<Deck-Name>/<Deck-Name>-part<N>.pdf`).
 - **Decoder_Only_Transformer_Tutorial** (20 pp) — single part
 - **Inperson-Week-2-prompts** (2 pp) — single part
 
+## Week 3 (week of Oct 13, 2026)
+- **LS-2026-Transformer-Visual-Tutorial** (31 pp) — parts 1–2
+- **LS-2026-Pi-Coding-Agent-Tutorial** (20 pp) — single part
+
 Layout:
 ```
 Lecture-notes/
   Week-1/  <full PDFs> + <Deck>/<Deck>-part<N>.pdf
   Week-2/  <full PDFs> + <Deck>/<Deck>-part<N>.pdf
+  Week-3/  <full PDFs> + <Deck>/<Deck>-part<N>.pdf
 ```
 
-Generated 2026-10-11 from the decks used in class (weeks of Sep 29 and Oct 6).
+Generated 2026-10-11 (weeks 1–2) and 2026-10-13 (week 3) from the decks used
+in class.
 Student roster data is intentionally NOT included in this directory.
