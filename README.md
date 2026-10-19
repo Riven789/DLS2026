@@ -16,7 +16,7 @@ VPN, no Tailscale, no special network required.
 |------|-----------|
 | [`piago-dls-2026/`](piago-dls-2026/) | The `piago-dls-2026` launcher for the [pi](https://pi.dev) coding agent, plus its installer and `models.json`. |
 | [`examples/`](examples/) | Standalone curl / Python examples that hit the raw endpoint (no pi required). |
-| [`Topics/`](Topics/) | Deep-dive topic sections (Scaling Laws, Pretraining & the MAI case study, Post-training, Sparsity & Precision) — decks, notes, tutorials, and reading lists. |
+| [`Lecture-topics/`](Lecture-topics/) | Deep-dive topic kits (Transformer, Pretraining & the MAI case study, Scaling Laws, Post-training, Sparsity & Precision, LLM Runtime) — slides, notes, reading lists, and papers. |
 
 ## Quick start (pi coding agent)
 
