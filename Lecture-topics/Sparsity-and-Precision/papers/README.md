@@ -257,3 +257,8 @@ Entries without an arXiv identifier are listed with a URL and must be fetched by
   The peak-throughput and bandwidth figures of slide 21; dense values are half the 'with sparsity' headlines. Secondary source.
 - **Moonshot AI (2026).** *Kimi K3 model card.* https://huggingface.co/moonshotai/Kimi-K3  
   2.8T/104B with 16 of 896 experts plus 2 shared; MXFP4/MXFP8 QAT from SFT onward (2026). Secondary source.
+
+## Emerging direction: weight-space programming
+
+- **Tian et al. (2026).** *Sparks of Weight-Space Programming: LLMs can natively read & write neural network weights.* <https://rikiyat.github.io/blog/weight-space-programming/>
+  Research blog with early experiments in which frontier LLMs inspect, diagnose, directly edit, and synthesize neural-network weights from natural-language goals; relevant to pruning, model editing, optimization, and interpretability. Treat the reported results as emerging evidence rather than an established benchmark.
