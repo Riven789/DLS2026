@@ -20,6 +20,7 @@ VPN, no Tailscale, no special network required.
 | [`Lab1/`](Lab1/) | Lab 1: coding-agent environments and controlled agent comparison. |
 | [`Lab2/`](Lab2/) | Lab 2: experiments on microgpt with a coding agent. |
 | [`Lab3/`](Lab3/) | Lab 3: sparse and reduced-precision MLP/CNN/GNN experiments with Pi. |
+| [`In-Class-Assignments/`](In-Class-Assignments/) | Short writing prompts and other in-class activities. |
 
 ## Quick start (pi coding agent)
 
