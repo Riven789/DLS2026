@@ -17,6 +17,9 @@ VPN, no Tailscale, no special network required.
 | [`piago-dls-2026/`](piago-dls-2026/) | The `piago-dls-2026` launcher for the [pi](https://pi.dev) coding agent, plus its installer and `models.json`. |
 | [`examples/`](examples/) | Standalone curl / Python examples that hit the raw endpoint (no pi required). |
 | [`Lecture-topics/`](Lecture-topics/) | Deep-dive topic kits (Transformer, Pretraining & the MAI case study, Scaling Laws, Post-training, Sparsity & Precision, LLM Runtime) — slides, notes, reading lists, and papers. |
+| [`Lab1/`](Lab1/) | Lab 1: coding-agent environments and controlled agent comparison. |
+| [`Lab2/`](Lab2/) | Lab 2: experiments on microgpt with a coding agent. |
+| [`Lab3/`](Lab3/) | Lab 3: sparse and reduced-precision MLP/CNN/GNN experiments with Pi. |
 
 ## Quick start (pi coding agent)
 
