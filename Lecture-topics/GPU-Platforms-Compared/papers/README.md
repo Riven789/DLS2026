@@ -1,0 +1,270 @@
+# Reading list: Data-Center GPU Platforms Compared
+
+Companion papers to the deck and its lecture notes, grouped by section.
+`reading_list.csv` and `reading_list.bib` hold the same list as data; `fetch_papers.sh` downloads
+every arXiv entry into one folder per section and zips the result (`bash fetch_papers.sh`).
+Entries without an arXiv identifier are listed with a URL and must be fetched by hand.
+
+## 1. Overview: three vendors, six levels (slides 1-3)
+
+- **SemiAnalysis InferenceX (2026).** *GPU specifications table (InferenceX).* https://inferencex.semianalysis.com/gpu-specs
+  Analyst compilation, secondary source. Cross-vendor dense tensor peaks on one page; the sanity check for the three-vendor chart. Slide 2.
+- **Silicon Analysts (2026).** *AMD vs NVIDIA AI GPU market share 2026.* https://siliconanalysts.com/analysis/amd-vs-nvidia-ai-gpu-market-share-2026
+  Analyst estimate, secondary source. The share figures the deck quotes as estimates only (NVIDIA about 80 percent, AMD under 10, Intel under 1). Slides 2 and 29.
+- **TrendForce (2026).** *Rubin faces delays; Blackwell over 70 percent of 2026 shipments (April 2026).* https://www.trendforce.com/presscenter/news/20260408-13003.html
+  Analyst press release, secondary source. The 2026 NVIDIA product mix behind the share discussion. Slides 2 and 33.
+- **Lockwood (2026).** *Rubin R200 (processor garden page).* https://glennklockwood.com/garden/processors/R200
+  Independent, open. A sourced compilation of every Rubin number with its date, including the NVL144 to NVL72 renaming; the provenance check for the Rubin column throughout. Slides 2, 4 and 31.
+- **Open Compute Project (2019).** *OCP Accelerator Module (OAM) wiki and specifications.* https://www.opencompute.org/wiki/Server/OAM
+  Standards body, open. The OAM module and UBB baseboard specifications that AMD and Intel accelerators ship on; the board level of the six-level table. Slides 3 and 23.
+
+## 2. The NVIDIA line as platforms (slides 4-6)
+
+- **NVIDIA (2020).** *HGX A100 datasheet.* https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/HGX/pdf/nvidia-hgx-a100-datasheet.pdf
+  Vendor datasheet. The 8-GPU board: 40/80 GB per GPU, 600 GB/s NVLink 3 per GPU, 4.8 TB/s aggregate through six NVSwitches; the first row of the platform table. Slides 4 and 21.
+- **NVIDIA (2023).** *H100 Tensor Core GPU datasheet.* https://openzeka.com/wp-content/uploads/2023/12/h100-datasheet-1.pdf
+  Vendor datasheet (mirror). The shipping H100 peaks with the sparsity footnote: TF32 494/989, FP16 989/1,979, FP8 1,979/3,958 dense/sparse; 80 GB at 3.35 TB/s, 700 W. Slides 4, 6 and 18.
+- **CoreWeave documentation (2024).** *NVIDIA HGX H100 (platform documentation).* https://docs.coreweave.com/coreweave-machine-learning-and-ai/nvidia-hgx-h100
+  Cloud-provider documentation, secondary source. The 8-GPU HGX H100 totals (640 GB, 900 GB/s NVLink 4 per GPU) as deployed. Slide 4.
+- **NVIDIA (2023).** *NVIDIA supercharges Hopper, the world's leading AI computing platform (press release, November 13, 2023).* https://nvidianews.nvidia.com/news/nvidia-supercharges-hopper-the-worlds-leading-ai-computing-platform
+  Vendor press release. The H200: 141 GB of HBM3e at 4.8 TB/s on the unchanged GH100 die, available Q2 2024; the memory refresh in the platform table and the memory chart. Slides 4 and 5.
+- **Lenovo Press (LP1944) (2025).** *NVIDIA H200 product guide.* https://lenovopress.lenovo.com/lp1944.pdf
+  Vendor documentation. The H200 dense and sparse peak table side by side, the clearest statement that the H200 compute equals the H100's. Slide 4.
+- **NVIDIA (2025).** *GB200 NVL72 (product page).* https://www.nvidia.com/en-us/data-center/gb200-nvl72/
+  Vendor page. The shipping rack with dense and sparse footnotes: 1,440/720 PFLOP/s FP4, 2,880 TFLOP/s FP64, 13.4 TB HBM3e at 576 TB/s, 130 TB/s NVLink; per GPU 186 GB at 8 TB/s. Slides 4, 6 and 22.
+- **The Register (2024).** *Nvidia DGX GB200 NVL72: 120 kW and 1,200 W per GPU (March 2024).* https://www.theregister.com/2024/03/21/nvidia_dgx_gb200_nvk72
+  Press, secondary source. The rack power of about 120 kW and 1,200 W per B200 in the GB200 superchip, figures NVIDIA's pages do not state. Slides 4 and 22.
+- **NVIDIA (2025).** *GB300 NVL72 (product page).* https://www.nvidia.com/en-gb/data-center/gb300-nvl72
+  Vendor page. 1,440/1,080 PFLOP/s FP4 sparse/dense, 100 TFLOP/s FP64 per rack (1.4 per GPU), 288 GB per GPU, 20 TB HBM3e, 1,400 W. Slides 4, 6, 12 and 22.
+- **Tom's Hardware (2025).** *NVIDIA's newest top-tier AI supercomputers deployed for the first time at CoreWeave (July 2025).* https://www.tomshardware.com/tech-industry/artificial-intelligence/nvidias-newest-top-tier-ai-supercomputers-deployed-for-the-first-time-grace-blackwell-ultra-superchip-systems-deployed-at-coreweave
+  Press, secondary source. The first GB300 NVL72 racks, July 3, 2025: the shipment date in the rack table. Slide 22.
+- **Tom's Hardware (2024).** *Dell ships the industry's first GB200 NVL72 racks to CoreWeave (November 18, 2024).* https://www.tomshardware.com/tech-industry/artificial-intelligence/dell-reaches-milestone-with-industrys-first-enterprise-ready-nvidia-blackwell-poweredge-xe9712-server-racks
+  Press, secondary source. The first complete GB200 NVL72 racks (Dell PowerEdge XE9712) delivered in November 2024; the first-shipment date in the rack table. Slide 22.
+- **Tom's Hardware (2026).** *Nvidia launches Vera Rubin NVL72 at CES (January 2026).* https://www.tomshardware.com/pc-components/gpus/nvidia-launches-vera-rubin-nvl72-ai-supercomputer-at-ces-promises-up-to-5x-greater-inference-performance-and-10x-lower-cost-per-token-than-blackwell-coming-2h-2026
+  Press, secondary source. The January 2026 numbers (288 GB HBM4 at 22 TB/s, 3.6 TB/s NVLink 6, 260 TB/s per rack) that the September 2026 revision later reduced. Slides 4 and 22.
+- **NVIDIA (2026).** *Vera Rubin NVL72 (product page, revised September 2026).* https://www.nvidia.com/en-us/data-center/vera-rubin-nvl72
+  Vendor page. The current Rubin specifications used throughout: 19.2 TB/s HBM4 per GPU, 3.0 TB/s NVLink 6, 216 TB/s and 1,400 TB/s per rack, 33 TFLOP/s FP64, 35/50 PFLOP/s NVFP4. Slides 4, 5, 6, 12, 22 and 31.
+- **Hardware Busters (2026).** *Nvidia quietly lowers Vera Rubin HBM4 bandwidth and the HGX NVL8 loses a quarter of it (October 2026).* https://hwbusters.com/news/nvidia-quietly-lowers-vera-rubin-hbm4-bandwidth-and-the-hgx-nvl8-loses-a-quarter-of-it/
+  Press, secondary source. The old-versus-new table of the September 2026 revision, dated with the Wayback Machine; why the deck gives the revised Rubin values. Slides 4 and 22.
+- **Wccftech (2026).** *NVIDIA's official statement on the Vera Rubin spec change (October 29, 2026).* https://wccftech.com/nvidia-official-statement-on-vera-rubin-spec-change/
+  Press, secondary source. NVIDIA's statement that the earlier figures were preliminary architectural targets and the new ones are what qualified production sustains. Slides 4 and 32.
+
+## 3. AMD Instinct and CDNA (slides 7-12)
+
+- **AMD (2020).** *Introducing AMD CDNA architecture (MI100 whitepaper).* https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna-white-paper.pdf
+  Vendor whitepaper. The CDNA 1 compute unit with matrix cores, 120 CUs, 11.5 TFLOP/s FP64, 32 GB HBM2 at 1.2 TB/s, three Infinity Fabric links at 92 GB/s; the GCN-to-CDNA split. Slides 7 and 12.
+- **AMD (2021).** *AMD CDNA 2 architecture (MI200 whitepaper).* https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/white-papers/amd-cdna2-white-paper.pdf
+  Vendor whitepaper. Two graphics compute dies per module, 400 GB/s in-package Infinity Fabric, packed FP32, FP64 at the FP32 rate; 47.9/95.7 TFLOP/s FP64 vector/matrix. Slides 7, 8 and 12.
+- **AMD (2023).** *AMD CDNA 3 architecture whitepaper.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/white-papers/amd-cdna-3-white-paper.pdf
+  Vendor whitepaper. The 3D chiplet package (8 XCDs on 4 IODs), 153 billion transistors, 256 MB Infinity Cache at 17.2 TB/s, 896 GB/s of peer links; MI300X and MI300A peaks. Slides 7, 9 and 12.
+- **AMD (2025).** *AMD CDNA 4 architecture whitepaper.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/white-papers/amd-cdna-4-architecture-whitepaper.pdf
+  Vendor whitepaper. The MI355X: N3P XCDs on N6 IODs, 185 billion transistors, MXFP4 and MXFP6 rates, matrix FP64 halved per CU, Infinity Fabric 7 x 144 GB/s. Slides 7, 10 and 12.
+- **AMD (2021).** *Instinct MI200 series datasheet.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instinct-mi200-datasheet.pdf
+  Vendor datasheet. MI250X and MI250 peaks, 128 GB HBM2e at 3.2 TB/s, eight Infinity Fabric links totaling 800 GB/s, 500-560 W. Slides 6, 8 and 18.
+- **AMD (2022).** *Instinct MI210 brochure.* https://www.amd.com/content/dam/amd/en/documents/instinct-business-docs/product-briefs/instinct-mi210-brochure.pdf
+  Vendor brochure. The single-die PCIe CDNA 2 part, for the CDNA 2 product range. Slide 8.
+- **AMD (2023).** *Instinct MI300A datasheet.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/data-sheets/amd-instinct-mi300a-data-sheet.pdf
+  Vendor datasheet. The APU: 228 CUs and 24 Zen 4 cores sharing 128 GB of HBM3, 61.3/122.6 TFLOP/s FP64, 550-760 W; El Capitan's processor. Slides 9 and 27.
+- **AMD (2023).** *Instinct MI300X accelerator product brief.* https://www.amd.com/content/dam/amd/en/documents/partner-hub/instinct/instinct-mi300x-accelerator-product-briefs.pdf
+  Vendor product brief. The MI300X on the 8-GPU UBB 2.0 platform: 304 CUs, 192 GB at 5.3 TB/s, 750 W, the peak table. Slides 6 and 9.
+- **AMD (2024).** *Instinct MI325X datasheet.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/product-briefs/instinct-mi325x-datasheet.pdf
+  Vendor datasheet. 256 GB of HBM3e at 6 TB/s and 1,000 W on the MI300X silicon; the answer to the H200 in the memory chart. Slides 5 and 9.
+- **AMD (2025).** *Instinct MI355X GPU brochure.* https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/product-briefs/amd-instinct-mi355x-gpu-brochure.pdf
+  Vendor brochure. 78.6 TFLOP/s FP64 vector and matrix, 10 PFLOP/s dense FP4, 288 GB at 8 TB/s, 1,400 W liquid cooled. Slides 6, 10 and 12.
+- **AMD ROCm documentation (2024).** *MI300 series microarchitecture.* https://instinct.docs.amd.com/latest/_sources/gpu-arch/mi300.md
+  Vendor documentation. The XCD has 40 CUs with 38 active; the FLOP per clock per CU table behind the CDNA 3 compute-unit diagram and the FP32 doubling. Slides 7 and 9.
+- **AMD ROCm documentation (2026).** *MI250 microarchitecture.* https://rocm.docs.amd.com/en/docs-7.14.1/_sources/reference/gpu-arch/mi250.md
+  Vendor documentation. The two GCDs and the links between them; why software sees two GPUs per module. Slide 8.
+- **AMD ROCm documentation (2026).** *MI100 microarchitecture.* https://rocm.docs.amd.com/en/docs-7.14.1/reference/gpu-arch/mi100.html
+  Vendor documentation. Eight shader engines of fifteen CUs: the MI100's 120 compute units. Slide 7.
+- **Smith and Alla (AMD) (2024).** *MI300X generative AI accelerator and platform architecture (Hot Chips 36 slides).* https://www.hc2024.hotchips.org/assets/program/conference/day1/23_HC2024.AMD.MI300X.ASmith(MI300X).v1.Final.20240817.pdf
+  Primary conference slides. The MI300X package, hybrid bonding, the Infinity Cache and the 8-GPU platform as AMD presented them. Slide 9.
+- **ServeTheHome (2025).** *AMD dives deep on CDNA 4 architecture and MI350 at Hot Chips 2025.* https://www.servethehome.com/amd-dives-deep-on-cdna-4-architecture-and-mi350-accelerator-at-hot-chips-2025/
+  Press, secondary source. The Hot Chips 37 CDNA 4 talk: N3P XCDs on N6 IODs, the LDS growth to 160 KB, the FP64 decision. Slides 7 and 10.
+- **AMD (ISSCC 2024, reference page) (2024).** *AMD Instinct MI300 series modular chiplet package: HPC and AI accelerator for exa-class systems (ISSCC 2024).* https://www.aihardware.mit.edu/amd-instincttm-mi300-series-modular-chiplet-package-hpc-and-ai-accelerator-for-exa-class-systems/
+  Conference paper reference (title and abstract page). The ISSCC paper on the MI300 package; the primary source for the chiplet construction. Slide 9.
+- **Lam and Cozma (Chips and Cheese) (2023).** *AMD's CDNA 3 compute architecture.* https://chipsandcheese.com/p/amds-cdna-3-compute-architecture
+  Independent analysis, secondary source. The CDNA 3 compute unit, cache hierarchy and the Infinity Cache measured and explained. Slides 7 and 9.
+- **Chips and Cheese (2025).** *SC25: estimating MI430X FP64 and Discovery.* https://old.chipsandcheese.com/?p=37639
+  Independent analysis, secondary source. How the 288 TFLOP/s FP64 of the MI430X and the Discovery system size follow from AMD's statements. Slides 12 and 29.
+- **Phoronix (2025).** *AMD previews Instinct MI400 series and Helios AI rack (June 2025).* https://www.phoronix.com/news/AMD-Instinct-MI400-Preview
+  Press, secondary source. The June 12, 2025 numbers for MI400 and Helios (432 GB HBM4, 19.6 TB/s, 40 PFLOP/s FP4) before the 2026 launch revised them. Slide 11.
+- **Tom's Hardware (2025).** *AMD debuts Helios rack-scale platform at OCP Global Summit 2025.* https://www.tomshardware.com/tech-industry/amd-debuts-helios-rack-scale-ai-hardware-platform-at-ocp-global-summit-2025-promises-easier-serviceability-and-50-percent-more-memory-than-nvidias-vera-rubin
+  Press, secondary source. Helios on the OCP Open Rack Wide form factor, double-wide for serviceability, and the memory comparison with Vera Rubin. Slides 11, 22 and 23.
+- **Tom's Hardware (2026).** *AMD takes the wraps off Instinct MI455X (CDNA 5) and the Helios rack (July 2026).* https://www.tomshardware.com/pc-components/gpus/amd-takes-the-wraps-off-its-instinct-mi455x-ai-accelerator-cdna-5-and-helios-rack-scale-architecture-combine-to-take-the-fight-to-nvidia-in-the-data-center
+  Press, secondary source. The MI455X launch of July 23, 2026: N2 XCDs, 320 billion transistors, 192 MB L2 with no Infinity Cache, 23.3 TB/s HBM4, 256 work-group processors. Slides 7, 11 and 31.
+- **StorageReview (2026).** *AMD MI455X and Helios: 432 GB HBM4, 72-GPU racks (July 2026).* https://www.storagereview.com/news/amd-mi455x-and-helios-432gb-hbm4-72-gpu-racks-and-a-real-answer-to-vera-rubin
+  Press, secondary source. UALink over Ethernet at 3.6 TB/s per GPU, 260 TB/s per rack, 225-245 kW; the Helios figures in the rack table. Slides 11, 21 and 22.
+- **Supermicro (2026).** *AMD Helios rack datasheet.* https://www.supermicro.com/datasheet/datasheet_AMD_Helios.pdf
+  Vendor (integrator) datasheet. The rack bill of materials: 72 MI455X, 18 Venice CPUs, 18 Salina DPUs, Vulcano NICs, 31 TB HBM4 (listed at 1.4 PB/s). Slides 11 and 22.
+- **ServeTheHome (2026).** *AMD Advancing AI 2026 keynote live coverage.* https://www.servethehome.com/?p=102176
+  Press, secondary source. The MI430X at 288 TFLOP/s FP64 and the MI500 (2027) and MI600 (2028) roadmap as announced. Slides 11, 12 and 29.
+- **Tech Wire Asia (2026).** *AMD Advancing AI 2026: Helios, OpenAI, Meta, Anthropic.* https://techwireasia.com/2026/07/amd-advancing-ai-2026-helios-openai-meta-anthropic/
+  Press, secondary source. The customer commitments announced with Helios (OpenAI, Meta, Anthropic, Oracle). Slides 11 and 29.
+- **AMD (2025).** *Instinct MI430X: powering the next wave of AI and scientific discovery.* https://www.amd.com/en/blogs/2025/amd-instinct-mi430x-powering-the-next-wave-of-ai.html
+  Vendor blog. The HPC SKU of the MI400 family, its hardware FP64 and the systems that chose it (Discovery, Alice Recoque). Slides 12 and 29.
+- **AMD (SEC Form 8-K) (2026).** *AMD reports third quarter 2026 financial results.* https://www.sec.gov/Archives/edgar/data/0000002488/000000248826000188/q32026991.htm
+  Primary filing. Helios shipping, first Helios revenue, data-center segment of 8.5 billion dollars and 97 percent growth. Slides 11 and 29.
+- **AMD Q3 2026 earnings call (transcript) (2026).** *AMD Q3 2026 earnings call transcript.* https://singjupost.com/amd-advanced-micro-devices-q3-2026-earnings-call-transcript/
+  Transcript, secondary source. The statement that the MI455X is shipping in volume and the customers named. Slide 11.
+- **StorageNewsletter (2026).** *AMD fiscal 4Q25 and FY25 financial results.* https://www.storagenewsletter.com/2026/02/18/amd-fiscal-4q25-and-fy25-financial-results/
+  Press, secondary source. Data-center revenue of 16.6 billion dollars in fiscal 2025, the base for the 2026 growth figures. Slide 29.
+- **AMD investor relations (2025).** *AMD and OpenAI announce strategic partnership to deploy 6 gigawatts of AMD GPUs (October 2025).* https://ir.amd.com/news-events/press-releases/detail/1260/amd-and-openai-announce-strategic-partnership-to-deploy-6-gigawatts-of-amd-gpus
+  Vendor press release. The 6 GW commitment from the second half of 2026 and the warrant for up to 160 million shares. Slides 3, 11 and 29.
+
+## 4. Intel: the Gen families, Xe and Gaudi (slides 13-16)
+
+- **Junkins (Intel) (2015).** *The compute architecture of Intel processor graphics Gen9.* https://www.intel.com/content/dam/develop/external/us/en/documents/the-compute-architecture-of-intel-processor-graphics-gen9-v1d0-843410.pdf
+  Vendor whitepaper. The execution unit (7 threads, two SIMD-4 FPUs, 16 FLOP per clock), the subslice of 8 EUs with sampler and 64 KB shared local memory, the slice with 768 KB L3; the Gen9 diagram and table. Slide 13.
+- **Intel (2019).** *Intel processor graphics Gen11 architecture.* https://www.intel.com/content/dam/develop/external/us/en/documents/the-architecture-of-intel-processor-graphics-gen11-r1new.pdf
+  Vendor whitepaper. The 64-EU Gen11 GPU of Ice Lake, 1,024 FLOP per clock, and the changes to the slice. Slide 13.
+- **Tom's Hardware (2020).** *Intel drops Xe LP graphics specifications (August 2020).* https://www.tomshardware.com/news/intel-xe-lp-graphics-specs
+  Press, secondary source. Xe-LP's 96 EUs and 768 ALUs in Tiger Lake and the DG1, the last Gen-style design and the first Xe. Slide 13.
+- **Intel (2022).** *Introduction to the Xe-HPG architecture.* https://www.intel.com/content/www/us/en/developer/articles/technical/introduction-to-the-xe-hpg-architecture.html
+  Vendor documentation. The Xe-core, Xe Vector Engine and XMX naming and the Xe-HPG core (16 XVE, 16 XMX, ray-tracing unit) in the two-core diagram. Slide 14.
+- **Intel (2024).** *oneAPI GPU optimization guide: Xe architecture.* https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2024-1/xe-arch.html
+  Vendor documentation. The Xe-HPC hierarchy (XVE, Xe-core, slice, stack) with lane counts, the 512 KB L1 and SLM per core, and the cross-vendor level table. Slides 14 and 18.
+- **Tom's Hardware (2022).** *Intel reveals specifications for Arc Alchemist desktop GPUs (September 2022).* https://www.tomshardware.com/news/intel-reveals-specifications-for-arc-alchemist-desktop-gpus
+  Press, secondary source. The ACM-G10 table: 32 Xe-cores, 21.7 billion transistors on 406 square millimeters of TSMC N6, 17.2 TFLOP/s, 16 GB at 560 GB/s, 225 W. Slide 15.
+- **Tom's Hardware (2024).** *Intel Arc B580 review (December 2024).* https://www.tomshardware.com/pc-components/gpus/intel-arc-b580-review-the-new-usd249-gpu-champion-has-arrived
+  Press review, secondary source. BMG-G21 on TSMC N5: 20 Xe2 cores with SIMD16 XVEs, 19.6 billion transistors on 272 square millimeters, 12 GB at 456 GB/s, 190 W. Slide 15.
+- **Tom's Hardware (2025).** *Intel launches Arc Pro B50 and B60 and Project Battlematrix workstations (May 2025).* https://www.tomshardware.com/pc-components/gpus/intel-launches-usd299-arc-pro-b50-with-16gb-of-memory-project-battlematrix-workstations-with-24gb-arc-pro-b60-gpus
+  Press, secondary source. The workstation Xe2 parts with 16 and 24 GB and the eight-B60 Battlematrix box for local inference. Slide 15.
+- **HotHardware (2026).** *Intel CES 2026: Panther Lake (Core Ultra series 3) is a go.* https://hothardware.com/news/intel-ces-2026-panther-lake-is-a-go
+  Press, secondary source. The first Xe3 GPU: 12 Xe3 cores on Intel 18A, about 120 TOPS on the GPU, in a laptop processor. Slide 15.
+- **Kaplan (Intel) (2024).** *Gaudi 3 (Hot Chips 2024 slides).* https://www.hc2024.hotchips.org/assets/program/conference/day1/60_HC2024.Intel.RomanKaplan.Gaudi3-0826.pdf
+  Primary conference slides. Two dies, 8 matrix engines and 64 tensor processor cores, 128 GB HBM2e at 3.67 TB/s, 24 x 200 GbE on the die; the Gaudi 3 diagram. Slide 16.
+- **The Register (2022).** *Intel's Habana unit reveals Gaudi 2 (May 2022).* https://www.theregister.com/2022/05/10/intels_habana_unit_reveals_new/
+  Press, secondary source. Gaudi 2: 7 nm, 24 TPCs, 96 GB HBM2e at 2.45 TB/s, 24 x 100 GbE, 600 W. Slide 16.
+- **Tom's Hardware (2024).** *Intel says it will miss its 500 million dollar Gaudi goal (October 2024).* https://www.tomshardware.com/tech-industry/artificial-intelligence/intel-says-it-will-miss-its-ai-goals-with-gaudi-3-unbaked-software-leaves-intels-usd500-million-ai-goal-unachievable-as-competitors-rake-in-billions
+  Press, secondary source. The withdrawn 2024 revenue target and the software reasons Intel gave; the market outcome of the Gaudi line. Slides 16 and 20.
+
+## 5. Xe-HPC: Ponte Vecchio, Aurora and after (slides 17-20)
+
+- **Intel (2023).** *Intel Data Center GPU Max 1550 specifications (ARK).* https://www.intel.com/content/www/us/en/products/sku/232873/intel-data-center-gpu-max-1550/specifications.html
+  Vendor specification page. 128 Xe-cores, 128 GB HBM2e at 3,276.8 GB/s, 600 W OAM, launch date January 2023. Slides 17, 18 and 31.
+- **Intel Labs (2022).** *Intel at ISSCC 2022: Ponte Vecchio (Gomes et al.) and other papers.* https://intel.com/content/www/us/en/research/blogs/isscc-2022.html
+  Vendor research blog. The ISSCC 2022 paper on Ponte Vecchio as a multi-tile 3D stacked processor; the primary source for the tile census. Slide 17.
+- **TechPowerUp (2022).** *Intel details Ponte Vecchio: 63 tiles, 600 W TDP and lots of bandwidth (ISSCC 2022).* https://techpowerup.com/292250/intel-details-ponte-vecchio-accelerator-63-tiles-600-watt-tdp-and-lots-of-bandwidth
+  Press, secondary source. The tile census (47 active, 63 with thermal tiles), the five process nodes and the 408 MB of L2 as presented at ISSCC. Slide 17.
+- **The Register (2022).** *Intel Ponte Vecchio at Hot Chips 34 (August 2022).* https://www.theregister.com/2022/08/23/intel_ponte_vecchio/
+  Press, secondary source. 52 TFLOP/s FP64 equal to FP32 and 419 TFLOP/s TF32 on the XMX engines, the figures the deck uses for the Max 1550. Slides 17 and 18.
+- **Tom's Hardware (2021).** *Intel Ponte Vecchio and Xe-HPC architecture: built for big data (Architecture Day 2021).* https://www.tomshardware.com/features/intel-ponte-vecchio-and-xe-hpc-architecture-built-for-big-data
+  Press, secondary source. The stack composition (8 compute tiles, 4 RAMBO cache tiles, a base tile, Xe Link tiles) and the Xe-HPC core as first described. Slides 14 and 17.
+- **TechPowerUp GPU database (2023).** *Intel Data Center GPU Max 1550.* https://www.techpowerup.com/gpu-specs/data-center-gpu-max-1550.c4068
+  Database, secondary source. The 52.43 TFLOP/s FP32 and FP64 figures, clock and lane counts behind the derived arithmetic. Slide 18.
+- **Lockwood (2025).** *Ponte Vecchio (processor garden page).* https://glennklockwood.com/garden/processors/PVC
+  Independent, open. The Xe-HPC hierarchy with sources and measured DGEMM on Aurora; the provenance check for the PVC column. Slides 17, 18 and 31.
+- **Phoronix (2022).** *Intel introduces Xeon Max and Data Center GPU Max (November 2022).* https://www.phoronix.com/review/intel-xeon-max-dc/3
+  Press, secondary source. The Max series SKUs as announced (1100, 1350, 1550) and the Xeon Max with HBM used in Aurora. Slides 17 and 19.
+- **Argonne Leadership Computing Facility (2026).** *Aurora system overview (machine overview).* https://docs.alcf.anl.gov/aurora/hardware-overview/machine-overview
+  Facility documentation. The node (two Xeon Max 9470C, six Max 1550, eight Slingshot NICs), 10,624 nodes in 166 racks, 63,744 GPUs. Slides 19 and 27.
+- **Goto et al. (2026).** *HPL and HPL-MxP at exascale on Aurora.* https://arxiv.org/abs/2604.09517
+  The run campaigns behind Aurora's TOP500 entries: 0.585 EFLOP/s on 5,439 nodes, 1.012 on 9,234, and 11.64 EFLOP/s HPL-MxP. Slide 19.
+- **HPCwire (2023).** *Aurora the survivor: exascale supercomputer arrives after eight years (November 2023).* https://www.hpcwire.com/2023/11/13/aurora-the-survivor-exascale-supercomputer-arrives-after-eight-years-of-doom/
+  Press, secondary source. The 2015 to 2023 history: Knights Hill, the 2017 re-plan, the 7 nm slip, installation in 2023. Slide 19.
+- **Intel (2023).** *Intel systems in the November 2023 TOP500 (newsroom).* https://www.intel.com/content/www/us/en/newsroom/news/top500-supercomputers-nov-2023.html
+  Vendor newsroom. Aurora's first entry and the other PVC systems (Dawn at Cambridge, SuperMUC-NG Phase 2 at LRZ). Slide 19.
+- **Argonne Leadership Computing Facility (2025).** *Argonne researchers and supercomputers contribute to four Gordon Bell prize finalist projects (2025).* https://alcf.anl.gov/news/argonne-researchers-and-supercomputers-contribute-four-projects-named-gordon-bell-prize
+  Facility news. The four 2025 Gordon Bell finalists run on Aurora, the application-scale evidence for the machine. Slide 19.
+- **Hatanpaa et al. (2025).** *AERIS: Argonne Earth Systems Model for reliable and skillful predictions.* https://arxiv.org/abs/2509.13523
+  The weather and climate model that sustained 10.21 EFLOP/s in mixed precision on 10,080 Aurora nodes. Slide 19.
+- **insideHPC (2023).** *Intel alters HPC-AI roadmap: Rialto Bridge GPU discontinued (March 2023).* https://insidehpc.com/2023/03/intel-alters-hpc-ai-roadmap-rialto-bridge-gpu-discontinued/
+  Press, secondary source. The cancellation of Ponte Vecchio's successor and the roadmap reset toward Falcon Shores. Slides 3 and 20.
+- **Tom's Hardware (2025).** *Intel cancels Falcon Shores GPU for AI workloads; Jaguar Shores to be successor (January 2025).* https://www.tomshardware.com/tech-industry/artificial-intelligence/intel-cancels-falcon-shores-gpu-for-ai-workloads-jaguar-shores-to-be-successor
+  Press, secondary source. The January 30, 2025 decision to keep Falcon Shores as an internal test chip and the naming of Jaguar Shores. Slides 3 and 20.
+- **Phoronix (2025).** *Intel announces Crescent Island (October 2025).* https://www.phoronix.com/review/intel-crescent-island
+  Press, secondary source. The Xe3P inference GPU with 160 GB of LPDDR5X announced at OCP 2025. Slides 15 and 20.
+- **StorageReview (2026).** *Intel GPU D-series: 480 GB LPDDR5X, 1.3 PFLOP/s FP8, 350 W PCIe card (October 2026).* https://www.storagereview.com/news/intel-gpu-d-series-480gb-lpddr5x-1-3-pflops-fp8-350w-pcie-card
+  Press, secondary source. The GPU D-series as named and specified in October 2026 (32 Xe3P cores, 1.5 TB/s, sampling); its current status. Slides 20 and 32.
+- **Intel (2026).** *Intel reports third-quarter 2026 financial results.* https://www.intc.com/news-events/press-releases/detail/1786/intel-reports-third-quarter-2026-financial-results
+  Primary filing (press release). Data center and AI revenue of 7.3 billion dollars, growth on CPUs, the D-series as the only accelerator mentioned. Slides 16 and 20.
+- **Intel (2025).** *NVIDIA and Intel to develop AI infrastructure and personal computing products (September 2025).* https://www.intc.com/news-events/press-releases/detail/1750/
+  Vendor press release. The 5 billion dollar NVIDIA investment and the plan for x86 CPUs with NVLink. Slides 20, 23 and 29.
+
+## 6. Fabrics, racks and standards (slides 21-23)
+
+- **UALink Consortium (2025).** *UALink 1.0 white paper (April 2025).* https://ualinkconsortium.org/wp-content/uploads/2025/04/UALink-1.0-White_Paper_FINAL.pdf
+  Standards body white paper. The 200G 1.0 specification: 200 Gb/s per lane, up to 1,024 accelerators, memory-semantic operations; the open scale-up fabric. Slides 21 and 23.
+- **Ultra Ethernet Consortium (Linux Foundation) (2025).** *UEC launches specification 1.0 (June 2025).* https://www.linuxfoundation.org/press/uec-launches-spec-1.0
+  Standards body press release. Ultra Ethernet 1.0, the scale-out counterpart of UALink and the alternative to InfiniBand. Slide 23.
+- **NVIDIA (2025).** *NVIDIA unveils NVLink Fusion (press release, May 2025).* https://investor.nvidia.com/news/press-release-details/2025/NVIDIA-Unveils-NVLink-Fusion-for-Industry-to-Build-Semi-Custom-AI-Infrastructure-With-NVIDIA-Partner-Ecosystem/default.aspx
+  Vendor press release. NVLink opened to partners' CPUs and accelerators on NVIDIA's terms; the answer to UALink in the standards timeline. Slide 23.
+- **Abraham (OLCF) (2023).** *Frontier architecture overview.* https://www.olcf.ornl.gov/wp-content/uploads/Frontier-Architecture-Overview_Abraham.pdf
+  Facility presentation. The Frontier node: one Trento CPU, four MI250X, coherent Infinity Fabric CPU-GPU links, Slingshot-11 NICs; the node diagram. Slides 8, 21 and 27.
+- **Lawrence Livermore National Laboratory (2026).** *El Capitan system page.* https://hpc.llnl.gov/node/1269
+  Facility documentation. Node counts, APU counts and the 2,889 PFLOP/s peak of the MI300A system. Slides 9 and 27.
+- **Morgan (The Next Platform) (2024).** *El Capitan blazes the trail for converged CPU-GPU compute (November 2024).* https://www.nextplatform.com/2024/11/18/el-capitan-supercomputer-blazes-the-trail-for-converged-cpu-gpu-compute/
+  Press, secondary source. 11,136 nodes and 44,544 APUs at the first TOP500 entry, and the case for the APU node. Slides 9 and 27.
+
+## 7. Software stacks and portability (slides 24-26)
+
+- **AMD (2026).** *ROCm release history (versions page).* https://rocm.docs.amd.com/en/latest/release/versions.html
+  Vendor documentation. Dated ROCm releases from 5.0 to 10.x, the source of the dates in the three-stacks panel. Slide 24.
+- **AMD (2026).** *HIPIFY documentation.* https://rocm.docs.amd.com/projects/HIPIFY/en/latest
+  Vendor documentation. hipify-clang and hipify-perl, the CUDA-to-HIP source translators behind the porting-path discussion. Slide 24.
+- **Khronos Group (2021).** *Khronos releases SYCL 2020 final specification (February 2021).* https://www.khronos.org/news/press/khronos-releases-sycl-2020-final-specification
+  Standards body press release. SYCL 2020 with unified shared memory and generic back ends; the specification Intel's DPC++ implements. Slide 24.
+- **Phoronix (2020).** *Intel oneAPI 1.0 officially released (September 2020).* https://www.phoronix.com/review/intel-oneapi-10
+  Press, secondary source. The oneAPI 1.0 specification release and the first toolkits that followed in December 2020. Slides 13 and 24.
+- **TechCrunch (2023).** *The Unified Acceleration Foundation wants an open standard for accelerator programming (September 2023).* https://techcrunch.com/2023/09/19/the-unified-acceleration-foundation-wants-to-create-an-open-standard-for-accelerator-programming/
+  Press, secondary source. oneAPI's move into the Linux Foundation's UXL, the governance point in the three-stacks panel. Slide 24.
+- **Codeplay (2022).** *Codeplay announces oneAPI for NVIDIA and AMD GPU hardware (December 2022).* https://codeplay.com/portal/press-releases/2022/12/16/codeplay-announces-oneapi-for-nvidia-and-amd-gpu-hardware
+  Vendor press release. The SYCL plugins that run DPC++ code on CUDA and HIP back ends; the portability-layer claim. Slides 24 and 25.
+- **Intel (2026).** *Migrate from CUDA to C++ with SYCL (SYCLomatic and the DPC++ compatibility tool).* https://www.intel.com/content/www/us/en/developer/tools/oneapi/training/migrate-from-cuda-to-cpp-with-sycl.html
+  Vendor documentation. The CUDA-to-SYCL migration tool and Intel's claim that 80 to 90 percent of code migrates automatically. Slide 24.
+- **Reguly (2023).** *Evaluating the performance portability of SYCL across CPUs and GPUs from different vendors.* https://arxiv.org/abs/2309.10075
+  SC-W 2023 (P3HPC). SYCL against native on Max 1100, A100 and MI250X: DPC++ within 1.2 percent of CUDA on the A100, 15.9 percent behind HIP on the MI250X, weaker on CPUs. Slide 25.
+- **Davis et al. (2025).** *Taking GPU programming models to task for performance portability.* https://arxiv.org/abs/2402.08950
+  ICS 2025. Seven programming models and five proxy applications across five GPUs: portability layers reach most of native speed and the spread sits in compilers and runtimes. Slide 25.
+- **ORNL and SNL (ORNL/TM-2025/4398) (2025).** *Experiences with SYCL on AMD GPUs with Kokkos.* https://www.osti.gov/biblio/3016989
+  Laboratory technical report. Kokkos with DPC++ and AdaptiveCpp back ends on AMD GPUs; DPC++ less mature on AMD than on Intel, HIP the reference. Slide 25.
+- **Patel, Nishball and Knuhtsen (SemiAnalysis) (2024).** *MI300X vs H100 vs H200 benchmark part 1: training (December 2024).* https://newsletter.semianalysis.com/p/mi300x-vs-h100-vs-h200-benchmark-part-1-training
+  Analyst report, secondary source. Achieved BF16 GEMM against peak (about 720 of 989 TFLOP/s on the H100, about 620 of 1,307 on the MI300X), 64 against 450 GB/s between GPUs; the software gap in numbers. Slides 21 and 26.
+
+## 8. Systems and procurements (slides 27-29)
+
+- **TOP500 (2026).** *TOP500 list, June 2026.* https://top500.org/lists/2026/06
+  Benchmark list, open. The June 2026 top ten with accelerators, Rmax, Rpeak and power; the exascale and TOP500 tables. Slides 2, 12, 27 and 28.
+- **TOP500 (2026).** *HPCG results, June 2026.* https://top500.org/lists/hpcg/2026/06/
+  Benchmark list, open. The HPCG ranks that complement HPL for the same machines. Slide 28.
+- **TOP500 (2026).** *Green500 list, June 2026.* https://top500.org/lists/green500/green500-june-2026/
+  Benchmark list, open. GFLOP/s per watt: the Grace Hopper systems at the top and the MI300A systems near 66. Slide 28.
+- **HPE (2026).** *HPE delivers six of the ten most powerful supercomputers (June 2026).* https://www.hpe.com/us/en/newsroom/blog-post/2026/06/hpe-delivers-six-out-of-ten-of-worlds-most-powerful-supercomputers.html
+  Vendor blog. The HPE Cray EX share of the top ten and the HPL-MxP order (El Capitan, Frontier, Aurora). Slides 27 and 28.
+- **CSC (LUMI) (2021).** *LUMI's full system architecture revealed.* https://www.lumi-supercomputer.eu/lumis-full-system-architecture-revealed/
+  Facility news. 2,978 GPU nodes of four MI250X each; the European Frontier sibling. Slides 8 and 28.
+- **CINES (2024).** *Adastra's architecture.* https://dci.dci-gitlab.cines.fr/webextranet/architecture/index.html
+  Facility documentation. MI250X and MI300A partitions in one system; another AMD HPC deployment. Slide 8.
+- **HLRS (2025).** *Hunter.* https://www.hlrs.de/solutions/systems/hunter
+  Facility page. 752 MI300A, the transition system before Herder. Slides 8 and 29.
+- **Oak Ridge National Laboratory (2025).** *ORNL, AMD and HPE to deliver DOE's newest AI supercomputers, Discovery and Lux.* https://www.ornl.gov/news/ornl-amd-and-hpe-deliver-does-newest-ai-supercomputers-discovery-and-lux
+  Laboratory press release. Lux (MI355X, early 2026) and Discovery (MI430X with Venice on HPE Cray GX5000, 2028). Slides 10, 12 and 29.
+- **AMD and Eviden (2025).** *AMD and Eviden to power Europe's new exascale supercomputer, the first in France.* https://newsroom.amd.com/news/amd-and-eviden-to-power-europe-s-new-exascale-supe/
+  Vendor press release. Alice Recoque: MI430X with Venice CPUs in 94 racks on the BXI network. Slides 12 and 29.
+
+## 9. Benchmarks (slide 30)
+
+- **AMD (2024).** *Engineering insights: unveiling MLPerf results on AMD Instinct MI300X.* https://www.amd.com/en/blogs/2024/engineering-insights-unveiling-mlperf-results-on.html
+  Vendor blog. AMD's first MLPerf submission (Inference 4.1, August 2024): eight MI300X within 2 to 3 percent of a DGX H100 on Llama 2 70B. Slide 30.
+- **AMD ROCm blog (2025).** *MI325X accelerates MLPerf Inference v5.0.* https://rocm.blogs.amd.com/artificial-intelligence/mi325x-accelerates-mlperf-inference/README.html
+  Vendor blog. The first MI325X results, April 2025. Slide 30.
+- **AMD ROCm blog (2025).** *Technical dive into AMD's MLPerf Inference v5.1 submission.* https://rocm.blogs.amd.com/artificial-intelligence/mlperf-inference-v5.1/README.html
+  Vendor blog. The first MI355X and first MXFP4 results (September 2025), Llama 2 70B at 2.7 times the MI325X. Slides 10 and 30.
+- **AMD (2026).** *AMD delivers breakthrough MLPerf Inference 6.0 results: MI355X past one million tokens per second.* https://amd.com/en/blogs/2026/amd-delivers-breakthrough-mlperf-inference-6-0-results.html
+  Vendor blog. The April 2026 ratios against the B200 (1.00, 0.97, 1.19) and B300 (0.92, 0.93, 1.04) on Llama 2 70B, and the 87-GPU million-token run. Slides 10 and 30.
+- **MLCommons (2025).** *MLPerf Training v5.0 results (June 2025).* https://mlcommons.org/2025/06/mlperf-training-v5-0-results
+  Benchmark consortium, open. AMD's first training submission and the GB200's debut in the same round. Slide 30.
+- **AMD (2025).** *Accelerating AI training: MI350 series in MLPerf Training v5.1.* https://www.amd.com/en/blogs/2025/accelerating-ai-training.html
+  Vendor blog. Llama 2 70B LoRA in 10.18 minutes against 9.85 (B200) and 9.59 (B300), and Llama 3.1 8B at 99.7 against 93.7 minutes. Slide 30.
+- **NVIDIA (2026).** *NVIDIA Blackwell tops MLPerf Training 6.0 (developer blog, June 2026).* https://developer.nvidia.com/blog/nvidia-blackwell-tops-mlperf-training-6-0-with-industry-leading-scale-and-performance/
+  Vendor blog. The 8,192-GPU GB300 results (DeepSeek-V3 671B in 2.02 minutes) that set the scale of Training 6.0, with no AMD result at that size. Slide 30.
+
+## 10. Wrap-up and the record (slides 31-33)
+
+- **Lockwood (2026).** *GTC 2026 recap (blog, March 2026).* https://blog.glennklockwood.com/2026/03/gtc-2026-recap.html
+  Independent analyst notes, open. The NVIDIA roadmap changes of 2026 (Rubin CPX dropped, Kyber shown less dense, Feynman) against which the AMD and Intel roadmaps are read. Slide 32.
+- **ServeTheHome (2026).** *NVIDIA Vera Rubin NVL72 rack at Hot Chips 2026.* https://www.servethehome.com/nvidia-vera-rubin-nvl72-rack-at-hot-chips-2026/
+  Press, secondary source. The rack as presented in the same Hot Chips session as AMD's MI400 talks: NVLink 6 switch with in-network compute, 800 V DC, cable-free trays. Slides 22 and 31.
+- **Wikipedia (2026).** *AMD Instinct.* https://en.wikipedia.org/wiki/AMD_Instinct
+  Tertiary source. A dated pointer page for the Instinct generations; useful for finding primary sources, not for quoting. Slide 31.

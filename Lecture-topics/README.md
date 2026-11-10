@@ -14,6 +14,13 @@ directories (which follow the calendar).
 | [`Transformer/`](Transformer/) | `transformer_tutorial.pdf` (31 slides, "The Transformer, Visually") — also in `Lecture-notes/` Week-2/3 | `transformer_notes.pdf` (58 pp companion, one section per slide) | 56 papers in 7 sections (residual stream → tokens/position → attention → MLP/norm/block → output/generation → training & scale → family) | complete |
 | [`LLM-Runtime/`](LLM-Runtime/) | `llm_runtime_tutorial.pdf` (31 slides) + `prefill_decode_disaggregation_slides.pdf` (3-slide focused deck) | `llm_runtime_notes.pdf` (65 pp companion, one section per slide) | 67 papers in 8 sections (KV cache → scheduling/speculation/disaggregated serving/quantization → engines: vLLM/SGLang/TensorRT-LLM/llama.cpp/Ollama/MLX → measuring & operating → API layer: structured output/tool calling/reasoning → tool interfaces & MCP → web search & retrieval → agent loops & serving agents) | complete |
 
+| [`Decision-Models/`](Decision-Models/) | `decision_models_tutorial.pdf` (32 slides) + 18-slide revised edition | `decision_models_notes.pdf` (61 pp) | 79 fetched PDFs in 9 sections | complete |
+| [`Reasoning-Models/`](Reasoning-Models/) | `reasoning_models_tutorial.pdf` (31 slides) + 16-slide revised edition | `reasoning_models_notes.pdf` (85 pp) | 118 fetched PDFs in 10 sections | complete |
+| [`GPU-Architectures/`](GPU-Architectures/) | `gpu_architectures_tutorial.pdf` (31 slides) | `gpu_architectures_notes.pdf` (82 pp) | 31 fetched PDFs; manual-source links retained in README | complete with documented manual sources |
+| [`GPU-Platforms-Compared/`](GPU-Platforms-Compared/) | `gpu_platforms_compared_tutorial.pdf` (33 slides) | `gpu_platforms_compared_notes.pdf` (108 pp) | 13 fetched PDFs; manual-source links retained in README | complete with documented manual sources |
+| [`Non-GPU-Accelerators/`](Non-GPU-Accelerators/) | `non_gpu_accelerators_tutorial.pdf` (37 slides) | `non_gpu_accelerators_notes.pdf` (116 pp) | 34 fetched PDFs; manual-source links retained in README | complete with documented manual sources |
+| [`NVIDIA-After-Volta/`](NVIDIA-After-Volta/) | `nvidia_after_volta_tutorial.pdf` (32 slides) | `nvidia_after_volta_notes.pdf` (96 pp) | 24 fetched PDFs; manual-source links retained in README | complete with documented manual sources |
+
 ## Reading lists
 
 Each topic's papers directory contains `README.md` (annotated reading list,

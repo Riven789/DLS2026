@@ -1,0 +1,269 @@
+# Reading list: Decision Models
+
+Companion papers to the deck and its lecture notes, grouped by section.
+`reading_list.csv` and `reading_list.bib` hold the same list as data; `fetch_papers.sh` downloads
+every arXiv entry into one folder per section and zips the result (`bash fetch_papers.sh`).
+Entries without an arXiv identifier are listed with a URL and must be fetched by hand.
+
+## 1. Overview and lineage (slides 1-4)
+
+- **TypeSafe AI (2026).** *System One: fast, structured decisions for software (documentation).* https://docs.typesafe.ai/concepts/system-one
+  The vendor's definition of a decision model: state in, typed answers with calibrated probabilities out, no text. Read first. Secondary source.
+- **TypeSafe AI (2026).** *AI primer: why decision models are trained for calibrated probabilities (documentation).* https://docs.typesafe.ai/introduction/machine-learning-primer
+  The vendor's contrast of RLHF, RLVR and its own RLCD, and its definition of calibration. The only public description of the training objective. Secondary source.
+- **Kahneman (2011).** *Thinking, Fast and Slow.* https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow
+  The System 1 / System 2 metaphor the category borrows its name from. Book; secondary source for the deck's purposes.
+- **Booch et al. (2020).** *Thinking fast and slow in AI.* https://arxiv.org/abs/2010.06002
+  The AAAI framing of fast, automatic components beside slow, deliberate ones in AI systems; the intellectual ancestor of 'System One models'.
+- **Yu, Xu, Weston and Kulikov (2024).** *Distilling System 2 into System 1.* https://arxiv.org/abs/2407.06023
+  Compressing deliberate reasoning into direct answers; where it works and where (GSM8K chain of thought) it fails. The closest academic cousin of a decision model's promise.
+- **Niculescu-Mizil and Caruana (2005).** *Predicting good probabilities with supervised learning.* https://www.cs.cornell.edu/~alexn/papers/calibration.icml05.crc.rev3.pdf
+  Which classical learners are calibrated out of the box and which need Platt or isotonic correction. Calibrated classification predates deep learning. ICML 2005.
+- **Hendrycks et al. (2020).** *Measuring massive multitask language understanding.* https://arxiv.org/abs/2009.03300
+  MMLU and the convention of scoring options by the log-probability of the answer letter: the first widely used 'decision readout' from a generative model.
+- **Ouyang et al. (2022).** *Training language models to follow instructions with human feedback.* https://arxiv.org/abs/2203.02155
+  InstructGPT: the reward model (a decision model in all but name) and the RLHF pipeline that later work shows erodes calibration. TypeSafe's CEO is a co-author.
+- **Zheng et al. (2023).** *Judging LLM-as-a-judge with MT-Bench and Chatbot Arena.* https://arxiv.org/abs/2306.05685
+  LLM judges agree with humans over 80% of the time and show position, verbosity and self-enhancement biases; the generative route to decisions and its known faults.
+- **Kalai, Nachum, Vempala and Zhang (2025).** *Why language models hallucinate.* https://arxiv.org/abs/2509.04664
+  Hallucination as classification error plus an evaluation culture that rewards guessing over abstention; the argument a calibrated, abstaining decision model answers.
+
+## 2. Primitives, state and the API (slides 5-9)
+
+- **TypeSafe AI (2026).** *Primitives: Choice, Score, Noul, Box (documentation).* https://docs.typesafe.ai/primitives
+  The four question types, their answer shapes, and how to choose among them. Secondary source.
+- **TypeSafe AI (2026).** *Confidence (documentation).* https://docs.typesafe.ai/confidence
+  The exact confidence formulas for Choice and Score, the worked examples on slides 6-7, the three-band threshold advice. Secondary source.
+- **TypeSafe AI (2026).** *State (documentation).* https://docs.typesafe.ai/concepts/state
+  How to structure the content a question is asked about; facts in the state, judgments in the questions. Secondary source.
+- **TypeSafe AI (2026).** *How to build with System One (documentation).* https://docs.typesafe.ai/concepts/how-to-build-with-system-one
+  Code in control, narrow atomic questions, what/not_for/examples per option, batching, routing on confidence. Secondary source.
+- **TypeSafe AI (2026).** *System One API reference and request rules (documentation).* https://docs.typesafe.ai/api/system-one
+  Request and response shapes, limits (64k per request, 32k per question, 32 MiB body), headers for images and long context, status codes. Secondary source.
+- **TypeSafe AI (2026).** *Cookbook: parallel questions (documentation).* https://docs.typesafe.ai/cookbooks/parallel_questions
+  Thirteen questions over a 53,777-character article in one call versus thirteen calls: 12.2x cheaper, 10x faster, answers identical on 11 of 13 and equally noisy on the rest. The batching evidence on slide 9. Secondary source.
+- **OpenRouter (2026).** *Decisions API: Jev and the decision-model category (documentation).* https://openrouter.ai/docs/guides/community/jev
+  The cross-vendor decisions endpoint, the catalog of decision models, and the warning that thresholds do not transfer across models. Secondary source.
+- **OpenAI (2026).** *Decisions API guide (documentation).* https://developers.openai.com/api/docs/guides/decisions
+  OpenAI's version of the same primitives (predicate, choice, score, refusal) on gpt-6-luna; no calibration claim, thresholds to be set from your own labels. Secondary source.
+- **Cheng, Kasai and Yu (2023).** *Batch prompting: efficient inference with large language model APIs.* https://arxiv.org/abs/2301.08721
+  Many questions in one generative call: up to 5x token and time savings, with accuracy degrading as the batch grows. The academic precedent for fan-out, and the contrast with a decision model's independent questions.
+- **Son et al. (2024).** *Multi-task inference: can large language models follow multiple instructions at once?.* https://arxiv.org/abs/2402.11597
+  Evaluating several instructions in a single pass; speedups and the conditions under which quality holds.
+- **Liu et al. (2023).** *G-Eval: NLG evaluation using GPT-4 with better human alignment.* https://arxiv.org/abs/2303.16634
+  Scoring with the probability-weighted sum over rating tokens instead of the argmax: the same construction as the Score primitive's expected level.
+- **Robinson, Rytting and Wingate (2022).** *Leveraging large language models for multiple choice question answering.* https://arxiv.org/abs/2210.12353
+  Multiple-choice symbol binding: present the options jointly and read the symbol. The readout that a Choice question formalizes.
+
+## 3. Calibration and proper scoring rules (slides 10-13)
+
+- **Guo, Pleiss, Sun and Weinberger (2017).** *On calibration of modern neural networks.* https://arxiv.org/abs/1706.04599
+  Modern deep networks are overconfident where 1990s networks were not; reliability diagrams, ECE, and temperature scaling. The paper every LLM calibration study cites. ICML 2017.
+- **Gneiting and Raftery (2007).** *Strictly proper scoring rules, prediction, and estimation.* https://doi.org/10.1198/016214506000001437
+  The theory of scoring rules under which reporting the true belief is the unique optimum: why Brier and log loss can serve as training rewards. JASA 2007.
+- **DeGroot and Fienberg (1983).** *The comparison and evaluation of forecasters.* https://doi.org/10.2307/2987588
+  The calibration-refinement decomposition and the reliability diagram. The Statistician 1983.
+- **Platt (1999).** *Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods.* https://www.researchgate.net/publication/2594015
+  Platt scaling: a sigmoid fitted to classifier scores; temperature scaling is its one-parameter special case.
+- **Nixon et al. (2019).** *Measuring calibration in deep learning.* https://arxiv.org/abs/1904.01685
+  The choice of calibration metric re-ranks methods; adaptive binning, class conditioning and L2 variants of ECE. The pitfalls row on slide 26.
+- **Kumar, Liang and Ma (2019).** *Verified uncertainty calibration.* https://arxiv.org/abs/1909.10155
+  Scaling methods look better calibrated than they are; scaling-then-binning gives a verifiable estimate with known sample complexity.
+- **Kull et al. (2019).** *Beyond temperature scaling: obtaining well-calibrated multiclass probabilities with Dirichlet calibration.* https://arxiv.org/abs/1910.12656
+  Multiclass calibration as a linear map on log-probabilities, and class-wise ECE; relevant to Choice questions with many options.
+- **Minderer et al. (2021).** *Revisiting the calibration of modern neural networks.* https://arxiv.org/abs/2106.07998
+  Architecture is a major determinant of calibration; some recent architectures are among the best calibrated. Calibration is not a monotone function of size.
+- **Blasiok, Gopalan, Hu and Nakkiran (2022).** *A unifying theory of distance from calibration.* https://arxiv.org/abs/2211.16886
+  ECE is discontinuous; consistent, smooth distance-from-calibration measures. STOC 2023.
+- **Ovadia et al. (2019).** *Can you trust your model's uncertainty? Evaluating predictive uncertainty under dataset shift.* https://arxiv.org/abs/1906.02530
+  Post-hoc calibration degrades under distribution shift; the warning behind 'calibrate on your own data'.
+- **Zhao, Wallace, Feng, Klein and Singh (2021).** *Calibrate before use: improving few-shot performance of language models.* https://arxiv.org/abs/2102.09690
+  A content-free input exposes a label prior in LLM classifiers; correcting it adds up to 30 points of accuracy and cuts prompt variance.
+- **Kadavath et al. (2022).** *Language models (mostly) know what they know.* https://arxiv.org/abs/2207.05221
+  Large models are well calibrated on multiple-choice and true/false questions in the right format, can predict P(True) of their own samples, and lose calibration when the format shifts.
+- **OpenAI (2023).** *GPT-4 technical report.* https://arxiv.org/abs/2303.08774
+  Figure 8: the pre-trained model is well calibrated on an MMLU subset and the PPO-tuned model is not; the sentence 'post-training hurts calibration significantly'.
+- **Lin, Hilton and Evans (2022).** *Teaching models to express their uncertainty in words.* https://arxiv.org/abs/2205.14334
+  GPT-3 fine-tuned to state a verbal probability is calibrated and remains moderately calibrated under distribution shift; CalibratedMath.
+- **Tian et al. (2023).** *Just ask for calibration: strategies for eliciting calibrated confidence scores from language models fine-tuned with human feedback.* https://arxiv.org/abs/2305.14975
+  For RLHF models, verbalized confidence beats the conditional token probability, cutting ECE by up to two-thirds (gpt-3.5, TriviaQA: 0.140 to 0.050).
+- **Xiong et al. (2023).** *Can LLMs express their uncertainty? An empirical evaluation of confidence elicitation in LLMs.* https://arxiv.org/abs/2306.13063
+  A black-box elicitation framework (prompting, sampling, aggregation); LLMs remain overconfident and cluster their stated numbers.
+- **Zhu et al. (2023).** *On the calibration of large language models and alignment.* https://arxiv.org/abs/2311.13240
+  Pretraining improves calibration with scale; instruction tuning worsens it, more so with synthetic data.
+- **Kapoor et al. (2024).** *Large language models must be taught to know what they don't know.* https://arxiv.org/abs/2406.08391
+  Prompting is not enough; about a thousand graded examples and LoRA on internal features give uncertainty estimates that generalize.
+- **Xiao et al. (2025).** *Restoring calibration for aligned large language models: a calibration-aware fine-tuning approach.* https://arxiv.org/abs/2505.01997
+  Preference collapse as the mechanism by which alignment destroys calibration, and a fine-tuning objective that restores it.
+- **Sanz-Guerrero and von der Wense (2026).** *Calibration as a first-class criterion in LLM evaluation.* https://arxiv.org/abs/2609.26489
+  A position paper: none of nine recent model reports report calibration at all.
+- **Wang et al. (2024).** *'My answer is C': first-token probabilities do not match text answers in instruction-tuned language models.* https://arxiv.org/abs/2402.14499
+  For instruction-tuned models the first-token probability disagrees with the generated text answer at rates reaching over 60%: the central caveat for logprob readouts.
+
+## 4. Training for calibration (slides 14-16)
+
+- **Yang, Klein, Celikyilmaz, Peng and Tian (2023).** *RLCD: reinforcement learning from contrastive distillation for language model alignment.* https://arxiv.org/abs/2307.12950
+  The other RLCD: preference pairs from positive and negative prompts, for alignment. Nothing to do with calibration; included so the name collision is not mistaken for a source. ICLR 2024.
+- **Mielke, Szlam, Dinan and Boureau (2022).** *Reducing conversational agents' overconfidence through linguistic calibration.* https://arxiv.org/abs/2012.14983
+  The earliest linguistic-calibration training signal for dialogue agents.
+- **Band, Li, Ma and Hashimoto (2024).** *Linguistic calibration of long-form generations.* https://arxiv.org/abs/2404.00474
+  Calibration defined through the decisions a reader makes from the text; supervised then RL training on a decision-based reward.
+- **Stengel-Eskin, Hase and Bansal (2024).** *LACIE: listener-aware finetuning for confidence calibration in large language models.* https://arxiv.org/abs/2405.21028
+  Calibration as preference optimization against a simulated listener; fewer wrong answers accepted by humans.
+- **Xu et al. (2024).** *SaySelf: teaching LLMs to express confidence with self-reflective rationales.* https://arxiv.org/abs/2405.20974
+  Supervised fine-tuning on self-reflective rationales followed by PPO with a quadratic confidence reward.
+- **Leng, Huang, Zhu and Huang (2024).** *Taming overconfidence in LLMs: reward calibration in RLHF.* https://arxiv.org/abs/2410.09724
+  Reward models prefer high stated confidence; two fixes inside the standard RLHF pipeline. Why preference rewards are not proper scoring rules.
+- **Bani-Harouni, Pellegrini, Stangel et al. (2025).** *Rewarding doubt: a reinforcement learning approach to calibrated confidence expression of large language models.* https://arxiv.org/abs/2503.02623
+  RL with a log-scoring-rule reward on stated confidence; the optimal policy is exactly calibrated. The cleanest statement of the principle behind a calibration objective.
+- **Damani et al. (2025).** *Beyond binary rewards: training LMs to reason about their uncertainty.* https://arxiv.org/abs/2507.16806
+  RLCR: correctness plus a Brier score on the verbalized confidence; ordinary RL hurts calibration, RLCR improves it at no accuracy cost. The nearest published analogue of the vendor's 'RL for calibrated decisions'.
+- **Yoon et al. (2025).** *Reasoning models better express their confidence.* https://arxiv.org/abs/2505.14489
+  Reasoning models are better calibrated in most settings tested, attributed to slow-thinking behaviours.
+- **Mei et al. (2025).** *Reasoning about uncertainty: do reasoning models know when they don't know?.* https://arxiv.org/abs/2506.18183
+  The counterpoint: reasoning models are overconfident on wrong answers, and deeper reasoning can make it worse.
+- **Zeng, Xuan, Cui and Voigt (2025).** *Thinking out loud: do reasoning models know when they're right?.* https://arxiv.org/abs/2504.06564
+  A 'reasoning tax': RL and distillation improve calibration on reasoning tasks but erode awareness of knowledge boundaries.
+- **Kirichenko, Ibrahim, Chaudhuri and Bell (2025).** *AbstentionBench: reasoning LLMs fail on unanswerable questions.* https://arxiv.org/abs/2506.09038
+  Twenty datasets and twenty models; fine-tuning for reasoning degrades abstention by about a quarter on average.
+- **Hinton, Vinyals and Dean (2015).** *Distilling the knowledge in a neural network.* https://arxiv.org/abs/1503.02531
+  Soft targets as the training signal; the original recipe for compressing a large model's probabilities into a small one.
+- **Hsieh et al. (2023).** *Distilling step-by-step! Outperforming larger language models with less training data and smaller model sizes.* https://arxiv.org/abs/2305.02301
+  A 770M model trained on a large model's rationales beats 540B few-shot with a fraction of the data; distillation into a decision-sized model.
+- **Pangakis and Wolken (2024).** *Knowledge distillation in automated annotation: supervised text classification with LLM-generated training labels.* https://arxiv.org/abs/2406.17633
+  Classifiers trained on GPT-4 labels match those trained on human labels across 14 tasks; the cheapest route to a private decision model.
+
+## 5. Selective prediction, thresholds, conformal sets, cascades (slides 17-20)
+
+- **El-Yaniv and Wiener (2010).** *On the foundations of noise-free selective classification.* https://jmlr.org/papers/v11/el-yaniv10a.html
+  The risk-coverage formalism: a classifier paired with a selector, and the trade-off curve. JMLR 2010.
+- **Geifman and El-Yaniv (2017).** *Selective classification for deep neural networks.* https://arxiv.org/abs/1705.08500
+  Guaranteed risk at a chosen coverage by thresholding confidence; the practical recipe behind 'answer when sure, hand off the rest'.
+- **Geifman, Uziel and El-Yaniv (2019).** *Bias-reduced uncertainty estimation for deep neural classifiers.* https://arxiv.org/abs/1805.08206
+  The source of AURC, the area under the risk-coverage curve.
+- **Hendrycks and Gimpel (2016).** *A baseline for detecting misclassified and out-of-distribution examples in neural networks.* https://arxiv.org/abs/1610.02136
+  Maximum softmax probability as an error detector, scored by AUROC: ranking quality as distinct from calibration.
+- **Madras, Pitassi and Zemel (2018).** *Predict responsibly: improving fairness and accuracy by learning to defer.* https://arxiv.org/abs/1711.06664
+  Rejection as learning to defer to a downstream decision maker whose own error matters.
+- **Mozannar and Sontag (2020).** *Consistent estimators for learning to defer to an expert.* https://arxiv.org/abs/2006.01862
+  A reduction of deferral to cost-sensitive learning with a consistent surrogate loss.
+- **Kamath, Jia and Liang (2020).** *Selective question answering under domain shift.* https://arxiv.org/abs/2006.09462
+  Softmax-based abstention fails out of domain; a trained calibrator answers more questions at the same accuracy.
+- **Elkan (2001).** *The foundations of cost-sensitive learning.* https://cseweb.ucsd.edu/~elkan/rescale.pdf
+  The optimal decision threshold from the cost matrix; learn probabilities, then decide. The formal justification for slide 18. IJCAI 2001.
+- **Vickers and Elkin (2006).** *Decision curve analysis: a novel method for evaluating prediction models.* https://doi.org/10.1177/0272989X06295361
+  Net benefit as a function of the threshold probability: the range of thresholds over which a predictor helps at all.
+- **Angelopoulos and Bates (2021).** *A gentle introduction to conformal prediction and distribution-free uncertainty quantification.* https://arxiv.org/abs/2107.07511
+  The four-line split-conformal recipe on slide 19, its finite-sample guarantee, and its extensions.
+- **Kumar et al. (2023).** *Conformal prediction with large language models for multi-choice question answering.* https://arxiv.org/abs/2305.18404
+  Conformal sets over LLM option probabilities; set size tracks accuracy and coverage is approximately maintained under mild subject shift.
+- **Quach et al. (2023).** *Conformal language modeling.* https://arxiv.org/abs/2306.10193
+  Calibrated stopping and rejection rules that yield sets of generations containing an acceptable answer with high probability.
+- **Ren et al. (2023).** *Robots that ask for help: uncertainty alignment for large language model planners.* https://arxiv.org/abs/2307.01928
+  KnowNo: conformal prediction over multiple-choice next steps tells a robot exactly when to ask a human. A decision-model pattern in robotics.
+- **Mohri and Hashimoto (2024).** *Language models with conformal factuality guarantees.* https://arxiv.org/abs/2402.10978
+  Back off sub-claims until the retained text meets a correctness target; conformal guarantees for generated text.
+- **Chen, Zaharia and Zou (2023).** *FrugalGPT: how to use large language models while reducing cost and improving performance.* https://arxiv.org/abs/2305.05176
+  Cascades of LLMs with a learned scorer: GPT-4 quality at up to 98% lower cost, or higher accuracy at equal cost.
+- **Jitkrittum et al. (2023).** *When does confidence-based cascade deferral suffice?.* https://arxiv.org/abs/2307.02764
+  Confidence deferral is Bayes-optimal only when the large model's error is roughly constant; otherwise learn the deferral rule from both models.
+- **Yue et al. (2023).** *Large language model cascades with mixture of thought representations for cost-efficient reasoning.* https://arxiv.org/abs/2310.03094
+  Answer consistency as a difficulty signal for cascading; GPT-4 performance at a fraction of the cost.
+- **Ong et al. (2024).** *RouteLLM: learning to route LLMs with preference data.* https://arxiv.org/abs/2406.18665
+  Routers trained on preference data cut cost more than twofold at matched quality and transfer across model pairs.
+- **Gupta et al. (2024).** *Language model cascades: token-level uncertainty and beyond.* https://arxiv.org/abs/2404.10136
+  Sequence-probability deferral has a length bias; quantile features and learned deferral do better.
+- **Chuang et al. (2024).** *Learning to route LLMs with confidence tokens.* https://arxiv.org/abs/2410.13284
+  Learned confidence tokens beat verbalized and logit confidence for routing and rejection.
+- **TypeSafe AI (2026).** *Cookbook: structured-data-extraction cascade (documentation).* https://docs.typesafe.ai/cookbooks/sde_cascade
+  A cheap extractor, per-field Noul verification, and an expensive re-extraction only when flagged; the cascade on slide 20. Vendor numbers. Secondary source.
+- **TypeSafe AI (2026).** *Pattern: confidence-gated routing (documentation).* https://docs.typesafe.ai/patterns/confidence-routing
+  The three-band routing example (0.6 floor, 0.85 for transfers) on slide 18. Secondary source.
+
+## 6. The landscape and open-weight decision models (slides 21-23)
+
+- **TypeSafe AI (2026).** *Models and aliases (documentation).* https://docs.typesafe.ai/models
+  Jev 1.13 and 1.14, prices, context limits, the long-context header, and alias behaviour. Secondary source.
+- **Cloudflare (2026).** *Clef: open decision models (blog and model card).* https://blog.cloudflare.com/clef-decision-models/
+  A frozen Qwen backbone with a joint schema head and LoRA, trained with cross-entropy plus Brier plus an ordinal term; the most detailed public architecture in the category. Apache-2.0 weights at huggingface.co/Cloudflare/clef. Secondary source.
+- **Perplexity AI (2026).** *pplx-decider-v1.2 (model card).* https://huggingface.co/perplexity-ai/pplx-decider-v1.2
+  A 27B backbone with a separate readout head read at a marker token after each question, non-causal attention and a fitted temperature; reports dev-set ECE 0.014. Apache-2.0. Secondary source.
+- **Palmer (2026).** *Kev: an open reimplementation of a decision model (model card and README).* https://github.com/jaredpalmer/kev/blob/main/README.md
+  A pointer head on a frozen 4B base with a rank-16 LoRA, trained on public datasets reshaped into typed requests; honest comparisons with Jev. Secondary source.
+- **Convai Innovations (2026).** *Laya: a ModernBERT-based decision model (model card).* https://huggingface.co/convaiinnovations/laya
+  A 421M encoder with a two-layer head scoring each option at its own mask token; the encoder route, with vendor and independent numbers that disagree. Secondary source.
+- **ggml-org (2026).** *Decision models in llama.cpp (Hugging Face blog).* https://huggingface.co/blog/ggml-org/decision-models-in-llamacpp
+  The /v1/systemone endpoint in llama.cpp and the table of open decision models with per-question latencies. Secondary source.
+- **Microsoft (2026).** *Microsoft-Decision-1 (announcement).* https://commandline.microsoft.com/microsoft-decision-1-model-foundry/
+  A post-trained 9B model with single-pass scoring and a 36-benchmark comparison; the vendor's robustness claims. Secondary source.
+- **Liquid AI (2026).** *d1-ultra (blog).* https://www.liquid.ai/blog/d1-ultra
+  One forward pass, no tokens generated, billed per question; the open d1-3B and d1-omni-600M siblings. Secondary source.
+- **Li and Wagle (2026).** *LLM-as-Jev: LLMs are already Jev-style decision models; when and how to fine-tune them.* https://arxiv.org/abs/2610.02076
+  Sum the option-suffix logprobs after a prefilled 'Best answer: [' and softmax: a 4B model reaches 81.4% on JevBench at ECE 0.057 with no training, 84.0% with LoRA.
+- **Warner et al. (2024).** *Smarter, better, faster, longer: a modern bidirectional encoder for fast, memory efficient, and long context finetuning and inference.* https://arxiv.org/abs/2412.13663
+  ModernBERT: the encoder backbone behind Laya and the fine-tuned-encoder recipe on slide 30.
+- **Tunstall et al. (2022).** *Efficient few-shot learning without prompts.* https://arxiv.org/abs/2209.11055
+  SetFit: a contrastively tuned sentence encoder plus a head, competitive with far larger prompted models from a handful of labels.
+- **Raschka (2026).** *Classifier history and Jev (newsletter).* https://magazine.sebastianraschka.com/p/classifier-history-and-jev
+  A historian's view: 25,000 IMDb reviews through Jev for $0.65, and a fine-tuned ModernBERT that matches it. Secondary source.
+
+## 7. Limits: jaggedness, order, injection, distribution (slides 24-25)
+
+- **TypeSafe AI (2026).** *Model jaggedness: Jev 1.13 (documentation).* https://docs.typesafe.ai/model-jaggedness/jev-1.13
+  The vendor's own list of rough edges: literal reading, counting and dates, negation, irrelevant context, adversarial content, structural invariants. Secondary source.
+- **Zheng, Zhou, Meng, Zhou and Huang (2023).** *Large language models are not robust multiple choice selectors.* https://arxiv.org/abs/2309.03882
+  Selection bias is mostly token bias on the option identifiers; PriDe debiases without labels. ICLR 2024.
+- **Pezeshkpour and Hruschka (2023).** *Large language models sensitivity to the order of options in multiple-choice questions.* https://arxiv.org/abs/2308.11483
+  Reordering options swings performance by 13 to 75 percent; calibration recovers part of it.
+- **Wang et al. (2023).** *Large language models are not fair evaluators.* https://arxiv.org/abs/2305.17926
+  Swapping candidate positions flips judge verdicts; balanced-position calibration as the fix.
+- **Xu et al. (2026).** *JevOut: natural context can flip decision models.* https://arxiv.org/abs/2609.30243
+  Fluent, natural-looking context additions flip 61-73% of initially correct decisions across four decision systems and seven datasets.
+- **Hu et al. (2026).** *JevAdvBench: a benchmark and black-box attacks for reinforcement learning for calibrated decisions models.* https://arxiv.org/abs/2609.31142
+  9,744 single-edit attacks; an appended unverified opinion flips 12.1% of decisions and drags 38% of confident answers below a 0.8 review threshold.
+- **Anaconda (2026).** *Decision time: testing a decision model on real complaint outcomes (blog).* https://www.anaconda.com/blog/decision-time
+  CFPB complaints scored against what actually happened; order and repeat-call stability measured; a classical model wins on the real outcome. Secondary source.
+- **Sharma, Duncan, Marceau Caron and Vollmer (2026).** *TypedBench: a benchmark for calibration, framing sensitivity, and cost in System One decision models.* https://arxiv.org/abs/2610.11392
+  Five hundred support tickets, accuracy varying from 0.708 to 0.946 across paraphrases of the same question, systematic underconfidence, and the cost of acting on miscalibrated probabilities.
+- **Molas (2026).** *Jev can't be calibrated (blog).* https://alexmolas.com/2026/09/23/jev-cant-be-calibrated.html
+  Calibration is relative to a distribution of questions; a fair coin asked of a decision model gets 0.92. Secondary source.
+
+## 8. Evaluation and the independent evidence (slides 26-27)
+
+- **Rafe and Das (2026).** *Calibrated decisions at scale: converting police crash narratives into probabilistic crash variables with a System One model (Jev).* https://arxiv.org/abs/2609.24052
+  195,857 narratives and 27 questions for $0.154 per thousand; F1 0.908 against 2,416 human labels; raw probabilities overstate prevalence until recalibrated. The first independent at-scale study.
+- **Guo et al. (2026).** *Just ask Jev: reinforcement learning for calibrated decisions as a zero-shot detector of AI alignment failures.* https://arxiv.org/abs/2609.29429
+  Forty-four benchmarks: a strong ranker (median AUROC 0.886) at a fraction of an LLM judge's cost, with calibration error worse than a null baseline.
+- **Wu and Lim (2026).** *REFLEX with Jev: efficient selective control in LLM agents.* https://arxiv.org/abs/2609.26532
+  A decision model as the gate in an agent: 95% task success with 72.7% fewer strong-model calls, and little gain where cheap cascades already route well.
+- **OpenRouter (2026).** *Jev vs Claude Opus 5 on Banking77 classification (blog).* https://openrouter.ai/blog/insights/jev-vs-claude-opus-5-classification/
+  3,080 utterances and 77 intents: 81.0% against 84.4%, latency percentiles, cost per thousand, and a confidence cascade that closes the gap. Secondary source.
+- **OpenRouter (2026).** *Jev vs LLM-as-a-judge (blog).* https://openrouter.ai/blog/tutorials/jev-vs-llm-as-a-judge/
+  138 faithfulness and summary-quality items: accuracy, Brier score, latency and cost against a generative judge, and where the open rubric favours the generator. Secondary source.
+- **Archestra (2026).** *We tested Jev on 100 real agent calls (blog).* https://archestra.ai/blog/we-tested-jev-on-100-real-agent-calls
+  Tool-call approval decisions from a coding agent: zero-shot and few-shot accuracy against a frontier model and the majority baseline, with an order-reversal test. Secondary source.
+- **Dibia (2026).** *How Jev works: calibrated decisions and a DIY baseline (newsletter).* https://newsletter.victordibia.com/p/how-jev-works-calibrated-decision
+  The option-scoring hypothesis, and a 7B logprob readout with a temperature that lands within a few points of Jev on prompt-injection detection. Secondary source.
+- **Lambert et al. (2024).** *RewardBench: evaluating reward models for language modeling.* https://arxiv.org/abs/2403.13787
+  Reward models evaluated as classifiers over chosen and rejected responses; the evaluation culture decision models inherit.
+- **Galil, Dabbah and El-Yaniv (2023).** *What can we learn from the selective prediction and uncertainty estimation performance of 523 ImageNet classifiers?.* https://arxiv.org/abs/2302.11874
+  Selective-prediction metrics at scale: AURC can hide differences; which training regimes give the best selectors.
+- **Gilardi, Alizadeh and Kubli (2023).** *ChatGPT outperforms crowd-workers for text-annotation tasks.* https://arxiv.org/abs/2303.15056
+  The annotation-economics baseline: LLM labels at a fraction of crowd cost, before decision models cut it further.
+
+## 9. Practice: agents, questions, building your own (slides 28-30)
+
+- **OpenRouter (2026).** *Cookbook: auto-approve permission prompts with Jev (documentation).* https://openrouter.ai/docs/cookbook/coding-agents/auto-approve-permission-prompts-with-jev
+  Two Noul questions, a 0.9 threshold, a static deny-list in front, and fail-closed timeouts, wired into Claude Code, Codex, OpenCode and Cursor hooks. The pattern on slide 28. Secondary source.
+- **TypeSafe AI (2026).** *Jev with coding agents (documentation).* https://docs.typesafe.ai/introduction/coding-agents
+  What a decision model is and is not inside a coding agent; the agent skill for writing integrations. Secondary source.
+- **LangChain (2026).** *Building a harness with Jev (blog).* https://www.langchain.com/blog/building-a-harness-with-jev
+  A classifier, a model-router middleware and a tool guardrail built on a decision model; experimental. Secondary source.
+- **TypeSafe AI (2026).** *Cookbook: guardrails for LLMs (documentation).* https://docs.typesafe.ai/cookbooks/llm_guardrails
+  Input and output screening with four Nouls and a severity Score per message, two thresholds per hazard, and a precedence rule. Secondary source.
+- **TypeSafe AI (2026).** *Cookbook: hierarchical classification (documentation).* https://docs.typesafe.ai/cookbooks/hierarchical_classification
+  Beam search over Choice probabilities through deep taxonomies, scored by the geometric mean of edge probabilities. Secondary source.
+- **Inan et al. (2023).** *Llama Guard: LLM-based input-output safeguard for human-AI conversations.* https://arxiv.org/abs/2312.06674
+  A generative safety classifier with a customizable taxonomy; the guard-model lineage a Noul-based guardrail replaces.
+- **Bucher and Martini (2024).** *Fine-tuned 'small' LLMs (still) significantly outperform zero-shot generative AI models in text classification.* https://arxiv.org/abs/2406.08660
+  When you have labels, a fine-tuned small model beats a prompted large one; the case for recipe 3 on slide 30.

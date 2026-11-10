@@ -1,0 +1,238 @@
+# Reading list: Introduction to GPU Architectures
+
+Companion papers to the deck and its lecture notes, grouped by section.
+`reading_list.csv` and `reading_list.bib` hold the same list as data; `fetch_papers.sh` downloads
+every arXiv entry into one folder per section and zips the result (`bash fetch_papers.sh`).
+Entries without an arXiv identifier are listed with a URL and must be fetched by hand.
+
+## 1. Overview and the long view (slides 1-4)
+
+- **Dally, Keckler and Kirk (2021).** *Evolution of the graphics processing unit (GPU).* https://doi.org/10.1109/MM.2021.3113475
+  IEEE Micro 41(6). The architects' own twenty-year retrospective, from G80 to Ampere: why unified shaders, why SIMT, why the datapath specialized. The best single companion to this deck.
+- **Nickolls and Dally (2010).** *The GPU computing era.* https://doi.org/10.1109/MM.2010.41
+  IEEE Micro 30(2). The state of the art at Fermi's launch: the Tesla line from G80 to GF100, the programming model, and the case that GPUs had become general processors.
+- **Garland and Kirk (2010).** *Understanding throughput-oriented architectures.* https://doi.org/10.1145/1839676.1839694
+  CACM 53(11), open access. The clearest statement of the latency-versus-throughput framing that slide 2 uses: many threads, simple cores, wide memory.
+- **Fatahalian and Houston (2008).** *A closer look at GPUs.* https://doi.org/10.1145/1400181.1400197
+  CACM 51(10). A short, precise account of how a GPU core differs from a CPU core (SIMD lanes, multithreading, shared state), written as G80 and CUDA arrived.
+- **Owens, Houston, Luebke, Green, Stone and Phillips (2008).** *GPU computing.* https://doi.org/10.1109/JPROC.2008.917757
+  Proceedings of the IEEE 96(5); open copy at escholarship.org/content/qt0cv1p1nc/qt0cv1p1nc.pdf. The survey written at the moment GPGPU became GPU computing: hardware, programming models, applications.
+- **Luebke and Humphreys (2007).** *How GPUs work.* https://doi.org/10.1109/MC.2007.59
+  IEEE Computer 40(2). A four-page primer on the pipeline and its programmable stages, for readers who need the graphics side of slides 5-6 explained from zero.
+- **Peddie (2022).** *The History of the GPU: Steps to Invention.* https://doi.org/10.1007/978-3-031-10968-3
+  Springer, volume 1 of three. The pre-history: from early raster hardware to the first consumer 3D chips; dense with dates and die photographs.
+- **Peddie (2022).** *The History of the GPU: Eras and Environment.* https://doi.org/10.1007/978-3-031-13581-1
+  Springer, volume 2. 3dfx to unified shaders; the industrial history behind the timeline on slide 4.
+- **Peddie (2023).** *The History of the GPU: New Developments.* https://doi.org/10.1007/978-3-031-14047-1
+  Springer, volume 3. The 2010s and the turn to AI; overlaps the last third of this deck.
+- **Hennessy and Patterson (2017).** *Computer Architecture: A Quantitative Approach, 6th edition, chapter 4 (data-level parallelism in vector, SIMD and GPU architectures).* https://www.elsevier.com/books/computer-architecture/hennessy/978-0-12-811905-1
+  Textbook. Chapter 4 unifies vector machines, SIMD extensions and GPUs in one vocabulary and works a Pascal example; the 5th edition (2011) does the same with Fermi.
+
+## 2. The graphics pipeline, fixed and programmable (slides 5-6)
+
+- **Clark (1982).** *The Geometry Engine: a VLSI geometry system for graphics.* https://doi.org/10.1145/800064.801272
+  SIGGRAPH 1982; open copy at web.stanford.edu/class/cs349g/p127-clark.pdf. The transform stage of the pipeline as a custom chip: the origin of fixed-function graphics hardware and of Silicon Graphics.
+- **Akeley (1993).** *RealityEngine graphics.* https://doi.org/10.1145/166117.166131
+  SIGGRAPH 1993. SGI's high-end pipeline built from boards of Geometry Engines and raster chips; the fully fixed-function pipeline at its peak.
+- **Smith (The Register) (1999).** *Nvidia unveils GeForce 256 (August 31, 1999).* https://www.theregister.com/1999/08/31/nvidia_unveils_256cpu_cray_geforce/
+  Press, secondary source. The launch coverage with NVIDIA's claims as made: 'nearly 23 million transistors', 480 Mpixels/s, and the coining of 'graphics processing unit'. Component databases list 17 M transistors.
+- **Lindholm, Kilgard and Moreton (2001).** *A user-programmable vertex engine.* https://doi.org/10.1145/383259.383274
+  SIGGRAPH 2001. The GeForce 3's programmable vertex shader: the instruction set, the register model, and why the stage was made programmable. Slide 6.
+- **Mark, Glanville, Akeley and Kilgard (2003).** *Cg: a system for programming graphics hardware in a C-like language.* https://doi.org/10.1145/882262.882362
+  ACM TOG 22(3), SIGGRAPH 2003. The shading language that made shaders look like C and whose authors went on to CUDA; read with Kilgard's two-page summary, arXiv cs/0302013.
+- **Kilgard (2003).** *Cg in two pages.* https://arxiv.org/abs/cs/0302013
+  A compact statement of the Cg programming model; the arXiv copy is the easiest to obtain.
+- **Montrym and Moreton (2005).** *The GeForce 6800.* https://doi.org/10.1109/MM.2005.37
+  IEEE Micro 25(2). The last large pre-unified NVIDIA design: separate vertex and pixel processors, Shader Model 3.0, and the load-balancing problem that G80 solved.
+- **Andrews and Baker (2006).** *Xbox 360 system architecture.* https://doi.org/10.1109/MM.2006.45
+  IEEE Micro 26(2). The Xenos GPU (ATI, 2005), the first unified-shader design to ship, a year before G80.
+- **Blythe (2006).** *The Direct3D 10 system.* https://doi.org/10.1145/1141911.1141947
+  SIGGRAPH 2006. The API side of unification: Shader Model 4.0's common shader core and why the fixed distinction between vertex and pixel programs was dropped.
+- **Peddie (IEEE Computer Society, Chasing Pixels) (2021).** *AMD's unified shader GPU history.* https://www.computer.org/publications/tech-news/chasing-pixels/amd-unified-shader-gpu-history
+  Secondary source. Settles the 'first unified shader' question: Xenos first in a console (2005), G80 first on the PC with a common API (DirectX 10, 2006).
+
+## 3. GPGPU and the unified G80 with CUDA (slides 7-8)
+
+- **Buck, Foley, Horn, Sugerman, Fatahalian, Houston and Hanrahan (2004).** *Brook for GPUs: stream computing on graphics hardware.* https://doi.org/10.1145/1015706.1015800
+  ACM TOG 23(3), SIGGRAPH 2004; project page graphics.stanford.edu/papers/brookgpu. Streams and kernels compiled to shaders: the programming model that CUDA's first author carried to NVIDIA. Slide 7.
+- **Owens, Luebke, Govindaraju, Harris, Krueger, Lefohn and Purcell (2007).** *A survey of general-purpose computation on graphics hardware.* https://doi.org/10.1111/j.1467-8659.2007.01012.x
+  Computer Graphics Forum 26(1); open copy at escholarship.org/content/qt9ns2d70c/qt9ns2d70c.pdf. The catalog of what ran on shaders before CUDA, and of the tricks (scatter via vertex processors, multi-pass reductions) that CUDA made unnecessary.
+- **Steinkraus, Simard and Buck (2005).** *Using GPUs for machine learning algorithms.* https://doi.org/10.1109/ICDAR.2005.251
+  ICDAR 2005. The earliest paper training neural networks on a GPU, through the graphics API; three of the authors' ideas reappear in cuDNN a decade later.
+- **Chellapilla, Puri and Simard (2006).** *High performance convolutional neural networks for document processing.* https://inria.hal.science/inria-00112631
+  IWFHR 2006, open access. Convolution unrolled into matrix multiply and run on a GPU: the formulation every later framework used.
+- **Lindholm, Nickolls, Oberman and Montrym (2008).** *NVIDIA Tesla: a unified graphics and computing architecture.* https://doi.org/10.1109/MM.2008.31
+  IEEE Micro 28(2). The canonical G80 paper: streaming processors, the SM, SIMT (the term is introduced here), the memory system, and the graphics and compute pipelines sharing one array. Slides 8 and 11.
+- **Nickolls, Buck, Garland and Skadron (2008).** *Scalable parallel programming with CUDA.* https://doi.org/10.1145/1365490.1365500
+  ACM Queue 6(2), open access. The programming model as its designers explain it: threads, blocks, grids, shared memory, barriers, and why blocks are independent. Slide 9.
+- **Kirk (2007).** *NVIDIA CUDA software and GPU parallel computing architecture (ISMM 2007 keynote).* https://doi.org/10.1145/1296907.1296909
+  The first appearance of CUDA's architecture in the academic literature, four months after the public beta.
+- **eWeek (2006).** *Nvidia launches new architecture for its graphics chips (November 8, 2006).* https://www.eweek.com/networking/nvidia-launches-new-architecture-for-its-graphics-chips/
+  Press, secondary source. Confirms that the GeForce 8800 and CUDA were announced on the same day.
+- **NVIDIA (2007).** *Tesla product overview: C870, D870, S870 (June 2007).* https://www.nvidia.com/docs/io/43395/tesla_product_overview.pdf
+  Vendor datasheet. The first compute-only products: 128 thread processors, 1.5 GB, 76.8 GB/s, 'up to 518 gigaflops'.
+- **Khronos Group (2008).** *The Khronos Group releases OpenCL 1.0 specification (press release, December 2008).* https://www.khronos.org/news/press/the_khronos_group_releases_opencl_1.0_specification
+  Vendor press release. The vendor-neutral standard with CUDA's model and different names (work-items, work-groups), six months after Apple's proposal.
+- **Wasson (The Tech Report) (2006).** *Nvidia's GeForce 8800 graphics processor (launch review).* https://www.techreport.com/reviews/2006q4/geforce-8800/index.x?pg=1
+  Press, secondary source. The launch-day architecture walkthrough with NVIDIA's briefing numbers, including the 185 W figure given to reviewers (155 W became the official maximum board power).
+
+## 4. The CUDA model and its mapping to the chip (slides 9-10)
+
+- **Kirk and Hwu (2016).** *Programming Massively Parallel Processors: A Hands-on Approach, 3rd edition.* https://www.elsevier.com/books/programming-massively-parallel-processors/kirk/978-0-12-811986-0
+  Textbook. The course that goes with slides 9-10 and 14: the CUDA model, memory hierarchy, tiling, and performance considerations; the 4th edition (Hwu, Kirk and El Hajj, 2022) adds later architectures.
+- **Harris (2007).** *Optimizing parallel reduction in CUDA.* https://developer.download.nvidia.com/compute/cuda/1.1-Beta/x86_website/projects/reduction/doc/reduction.pdf
+  Vendor tutorial, open. Seven versions of one kernel, each removing a specific inefficiency (divergence, bank conflicts, idle threads, instruction overhead); the single best introduction to GPU performance thinking.
+- **Volkov and Demmel (2008).** *Benchmarking GPUs to tune dense linear algebra.* https://bebop.cs.berkeley.edu/pubs/volkov2008-benchmarking.pdf
+  SC 2008 (Test of Time award, 2019), open copy. Microbenchmarks of G80 and GT200 used to design an SGEMM at 60% of peak; the register-blocking lesson every later GEMM followed.
+- **Wittenbrink, Kilgariff and Prabhu (2011).** *Fermi GF100 GPU architecture.* https://doi.org/10.1109/MM.2011.24
+  IEEE Micro 31(2). The Fermi SM of slide 10 described by its architects: dual warp schedulers, the configurable L1/shared array, the L2, ECC, and the graphics pipeline around them.
+- **NVIDIA (2009).** *NVIDIA's next generation CUDA compute architecture: Fermi (whitepaper v1.1).* https://www.ece.lsu.edu/koppel/gp/refs/NVIDIA_Fermi_Compute_Architecture_Whitepaper.pdf
+  Vendor whitepaper (mirror; the nvidia.com original is the same document). The G80/GT200/Fermi comparison table, the SM diagram, the memory hierarchy and the 48 warps per SM that slide 10 quotes.
+- **Glaskowsky (2009).** *NVIDIA's Fermi: the first complete GPU computing architecture.* https://www.nvidia.com/content/PDF/fermi_white_papers/P.Glaskowsky_NVIDIAFermi-TheFirstCompleteGPUComputingArchitecture.pdf
+  Analyst whitepaper commissioned by NVIDIA; secondary source. Places Fermi against CPUs and earlier GPUs with unusual clarity about what 'general-purpose' required.
+
+## 5. SIMT, latency hiding and the energy argument (slides 11-13)
+
+- **Fung, Sham, Yuan and Aamodt (2007).** *Dynamic warp formation and scheduling for efficient GPU control flow.* https://people.ece.ubc.ca/aamodt/papers/wwlfung.micro2007.pdf
+  MICRO 2007, open copy. The first academic analysis of branch divergence in SIMT and a hardware proposal to regroup threads across warps; the cost model of slide 11.
+- **Hong and Kim (2009).** *An analytical model for a GPU architecture with memory-level and thread-level parallelism awareness.* https://doi.org/10.1145/1555754.1555775
+  ISCA 2009. The MWP/CWP model: how many warps a memory system can serve at once and how many the compute pipeline needs; the formal version of slide 12.
+- **Bakhoda, Yuan, Fung, Wong and Aamodt (2009).** *Analyzing CUDA workloads using a detailed GPU simulator.* https://people.ece.ubc.ca/aamodt/papers/gpgpusim.ispass09.pdf
+  ISPASS 2009, open copy. GPGPU-Sim, the simulator most GPU architecture research used for a decade, and its first findings on interconnect and memory bottlenecks.
+- **Rogers, O'Connor and Aamodt (2012).** *Cache-conscious wavefront scheduling.* https://engineering.purdue.edu/tgrogers/publication/rogers-micro-2012/rogers-micro-2012.pdf
+  MICRO 2012, open copy. Why more resident warps can hurt: L1 thrashing, and a scheduler that limits the active set; the counterpoint to maximal occupancy.
+- **Volkov (2010).** *Better performance at lower occupancy (GTC 2010 talk).* https://www.nvidia.com/content/GTC-2010/pdfs/2238_GTC2010.pdf
+  Vendor conference slides, secondary source. Instruction-level parallelism within a thread as a substitute for thread-level parallelism; the argument slide 12 summarizes.
+- **Volkov (2016).** *Understanding latency hiding on GPUs (PhD thesis, UC Berkeley EECS-2016-143).* https://www2.eecs.berkeley.edu/Pubs/TechRpts/2016/EECS-2016-143.pdf
+  Open access. The rigorous version of Little's law for GPUs, measured on Fermi through Maxwell; the reference for anyone modeling occupancy.
+- **Keckler, Dally, Khailany, Garland and Glasco (2011).** *GPUs and the future of parallel computing.* https://www.cs.toronto.edu/~pekhimenko/courses/csc2231-f17/Papers/GPUs.pdf
+  IEEE Micro 31(5), open copy (DOI 10.1109/MM.2011.89). The energy tables behind slide 13: 50 pJ per double-precision FMA at 40 nm, 14 pJ per 64-bit SRAM read, 240 fJ per bit-millimeter of wire, 28-45 pJ per bit of DRAM access and interface, and the Echelon design that followed from them.
+- **Esmaeilzadeh, Blem, St. Amant, Sankaralingam and Burger (2011).** *Dark silicon and the end of multicore scaling.* https://doi.org/10.1145/2000064.2000108
+  ISCA 2011. At fixed power only part of a chip can be active; the argument for specialization that the tensor core later embodied.
+- **Dennard, Gaensslen, Yu, Rideout, Bassous and LeBlanc (1974).** *Design of ion-implanted MOSFETs with very small physical dimensions.* https://doi.org/10.1109/JSSC.1974.1050511
+  IEEE JSSC 9(5). The scaling law whose breakdown around 2005 ended clock-speed growth and made throughput architectures inevitable.
+- **Bohr (2007).** *A 30 year retrospective on Dennard's MOSFET scaling paper.* https://doi.org/10.1109/N-SSC.2007.4785534
+  IEEE SSCS Newsletter 12(1). Short, readable account of why the law stopped holding (leakage, threshold voltage) and what replaced it.
+- **Lee et al. (Intel) (2010).** *Debunking the 100X GPU vs. CPU myth: an evaluation of throughput computing on CPU and GPU.* https://www.cs.umd.edu/class/fall2019/cmsc714/readings/Lee-GPU.pdf
+  ISCA 2010, open copy. Fourteen kernels tuned on both a GTX 280 and a Core i7-960: 2.5x on average. The paper that made honest comparisons the norm; slide 27.
+
+## 6. The memory system and the roofline (slides 14-15)
+
+- **Williams, Waterman and Patterson (2009).** *Roofline: an insightful visual performance model for multicore architectures.* https://doi.org/10.1145/1498765.1498785
+  CACM 52(4); open copy at escholarship.org/content/qt78h8v7mr/qt78h8v7mr.pdf. The model of slide 15: attainable performance as the minimum of peak and bandwidth times intensity.
+- **Wong, Papadopoulou, Sadooghi-Alvandi and Moshovos (2010).** *Demystifying GPU microarchitecture through microbenchmarking.* https://www.eecg.utoronto.ca/~moshovos/CUDA08/arx/microbenchmark_report.pdf
+  ISPASS 2010 (DOI 10.1109/ISPASS.2010.5452013), open technical-report copy. Pointer-chasing and dependent-chain measurements on GT200: about 440 cycles to global memory, 38 to shared memory, a 24-cycle arithmetic pipeline, the cache and TLB structure.
+- **Mei and Chu (2017).** *Dissecting GPU memory hierarchy through microbenchmarking.* https://arxiv.org/abs/1509.02308
+  IEEE TPDS 28(1). The same method applied to Fermi, Kepler and Maxwell: cache sizes, set structure, latencies; fills the gap between Wong (GT200) and Jia (Volta).
+- **JEDEC (2016).** *JEDEC updates High Bandwidth Memory standard JESD235A (press release, January 12, 2016).* https://www.jedec.org/node/5916
+  Standards body press release. HBM2: eight independent 128-bit channels per stack, up to 256 GB/s and 8 GB per stack, pseudo-channel mode; the memory of Pascal and Volta.
+- **JEDEC (2016).** *JEDEC announces publication of GDDR5X graphics memory standard JESD232 (January 21, 2016).* https://www.jedec.org/node/5917
+  Standards body press release. The other 2016 path to bandwidth, used on the consumer GP104 instead of HBM2.
+- **NVIDIA (2016).** *GeForce GTX 1080 whitepaper (GP104).* https://kolegite.com/EE_library/datasheets_and_manuals/GPU/GeForce_GTX_1080_Whitepaper_FINAL.pdf
+  Vendor whitepaper (mirror). The consumer Pascal with GDDR5X; its comparison table is also the accessible source for GM204 (GTX 980) figures.
+
+## 7. The generations: Tesla, Fermi, Kepler, Maxwell, Pascal (slides 16-21)
+
+- **NVIDIA (2010).** *Tesla C1060 computing processor board specification (BD-04111-001_v06).* https://www.nvidia.com/docs/io/43395/bd-04111-001_v06.pdf
+  Vendor datasheet. GT200 as a compute product: 240 cores at 1.296 GHz, 4 GB GDDR3 at 102 GB/s, 187.8 W.
+- **NVIDIA (2010).** *Tesla C2050 / C2070 GPU computing processor datasheet (July 2010).* https://www.nvidia.com/docs/io/43395/nv_ds_tesla_c2050_c2070_jul10_lores.pdf
+  Vendor datasheet. Fermi as shipped: 448 cores, 515 GFLOP/s double, 1.03 TFLOP/s single, 144 GB/s, 238 W.
+- **NVIDIA (2012).** *NVIDIA's next generation CUDA compute architecture: Kepler GK110 (whitepaper v1.0).* https://www.nvidia.co.jp/content/apac/pdf/tesla/nvidia-kepler-gk110-architecture-whitepaper-jp.pdf
+  Vendor whitepaper (mirror of the English document). The SMX, dynamic parallelism, Hyper-Q, GPUDirect RDMA, and the compute-capability table from Fermi to GK110.
+- **NVIDIA (2014).** *Tesla K80 / K40 datasheet.* https://hpc-test.llnl.gov/sites/default/files/Tesla-K80K40-datasheet.pdf
+  Vendor datasheet (mirror). K40 at 4.29 / 1.43 TFLOP/s base and 5.04 / 1.68 boost; K80 at 8.74 / 2.91 with boost, 24 GB, 480 GB/s.
+- **NVIDIA (2016).** *Tesla M40 datasheet (January 2016).* https://images.nvidia.com/content/tesla/pdf/nvidia-teslam40-datasheet.pdf
+  Vendor datasheet. Maxwell for training: 3,072 cores, 7 TFLOP/s with boost, 288 GB/s, 250 W, and the FP64 rate that kept it out of HPC.
+- **NVIDIA (2016).** *NVIDIA Tesla P100 whitepaper (WP-08019-001_v01.1).* https://techpowerup.com/gpu-specs/docs/nvidia-gp100-architecture.pdf
+  Vendor whitepaper (mirror of the same document). GP100 in full: the SM, FP16, HBM2 and CoWoS, NVLink 1.0, unified memory with page faulting, compute preemption, and Table 1 comparing K40, M40 and P100. Slide 20.
+- **NVIDIA (2016).** *NVIDIA delivers massive performance leap for deep learning, HPC applications with NVIDIA Tesla P100 accelerators (press release, April 5, 2016).* https://www.globenewswire.com/news-release/2016/04/05/1149699/0/en/NVIDIA-Delivers-Massive-Performance-Leap-for-Deep-Learning-HPC-Applications-With-NVIDIA-Tesla-P100-Accelerators.html
+  Vendor press release. The launch claims as made: 5.3 / 10.6 / 21.2 TFLOP/s, 720 GB/s, 160 GB/s NVLink, 15.3 billion transistors.
+- **Foley and Danskin (2017).** *Ultra-performance Pascal GPU and NVLink interconnect.* https://doi.org/10.1109/MM.2017.37
+  IEEE Micro 37(2). GP100 and NVLink by their architects; the Hot Chips 28 talk by the same authors (old.hotchips.org, HC28.22.121) has the floorplan and PHY details.
+- **NVIDIA (2015).** *New NVIDIA hyperscale accelerators boost machine learning throughput for web data centers (press release, November 10, 2015).* https://www.globenewswire.com/news-release/2015/11/10/1149678/0/en/New-NVIDIA-Hyperscale-Accelerators-Boost-Machine-Learning-Throughput-for-Web-Data-Centers.html
+  Vendor press release. The M40 announcement, and the moment NVIDIA named deep-learning training as a product category of its own.
+- **Krizhevsky, Sutskever and Hinton (2012).** *ImageNet classification with deep convolutional neural networks.* https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf
+  NIPS 2012, open access (also CACM 60(6), 2017). Trained 'between five and six days on two GTX 580 3GB GPUs'; the paper that redirected the architecture. Slide 19.
+- **Chetlur, Woolley, Vandermersch, Cohen, Tran, Catanzaro and Shelhamer (2014).** *cuDNN: efficient primitives for deep learning.* https://arxiv.org/abs/1410.0759
+  The library that tied every deep-learning framework to CUDA; convolution as GEMM with tiling in on-chip memory, the kernels the tensor core later accelerated.
+- **Raina, Madhavan and Ng (2009).** *Large-scale deep unsupervised learning using graphics processors.* https://icml.cc/imls/conferences/2009/papers/218.pdf
+  ICML 2009, open copy. Deep belief networks and sparse coding on a GTX 280: the first widely read case that GPUs change what deep learning can afford.
+- **Ciresan, Meier, Gambardella and Schmidhuber (2010).** *Deep, big, simple neural nets for handwritten digit recognition.* https://arxiv.org/abs/1003.0358
+  Neural Computation 22(12). Plain multilayer perceptrons trained on GPUs beat the MNIST state of the art; evidence that compute, not cleverness, was the missing ingredient.
+- **Tom's Hardware (Angelini) (2015).** *Nvidia GeForce GTX Titan X 12GB review (March 17, 2015).* https://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
+  Press, secondary source. The GM200 launch: 8 billion transistors, 601 mm2, 3,072 cores, FP64 at 1/32; the consumer die that became the Tesla M40.
+
+## 8. Volta and the tensor core (slides 22-24)
+
+- **NVIDIA (2017).** *NVIDIA Tesla V100 GPU architecture (whitepaper WP-08608-001_v1.1).* https://www.ece.lsu.edu/gp/refs/volta-architecture-whitepaper.pdf
+  Vendor whitepaper (mirror of the same document). The GV100 SM with its four processing blocks, tensor cores, independent thread scheduling, the unified L1/shared memory, NVLink 2.0, and Table 1 comparing P100 and V100. Slides 21-24.
+- **Choquette, Giroux and Foley (2018).** *Volta: performance and programmability.* https://doi.org/10.1109/MM.2018.022071134
+  IEEE Micro 38(2). Volta by its architects: why the SM was repartitioned, how tensor cores fit the pipeline, and what independent thread scheduling cost and bought.
+- **NVIDIA (2018).** *Tesla V100 data sheet (March 2018).* https://images.nvidia.com/content/technologies/volta/pdf/tesla-volta-v100-datasheet-letter-fnl-web.pdf
+  Vendor datasheet. SXM2 against PCIe: 7.8 / 15.7 / 125 against 7 / 14 / 112 TFLOP/s, 300 against 250 W, 16 or 32 GB.
+- **Jia, Maggioni, Staiger and Scarpazza (2018).** *Dissecting the NVIDIA Volta GPU architecture via microbenchmarking.* https://arxiv.org/abs/1804.06826
+  Citadel's measurement of V100: 19-cycle shared memory, 28-cycle L1, about 193-cycle L2, 375-cycle global memory with a TLB hit and 1,029 with a miss, 4-cycle FP32 FMA, tensor-core behavior, and the instruction encoding. Slides 12 and 24.
+- **Markidis, Der Chien, Laure, Peng and Vetter (2018).** *NVIDIA tensor core programmability, performance and precision.* https://arxiv.org/abs/1803.04014
+  IPDPSW 2018. The WMMA API measured: achieved TFLOP/s against the 125 peak, and the precision lost to FP16 inputs with and without FP32 accumulation.
+- **Micikevicius et al. (2017).** *Mixed precision training.* https://arxiv.org/abs/1710.03740
+  ICLR 2018. FP32 master weights, FP16 forward and backward passes, loss scaling; the recipe that made tensor cores usable for training without accuracy loss. Slide 23.
+- **NVIDIA (via Edge AI and Vision Alliance) (2017).** *NVIDIA launches revolutionary Volta GPU platform (press release, May 10, 2017).* https://www.edge-ai-vision.com/2017/05/nvidia-launches-revolutionary-volta-gpu-platform-fueling-next-era-of-ai-and-high-performance-computing/
+  Vendor press release (mirror). The launch claims: 21 billion transistors, 640 tensor cores, 120 TFLOP/s (later 125), 900 GB/s.
+
+## 9. Systems: interconnect, supercomputers, the alternatives (slides 25-27)
+
+- **Danskin and Foley (2016).** *Pascal GPU with NVLink (Hot Chips 28 slides).* https://old.hotchips.org/wp-content/uploads/hc_archives/hc28/HC28.22-Monday-Epub/HC28.22.10-GPU-HPC-Epub/HC28.22.121-Pascal-GPU-DanskinFoley-NVIDIA-v06-6_7.pdf
+  Conference slides, open. The GP100 floorplan, the HBM2 and CoWoS package, and the NVLink physical layer and the DGX-1 topology. Slide 25.
+- **Ishii and Wells (NVIDIA) (2018).** *NVSwitch and DGX-2 (Hot Chips 30 slides).* https://www.old.hotchips.org/hc30/2conf/2.01_Nvidia_NVswitch_HotChips2018_DGX2NVS_Final.pdf
+  Conference slides, open. The 18-port NVSwitch (2 billion transistors, 106 mm2, 900 GB/s aggregate) and the DGX-2's 16-GPU fabric with 2.4 TB/s of bisection bandwidth.
+- **HPCwire (2018).** *Nvidia ups hardware game with 16-GPU DGX-2 server and NVSwitch (March 27, 2018).* https://www.hpcwire.com/2018/03/27/nvidia-ups-hardware-game-with-16-gpu-dgx-2-server-and-nvswitch/
+  Press, secondary source. The DGX-2 and V100 32 GB announcement with the figures as given at GTC 2018.
+- **Oak Ridge Leadership Computing Facility (2018).** *Summit by the numbers (June 2018).* https://www.olcf.ornl.gov/wp-content/uploads/2018/06/Summit_bythenumbers_FIN-1.pdf
+  Facility fact sheet. 4,608 nodes, 27,648 V100s, 200 PFLOP/s peak, 13 MW, the node layout of slide 26.
+- **Lawrence Livermore National Laboratory (2018).** *Sierra platform page.* https://hpc.llnl.gov/hardware/platforms/sierra
+  Facility page. 4,320 nodes, 17,280 V100s, 125.6 PFLOP/s peak: Summit's sibling with four GPUs per node.
+- **TOP500 (2010).** *TOP500 list, November 2010.* https://top500.org/lists/top500/2010/11/
+  Benchmark list. Tianhe-1A at 2.566 PFLOP/s, the first GPU-accelerated number one; TSUBAME 2.0 and Nebulae in the top five.
+- **NVIDIA (2010).** *Three of the world's top five supercomputers powered by NVIDIA Tesla GPUs (press release, November 15, 2010).* https://www.globenewswire.com/news-release/2010/11/15/1149888/0/en/Three-of-the-World-s-Top-Five-Supercomputers-Powered-by-NVIDIA-Tesla-GPUs.html
+  Vendor press release. 7,168 GPUs in Tianhe-1A and the Fermi-era systems; note that it quotes the pre-list 2.507 PFLOP/s figure.
+- **TOP500 (2012).** *TOP500 list, November 2012.* https://top500.org/lists/top500/2012/11/
+  Benchmark list. Titan at 17.59 PFLOP/s with 18,688 K20Xs, number one.
+- **TOP500 (2017).** *TOP500 list, November 2017.* https://top500.org/lists/top500/list/2017/11
+  Benchmark list. Piz Daint at 19.59 PFLOP/s with 5,320 P100s, number three; Titan still number five.
+- **TOP500 (2018).** *TOP500 list, June 2018.* https://www.top500.org/lists/2018/06/
+  Benchmark list. Summit's first appearance at 122.3 PFLOP/s, number one; Sierra at 71.6.
+- **TOP500 (2018).** *TOP500 list, November 2018.* https://top500.org/lists/2018/11/
+  Benchmark list. Summit at 143.5 PFLOP/s, Sierra at 94.64, Piz Daint at 21.23; the 148.6 figure often quoted for Summit is from June 2019.
+- **TOP500 News (2017).** *Swiss deploy world's fastest GPU-powered supercomputer.* https://www.top500.org/news/swiss-deploy-worlds-fastest-gpu-powered-supercomputer
+  Benchmark-site news, secondary source. The Piz Daint P100 upgrade's timeline and node count.
+- **Seiler et al. (Intel) (2008).** *Larrabee: a many-core x86 architecture for visual computing.* https://doi.org/10.1145/1360612.1360617
+  ACM TOG 27(3), SIGGRAPH 2008; open copy at courses.cs.washington.edu/courses/cse591n/08au/Papers/larrabee_manycore.pdf. The x86 alternative: many small cores, 16-wide vectors, coherent caches, graphics in software. Slide 27.
+- **Feldman (HPCwire) (2009).** *Intel cancels 2010 Larrabee debut (December 7, 2009).* https://www.hpcwire.com/2009/12/07/intel_cancels_2010_larrabee_debut/
+  Press, secondary source. Intel's December 4, 2009 statement that Larrabee would not ship as a discrete graphics product.
+- **Feldman (HPCwire) (2012).** *Intel brings manycore x86 to market with Knights Corner (November 12, 2012).* https://www.hpcwire.com/2012/11/12/intel_brings_manycore_x86_to_market_with_knights_corner/
+  Press, secondary source. The Xeon Phi 5110P: 60 cores, 1.011 TFLOP/s double, 8 GB, 320 GB/s, 225 W (the article misprints the core count).
+- **Feldman (TOP500 News) (2016).** *Intel takes on NVIDIA with Knights Landing launch (June 2016).* https://www.top500.org/news/intel-takes-on-nvidia-with-knights-landing-launch/
+  Secondary source. Knights Landing SKUs (up to 72 cores, about 3.46 TFLOP/s double) and the 16 GB of MCDRAM at 490 GB/s.
+- **HPCwire (2018).** *End of the road for Knights Landing Phi (July 25, 2018).* https://www.hpcwire.com/2018/07/25/end-of-the-road-for-knights-landing-phi
+  Press, secondary source. The discontinuation notice: last orders August 2018, last shipments July 2019.
+- **AMD (2014).** *AMD unleashes world's most powerful server GPU for HPC (press release, August 6, 2014).* https://www.globenewswire.com/news-release/2014/08/06/1011324/0/en/AMD-Unleashes-World-s-Most-Powerful-Server-GPU-for-HPC.html
+  Vendor press release. The FirePro S9150: 2.53 TFLOP/s double, 5.07 single, 16 GB, 320 GB/s, 235 W; GCN hardware ahead of NVIDIA's on paper.
+- **AMD (2015).** *AMD launches 'Boltzmann Initiative' to dramatically reduce barriers to GPU computing on AMD FirePro graphics (press release, November 16, 2015).* https://ir.amd.com/news-events/press-releases/detail/652/amd-launches-boltzmann-initiative-to-dramatically-reduce-barriers-to-gpu-computing-on-amd-fireprotm-graphics
+  Vendor press release. HCC, HIP and the headless Linux driver that became ROCm; the start of AMD's CUDA-compatible software path.
+- **AMD (2016).** *AMD releases new version of ROCm, the most versatile open source platform for GPU computing (press release, November 14, 2016).* https://ir.amd.com/news-events/press-releases/detail/732/amd-releases-new-version-of-rocm-the-most-versatile-open-source-platform-for-gpu-computing
+  Vendor press release. ROCm 1.3 at SC16; ROCm 1.0 had shipped in April 2016.
+
+## 10. Practice, textbooks and retrospectives (slides 28-31)
+
+- **Halfhill (Microprocessor Report) (2009).** *Looking beyond graphics (Fermi analysis).* https://www.halfhill.com/mpr/2009/234001.pdf
+  Analyst report, open copy; secondary source. A contemporaneous independent reading of Fermi's design choices and their cost.
+- **NVIDIA (2014).** *Kepler GK110/210 compute architecture whitepaper.* https://techpowerup.com/gpu-specs/docs/nvidia-gk110-210-compute-architecture.pdf
+  Vendor whitepaper (mirror). The GK210 revision for the K80: doubled register file and shared memory per SMX.
+- **NVIDIA (2017).** *CUDA C programming guide (version 9.0).* https://docs.nvidia.com/cuda/archive/9.0/cuda-c-programming-guide/index.html
+  Vendor documentation. The compute-capability tables (registers, shared memory, warps per SM for every generation), the memory model, and the Volta-era additions (cooperative groups, WMMA, independent thread scheduling).
+- **Hwu, Kirk and El Hajj (2022).** *Programming Massively Parallel Processors: A Hands-on Approach, 4th edition.* https://www.elsevier.com/books/programming-massively-parallel-processors/hwu/978-0-323-91231-0
+  Textbook. The current edition of the CUDA course, with Volta and later architectures; the performance chapters are the practice column of slide 29 at book length.
+- **Hennessy and Patterson (2011).** *Computer Architecture: A Quantitative Approach, 5th edition, chapter 4 and appendix.* https://www.elsevier.com/books/computer-architecture/hennessy/978-0-12-383872-8
+  Textbook. The edition whose GPU section is built on Fermi, with the vector-processor vocabulary that makes SIMT precise.
+- **Peddie (IEEE Computer Society, Chasing Pixels) (2020).** *Famous graphics chips: Geometry Engine.* https://www.computer.org/publications/tech-news/chasing-pixels/geometry-engine
+  Secondary source. A short illustrated history of the Geometry Engine for readers who want the 1982 story in plain language.
